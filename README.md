@@ -61,6 +61,7 @@ Le frontend est conçu pour :
 L'interface s'appuie sur des briques modernes et robustes :
 
 * [![Angular][Angular-Badge]][Angular-url]
+* [![TypeScript][TypeScript-Badge]][TypeScript-url]
 * [![PrimeNG][PrimeNG-Badge]][PrimeNG-url]
 * [![TailwindCSS][Tailwind-Badge]][Tailwind-url]
 
@@ -68,7 +69,7 @@ L'interface s'appuie sur des briques modernes et robustes :
 
 ## 🚀 Pour Commencer
 
-Le projet peut être exécuté soit en mode développement Angular, soit sous forme d'image Docker pour reproduire un environnement proche de la production.
+Le projet peut être exécuté soit en mode développement Angular, soit avec Docker en mode développement, soit sous forme d'image Docker pour reproduire un environnement proche de la production.
 
 ### Prérequis
 
@@ -112,6 +113,19 @@ La configuration permet un lancement simple en local, ainsi qu'une exécution co
    ```
 3. L'application est désormais accessible sur :
    - [http://localhost:8080](http://localhost:8080)
+
+#### Option 3 : Développement avec Docker
+
+1. Lancez l'environnement de développement conteneurisé
+   ```sh
+   docker compose -f docker-compose.dev.yml up --build
+   ```
+2. L'application est accessible sur :
+   - [http://localhost:4200](http://localhost:4200)
+3. Pour arrêter l'environnement :
+   ```sh
+   docker compose -f docker-compose.dev.yml down
+   ```
 
 <p align="right">(<a href="#readme-top">retour en haut</a>)</p>
 
@@ -173,6 +187,8 @@ dist/smart-campus
 ```
 
 Le projet expose également un `Dockerfile` multi-stage s'appuyant sur `node:22-alpine` pour le build et `nginx:alpine` pour le service des fichiers statiques, permettant d'obtenir une image légère et adaptée aux déploiements.
+
+Pour le développement conteneurisé, le projet expose également un `Dockerfile.dev` et un `docker-compose.dev.yml` permettant de lancer `ng serve` dans Docker avec montage du code source et rechargement automatique.
 
 <p align="right">(<a href="#readme-top">retour en haut</a>)</p>
 
