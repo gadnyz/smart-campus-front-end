@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, effect, ElementRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { filter, Subject, takeUntil } from 'rxjs';
 import { AppMenu } from './app.menu';
