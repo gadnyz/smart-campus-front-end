@@ -146,33 +146,6 @@ Règles recommandées :
 
 <p align="right">(<a href="#readme-top">retour en haut</a>)</p>
 
-## 🔄 CI/CD
-
-Le projet suit une stratégie CI/CD simple et professionnelle basée sur **GitHub Actions**, **Vercel** et **Docker Hub**.
-
-### Intégration Continue
-Sur chaque Pull Request vers `develop` ou `main`, le pipeline exécute :
-
-```sh
-npm ci
-npm run lint
-npm run build:prod
-```
-
-Si une étape échoue :
-- la Pull Request est en échec
-- le merge doit être bloqué
-
-### Déploiement Frontend
-Le frontend est déployé sur **Vercel** avec :
-- previews automatiques sur les Pull Requests
-- déploiement stable pour l'environnement de test
-
-Application en ligne :
-- [https://smart-campus-front-end.vercel.app/](https://smart-campus-front-end.vercel.app/)
-
-
-<p align="right">(<a href="#readme-top">retour en haut</a>)</p>
 
 ## 📦 Compilation
 
