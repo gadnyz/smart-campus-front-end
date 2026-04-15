@@ -1,59 +1,190 @@
-# Sakai19
+<a id="readme-top"></a>
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.
+<br />
+<div align="center">
+  <h3 align="center">Smart Campus Frontend 🎓</h3>
 
-## Development server
+  <p align="center">
+    Interface web moderne du projet Smart Campus, développée avec Angular pour les établissements d'enseignement supérieur.
+    <br />
+    <a href="#-pour-commencer"><strong>Explorer la Documentation »</strong></a>
+    <br />
+    <br />
+    <a href="https://smart-campus-front-end.vercel.app/">Voir l'application</a>
+    ·
+    <a href="https://github.com/ortega-kb/smart-campus-backend">Voir le back-end</a>
+    ·
+    <a href="#">Signaler un Bug</a>
+    ·
+    <a href="#">Suggérer une Fonctionnalité</a>
+  </p>
+</div>
 
-To start a local development server, run:
+<details>
+  <summary>Table des Matières</summary>
+  <ol>
+    <li>
+      <a href="#-à-propos-du-projet">À propos du projet</a>
+      <ul>
+        <li><a href="#%EF%B8%8F-construit-avec">Construit avec</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#-pour-commencer">Pour Commencer</a>
+      <ul>
+        <li><a href="#prérequis">Prérequis</a></li>
+        <li><a href="#installation-et-déploiement">Installation et Déploiement</a></li>
+      </ul>
+    </li>
+    <li><a href="#-architecture-et-normes">Architecture et Normes</a></li>
+    <li><a href="#-cicd">CI/CD</a></li>
+    <li><a href="#-compilation">Compilation</a></li>
+  </ol>
+</details>
 
-```bash
-ng serve
+## 📖 À propos du projet
+
+Le projet **Smart Campus Frontend** constitue la couche de présentation de la plateforme Smart Campus. Il centralise les interfaces utilisateurs et les interactions métier côté client.
+
+L'application est développée avec **Angular** et propose une base moderne, modulaire et maintenable pour construire les fonctionnalités du campus intelligent.
+
+Le frontend est conçu pour :
+- fournir une interface ergonomique et responsive
+- consommer les API métiers du backend Smart Campus
+- faciliter les démonstrations fonctionnelles via Vercel
+- permettre un déploiement standardisé via Docker
+
+<p align="right">(<a href="#readme-top">retour en haut</a>)</p>
+
+### 🛠️ Construit avec
+
+L'interface s'appuie sur des briques modernes et robustes :
+
+* [![Angular][Angular-Badge]][Angular-url]
+* [![PrimeNG][PrimeNG-Badge]][PrimeNG-url]
+* [![TailwindCSS][Tailwind-Badge]][Tailwind-url]
+
+<p align="right">(<a href="#readme-top">retour en haut</a>)</p>
+
+## 🚀 Pour Commencer
+
+Le projet peut être exécuté soit en mode développement Angular, soit sous forme d'image Docker pour reproduire un environnement proche de la production.
+
+### Prérequis
+
+Pour être en mesure d'exécuter et développer sur le projet, veuillez installer :
+* [Node.js 22+](https://nodejs.org/)
+* [npm](https://www.npmjs.com/)
+* [Angular CLI](https://angular.dev/tools/cli)
+* [Docker](https://docs.docker.com/engine/install/)
+
+### Installation et Déploiement
+
+La configuration permet un lancement simple en local, ainsi qu'une exécution conteneurisée avec Docker.
+
+#### Option 1 : Mode Développeur (Angular CLI)
+
+1. Clonez le dépôt
+   ```sh
+   git clone https://github.com/gadnyz/smart-campus-front-end.git
+   cd smart-campus-front-end
+   ```
+2. Installez les dépendances
+   ```sh
+   npm install
+   ```
+3. Lancez l'application
+   ```sh
+   npm start
+   ```
+4. L'application est désormais accessible sur :
+   - [http://localhost:4200](http://localhost:4200)
+
+#### Option 2 : Exécution avec Docker
+
+1. Construisez l'image Docker
+   ```sh
+   docker build -t smart-campus:local .
+   ```
+2. Lancez le conteneur
+   ```sh
+   docker run -d -p 8080:80 --name smart-campus-app smart-campus:local
+   ```
+3. L'application est désormais accessible sur :
+   - [http://localhost:8080](http://localhost:8080)
+
+<p align="right">(<a href="#readme-top">retour en haut</a>)</p>
+
+## 🏗️ Architecture et Normes
+
+Le projet est configuré avec les principes suivants pour standardiser le développement :
+
+- 📦 **Structuration Angular claire** : organisation par pages, composants et services.
+- 🎨 **Interface moderne** : intégration de PrimeNG et Tailwind CSS pour accélérer la construction de l'UI.
+- ✅ **Qualité de code** : contrôle statique via ESLint.
+- 🐳 **Conteneurisation standard** : build Angular avec Node.js et service des fichiers via Nginx.
+- 🔒 **Intégration contrôlée** : aucune fusion vers `develop` ou `main` sans validation CI.
+
+Règles recommandées :
+- toute évolution passe par Pull Request
+- aucun push direct sur les branches protégées
+- les contrôles `lint` et `build:prod` doivent être validés avant merge
+
+<p align="right">(<a href="#readme-top">retour en haut</a>)</p>
+
+## 🔄 CI/CD
+
+Le projet suit une stratégie CI/CD simple et professionnelle basée sur **GitHub Actions**, **Vercel** et **Docker Hub**.
+
+### Intégration Continue
+Sur chaque Pull Request vers `develop` ou `main`, le pipeline exécute :
+
+```sh
+npm ci
+npm run lint
+npm run build:prod
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Si une étape échoue :
+- la Pull Request est en échec
+- le merge doit être bloqué
 
-## Code scaffolding
+### Déploiement Frontend
+Le frontend est déployé sur **Vercel** avec :
+- previews automatiques sur les Pull Requests
+- déploiement stable pour l'environnement de test
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Application en ligne :
+- [https://smart-campus-front-end.vercel.app/](https://smart-campus-front-end.vercel.app/)
 
-```bash
-ng generate component component-name
+
+<p align="right">(<a href="#readme-top">retour en haut</a>)</p>
+
+## 📦 Compilation
+
+Pour construire l'application en mode production :
+```sh
+npm run build:prod
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
+Les fichiers générés sont disponibles dans :
+```sh
+dist/smart-campus
 ```
 
-## Building
+Le projet expose également un `Dockerfile` multi-stage s'appuyant sur `node:22-alpine` pour le build et `nginx:alpine` pour le service des fichiers statiques, permettant d'obtenir une image légère et adaptée aux déploiements.
 
-To build the project run:
+<p align="right">(<a href="#readme-top">retour en haut</a>)</p>
 
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+[Angular-Badge]: https://img.shields.io/badge/Angular-21-DD0031?style=for-the-badge&logo=angular&logoColor=white
+[Angular-url]: https://angular.dev/
+[TypeScript-Badge]: https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white
+[TypeScript-url]: https://www.typescriptlang.org/
+[PrimeNG-Badge]: https://img.shields.io/badge/PrimeNG-007ACC?style=for-the-badge&logo=primeng&logoColor=white
+[PrimeNG-url]: https://primeng.org/
+[Tailwind-Badge]: https://img.shields.io/badge/TailwindCSS-38BDF8?style=for-the-badge&logo=tailwind-css&logoColor=white
+[Tailwind-url]: https://tailwindcss.com/
+[Docker-Badge]: https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white
+[Docker-url]: https://www.docker.com/
+[Nginx-Badge]: https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white
+[Nginx-url]: https://nginx.org/
