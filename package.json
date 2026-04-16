@@ -7,7 +7,7 @@
     "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "format": "prettier --write \"**/*.{js,mjs,ts,mts,d.ts,html}\" --cache",
-    "lint": "ng lint .",
+    "lint": "ng lint  smart-campus",
     "test": "ng test",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage"
   },
