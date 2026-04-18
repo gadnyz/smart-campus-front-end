@@ -5,10 +5,25 @@ import { appBrand } from '@/app/core/config/app-brand';
     standalone: true,
     selector: 'app-footer',
     template: `
-        <div class="layout-footer">
-            <span class="footer-app-name">{{ brand.appName }}</span>
-            <span class="footer-separator">•</span>
-            <span class="footer-tagline">{{ brand.footerTagline }}</span>
+        <div class="layout-footer desktop-footer">
+            <div class="desktop-footer-left">
+                <span class="desktop-footer-item footer-app-name">{{ brand.appName }}</span>
+                <span class="desktop-footer-item">
+                    <i class="pi pi-building-columns"></i>
+                    <span>{{brand.university}}</span>
+                </span>
+            </div>
+
+            <div class="desktop-footer-right">
+                <span class="desktop-footer-item">
+                    <i class="pi pi-sync"></i>
+                    <span>Synchronisé</span>
+                </span>
+                <span class="desktop-footer-item">
+                    <i class="pi pi-shield"></i>
+                    <span>Sécurisé</span>
+                </span>
+            </div>
         </div>
     `
 })
