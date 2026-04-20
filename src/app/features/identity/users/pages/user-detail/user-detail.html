@@ -1,0 +1,62 @@
+  <app-content-subtopbar
+            kicker="Identity"
+            title="Détail utilisateur"
+            [actions]="actions"
+        />
+
+        <div class="grid grid-cols-12 gap-6">
+            <div class="col-span-12 xl:col-span-4">
+                <div class="card">
+                    <div class="flex flex-col items-center text-center gap-4">
+                        <img
+                            src="https://i.pravatar.cc/140?img=64"
+                            alt="Amina Diallo"
+                            class="w-28 h-28 rounded-full object-cover shadow-sm"
+                        />
+                        <div>
+                            <div class="text-xl font-semibold">Trésor Mbala</div>
+                            <div class="text-color-secondary">tresor.mbala@unh.edu</div>
+                        </div>
+                        <p-tag value="Actif" severity="success" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-12 xl:col-span-8">
+                <div class="card">
+                    <div class="font-semibold text-xl mb-6">Informations utilisateur</div>
+
+                    <div class="grid grid-cols-12 gap-4">
+                        <div class="col-span-12 md:col-span-6">
+                            <div class="text-sm text-color-secondary mb-1">Profil métier</div>
+                            <div class="font-medium">SAF</div>
+                        </div>
+
+                        <div class="col-span-12 md:col-span-6">
+                            <div class="text-sm text-color-secondary mb-1">Rôle</div>
+                            <div class="font-medium">Administrateur</div>
+                        </div>
+
+                        <div class="col-span-12 md:col-span-6">
+                            <div class="text-sm text-color-secondary mb-1">Téléphone</div>
+                            <div class="font-medium">+243 900 000 000</div>
+                        </div>
+
+                        <div class="col-span-12 md:col-span-6">
+                            <div class="text-sm text-color-secondary mb-1">Dernière connexion</div>
+                            <div class="font-medium">20/04/2026 08:42</div>
+                        </div>
+
+                        <div class="col-span-12">
+                            <div class="text-sm text-color-secondary mb-1">Observations</div>
+                            <div class="font-medium">Compte rattaché au pôle administratif et financier.</div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 mt-6">
+                        <button pButton type="button" label="Modifier" icon="pi pi-pencil"></button>
+                        <button pButton type="button" label="Réinitialiser le mot de passe" icon="pi pi-refresh" severity="secondary" [outlined]="true"></button>
+                    </div>
+                </div>
+            </div>
+        </div>

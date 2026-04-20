@@ -3,11 +3,12 @@ import { RippleModule } from 'primeng/ripple';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from "@angular/router";
 
 @Component({
     standalone: true,
     selector: 'app-recent-sales-widget',
-    imports: [CommonModule, TableModule, ButtonModule, RippleModule],
+    imports: [CommonModule, TableModule, ButtonModule, RippleModule, RouterLink],
     template: `<div class="card mb-8!">
         <div class="font-semibold text-xl mb-4">Utilisateurs récents</div>
         <p-table [value]="users" [paginator]="true" [rows]="5" responsiveLayout="scroll">
@@ -29,7 +30,15 @@ import { CommonModule } from '@angular/common';
                     <td style="width: 30%; min-width: 10rem;">{{ user.profile }}</td>
                     <td style="width: 20%; min-width: 8rem;">{{ user.status }}</td>
                     <td style="width: 15%;">
-                        <button pButton pRipple type="button" icon="pi pi-search" class="p-button p-component p-button-text p-button-icon-only"></button>
+                        <button
+                            pButton
+                            pRipple
+                            type="button"
+                            icon="pi pi-search"
+                            class="p-button p-component p-button-text p-button-icon-only"
+                            [routerLink]="['/identity/users', user.id]"
+                        ></button>
+
                     </td>
                 </tr>
             </ng-template>
@@ -39,30 +48,35 @@ import { CommonModule } from '@angular/common';
 export class RecentSalesWidget {
     users = [
         {
-            name: 'Amina Diallo',
+            id: 'USR-001',
+            name: 'Trésor Mbala',
             profile: 'Assistant d’enseignement',
             status: 'Actif',
-            photo: 'https://i.pravatar.cc/100?img=5'
+            photo: 'https://i.pravatar.cc/100?img=64'
         },
         {
+            id: 'USR-002',
             name: 'Jean Mbala',
             profile: 'SAF',
             status: 'Actif',
-            photo: 'https://i.pravatar.cc/100?img=12'
+            photo: 'https://i.pravatar.cc/100?img=51'
         },
         {
+            id: 'USR-003',
             name: 'Claire Mbuyi',
             profile: 'Responsable de filière',
             status: 'En attente',
-            photo: 'https://i.pravatar.cc/100?img=20'
+            photo: 'https://i.pravatar.cc/100?img=16'
         },
         {
+            id: 'USR-004',
             name: 'David Kanku',
             profile: 'Comptable',
             status: 'Actif',
-            photo: 'https://i.pravatar.cc/100?img=33'
+            photo: 'https://i.pravatar.cc/100?img=7'
         },
         {
+            id: 'USR-005',
             name: 'Sarah Ilunga',
             profile: 'Administrateur',
             status: 'Suspendu',

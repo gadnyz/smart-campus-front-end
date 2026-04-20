@@ -2,6 +2,6 @@ export const environment = {
   production: true,
   appName: 'smart-campus',
   univesity :'unh',
-  apiBaseUrl: 'http://localhost:8080/api',
+  apiBaseUrl: 'http://localhost:8085',
   enableDebug: false
 };

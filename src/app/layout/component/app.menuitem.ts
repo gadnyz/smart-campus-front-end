@@ -9,51 +9,56 @@ import { filter } from 'rxjs/operators';
     selector: '[app-menuitem]',
     imports: [CommonModule, RouterModule, RippleModule],
     template: `
-        @if (root() && isVisible()) {
-            <div class="layout-menuitem-root-text">{{ item().label }}</div>
-        }
-        @if ((!hasRouterLink() || hasChildren()) && isVisible()) {
-            <a [attr.href]="item().url" (click)="itemClick($event)" [ngClass]="item().class" [attr.target]="item().target" tabindex="0" pRipple>
+    @if (root() && isVisible()) {
+        <div class="layout-menuitem-root-text">{{ item().label }}</div>
+    }
+
+    @if ((!hasRouterLink() || hasChildren()) && isVisible()) {
+        <a [attr.href]="item().url" (click)="itemClick($event)" [ngClass]="item().class" [attr.target]="item().target" tabindex="0" pRipple>
+            @if (showIcon()) {
                 <i [ngClass]="item().icon" class="layout-menuitem-icon"></i>
-                <span class="layout-menuitem-text">{{ item().label }}</span>
-                @if (hasChildren()) {
-                    <i class="pi pi-fw pi-angle-down layout-submenu-toggler"></i>
-                }
-            </a>
-        }
-        @if (hasRouterLink() && !hasChildren() && isVisible()) {
-            <a
-                (click)="itemClick($event)"
-                [ngClass]="item().class"
-                [routerLink]="item().routerLink"
-                routerLinkActive="active-route"
-                [routerLinkActiveOptions]="item().routerLinkActiveOptions || { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }"
-                [fragment]="item().fragment"
-                [queryParamsHandling]="item().queryParamsHandling"
-                [preserveFragment]="item().preserveFragment"
-                [skipLocationChange]="item().skipLocationChange"
-                [replaceUrl]="item().replaceUrl"
-                [state]="item().state"
-                [queryParams]="item().queryParams"
-                [attr.target]="item().target"
-                tabindex="0"
-                pRipple
-            >
+            }
+            <span class="layout-menuitem-text">{{ item().label }}</span>
+            @if (hasChildren()) {
+                <i class="pi pi-fw pi-angle-down layout-submenu-toggler"></i>
+            }
+        </a>
+    }
+
+    @if (hasRouterLink() && !hasChildren() && isVisible()) {
+        <a
+            (click)="itemClick($event)"
+            [ngClass]="item().class"
+            [routerLink]="item().routerLink"
+            routerLinkActive="active-route"
+            [routerLinkActiveOptions]="item().routerLinkActiveOptions || { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }"
+            [fragment]="item().fragment"
+            [queryParamsHandling]="item().queryParamsHandling"
+            [preserveFragment]="item().preserveFragment"
+            [skipLocationChange]="item().skipLocationChange"
+            [replaceUrl]="item().replaceUrl"
+            [state]="item().state"
+            [queryParams]="item().queryParams"
+            [attr.target]="item().target"
+            tabindex="0"
+            pRipple
+        >
+            @if (showIcon()) {
                 <i [ngClass]="item().icon" class="layout-menuitem-icon"></i>
-                <span class="layout-menuitem-text">{{ item().label }}</span>
-                @if (hasChildren()) {
-                    <i class="pi pi-fw pi-angle-down layout-submenu-toggler"></i>
-                }
-            </a>
-        }
-        @if (hasChildren() && isVisible() && (root() || isActive())) {
-            <ul [animate.enter]="initialized() ? 'p-submenu-enter' : null" [animate.leave]="'p-submenu-leave'" [class.layout-root-submenulist]="root()">
-                @for (child of item().items; track child?.label) {
-                    <li app-menuitem [item]="child" [parentPath]="fullPath()" [root]="false" [class]="child['badgeClass']"></li>
-                }
-            </ul>
-        }
-    `,
+            }
+            <span class="layout-menuitem-text">{{ item().label }}</span>
+        </a>
+    }
+
+    @if (hasChildren() && isVisible() && (root() || isActive())) {
+        <ul [animate.enter]="initialized() ? 'p-submenu-enter' : null" [animate.leave]="'p-submenu-leave'" [class.layout-root-submenulist]="root()">
+            @for (child of item().items; track child?.label) {
+                <li app-menuitem [item]="child" [parentPath]="fullPath()" [root]="false" [class]="child['badgeClass']"></li>
+            }
+        </ul>
+    }
+`
+,
     host: {
         '[class.active-menuitem]': 'isActive()',
         '[class.layout-root-menuitem]': 'root()'
@@ -93,6 +98,10 @@ import { filter } from 'rxjs/operators';
     ]
 })
 export class AppMenuitem {
+    showIcon = computed(() => {
+        return !!this.item()?.icon && this.parentPath() === null;
+    });
+
     layoutService = inject(LayoutService);
 
     router = inject(Router);
