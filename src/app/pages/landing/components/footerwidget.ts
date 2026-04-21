@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
+import { appBrand } from '@/app/core/config/app-brand';
 
 @Component({
     selector: 'footer-widget',
@@ -26,7 +27,7 @@ import { Router, RouterModule } from '@angular/router';
                                 />
                             </g>
                         </svg>
-                        <h4 class="font-medium text-3xl text-surface-900 dark:text-surface-0">Smart-campus</h4>
+                        <h4 class="font-medium text-3xl text-surface-900 dark:text-surface-0">{{brand.appName}}</h4>
                     </a>
                 </div>
 
@@ -69,5 +70,8 @@ import { Router, RouterModule } from '@angular/router';
     `
 })
 export class FooterWidget {
+
     constructor(public router: Router) {}
+
+    brand =appBrand;
 }
