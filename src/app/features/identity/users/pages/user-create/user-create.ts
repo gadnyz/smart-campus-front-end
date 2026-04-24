@@ -13,20 +13,7 @@ import { SelectModule } from 'primeng/select';
 
 import { environment } from '@/environments/environment';
 import { ContentSubtopbar } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
-
-type RegisterRequest = {
-    username: string;
-    email: string;
-    profile: string;
-};
-
-type RegisterResponse = {
-    id: string;
-    username: string;
-    email: string;
-    profile: string;
-    created_at: string;
-};
+import { RegisterRequest, RegisterResponse } from '../../models/user.model';
 
 @Component({
     selector: 'app-user-create',
