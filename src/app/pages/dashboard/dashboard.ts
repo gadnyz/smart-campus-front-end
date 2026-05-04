@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { StatsWidget } from './components/statswidget';
-import { RecentSalesWidget } from './components/recentsaleswidget';
 import { ContentSubtopbar , SubtopbarAction} from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { UserList } from '@/app/features/identity/users/components/user-list/user-list';
 

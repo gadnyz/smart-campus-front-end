@@ -12,3 +12,8 @@ export interface AuthResponse {
     expire_in: number;
     user: UserContextResponse;
 }
+
+export interface LogoutRequest {
+    access_token: string;
+    refresh_token: string;
+}

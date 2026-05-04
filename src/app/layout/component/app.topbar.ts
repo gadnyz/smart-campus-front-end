@@ -8,7 +8,8 @@ import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { LayoutService } from '@/app/layout/service/layout.service';
 import { appBrand } from '@/app/core/config/app-brand';
-
+import { finalize } from 'rxjs';
+import { AuthService } from '@/app/core/auth/services/auth.service';
 @Component({
     selector: 'app-topbar',
     standalone: true,
@@ -98,6 +99,7 @@ export class AppTopbar {
     readonly brand = appBrand;
     readonly layoutService = inject(LayoutService);
     private readonly router = inject(Router);
+    private readonly authService = inject(AuthService);
 
     readonly notificationCount = 5;
 
@@ -172,6 +174,26 @@ export class AppTopbar {
     }
 
     logout(): void {
-        void this.router.navigate(['/auth/login']);
+        const payload = this.authService.getLogoutPayload();
+
+        if (!payload) {
+            this.authService.clearSession();
+            void this.router.navigate(['/auth/login']);
+            return;
+        }
+
+        this.authService
+            .logoutRequest(payload)
+            .pipe(
+                finalize(() => {
+                    this.authService.clearSession();
+                    void this.router.navigate(['/auth/login']);
+                })
+            )
+            .subscribe({
+                next: () => { },
+                error: () => { }
+            });
     }
+
 }

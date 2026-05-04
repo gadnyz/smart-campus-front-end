@@ -15,34 +15,40 @@
 
 
                 <div>
-                    <label for="email1"
-                        class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Email</label>
-                    <input pInputText id="email1" type="email" placeholder="Adresse mail" class="w-full md:w-120 mb-8"
-                        [(ngModel)]="email"/>
-                     @if (validationErrors()['email']) {
-                    <small class="text-red-500 block mb-2">{{ validationErrors()['email'] }}</small>
-                    }
+                    <form #nativeForm novalidate (ngSubmit)="submit(nativeForm)">
+                        <label for="email1"
+                            class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Email</label>
+                        <input pInputText id="email1" name="email" type="email" required email
+                            placeholder="Adresse mail" class="w-full md:w-120 mb-8" [(ngModel)]="email" #emailModel="ngModel" />
 
-                    <label for="password1"
-                        class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Mot de passe</label>
-                    <p-password id="password1" [(ngModel)]="password" placeholder="Mot de passe" [toggleMask]="true"
-                        styleClass="mb-4" [fluid]="true" [feedback]="false"></p-password>
-                    
-                     @if (validationErrors()['password']) {
-                    <small class="text-red-500 block mb-4">{{ validationErrors()['password'] }}</small>
-                    }
+                        
+                        @if (validationErrors()['email']) {
+                        <small class="text-red-500 block mb-2">{{ validationErrors()['email'] }}</small>
+                        }
 
-                    @if (errorMessage()) {
-                    <p-message severity="error" [text]="errorMessage()" styleClass="w-full mb-4 block" />
-                    }
+                        <p-password id="password1" name="password" required [(ngModel)]="password"
+                            placeholder="Mot de passe" [toggleMask]="true" styleClass="mb-4" [fluid]="true"
+                            [feedback]="false" #passwordModel="ngModel"></p-password>
 
-                    <div class="flex items-center justify-between mt-2 mb-8 gap-8">
-                        <span class="font-medium no-underline ml-2 cursor-pointer text-primary">Mot de passe
-                            oublié ?</span>
-                    </div>
+                        @if (validationErrors()['password']) {
+                        <small class="text-red-500 block mb-4">{{ validationErrors()['password'] }}</small>
+                        }
 
-                    <p-button label="Se connecter" styleClass="w-full" [loading]="loading()" (onClick)="submit()" />
+                        @if (errorMessage()) {
+                        <p-message severity="error" [text]="errorMessage()" styleClass="w-full mb-4 block" />
+                        }
+
+                        <div class="flex items-center justify-between mt-2 mb-8 gap-8">
+                            <span class="font-medium no-underline ml-2 cursor-pointer text-primary">Mot de passe
+                                oublié ?</span>
+                        </div>
+
+                        <p-button label="Se connecter" styleClass="w-full" [loading]="loading()" type="submit" />
+
+                    </form>
+
                 </div>
+
             </div>
         </div>
     </div>

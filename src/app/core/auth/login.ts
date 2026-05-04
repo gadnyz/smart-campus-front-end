@@ -40,7 +40,7 @@ export class Login {
     }
     private resolveError(error: HttpErrorResponse): void {
         if (error.status === 0) {
-            this.errorMessage.set('Impossible de joindre le serveur. Vérifie la connexion ou la configuration CORS.');
+            this.errorMessage.set('Impossible de joindre le serveur.');
             return;
         }
 
@@ -70,16 +70,22 @@ export class Login {
         this.errorMessage.set(apiError?.detail ?? error.message ?? 'Une erreur est survenue lors de la connexion.');
     }
 
-    submit(): void {
+    submit(form : HTMLFormElement): void {
         this.clearErrors();
+
+        if(!form.reportValidity())
+        {
+            return;
+        }
+
         this.loading.set(true);
 
         this.authService.login({
-            email: this.email,
+            email: this.email.trim(),
             password: this.password
         }).subscribe({
             next: (response) => {
-                this.authService.storeToken(response.access_token);
+                this.authService.storeSession(response);
                 this.loading.set(false);
                 void this.router.navigate(['/']);
             },
