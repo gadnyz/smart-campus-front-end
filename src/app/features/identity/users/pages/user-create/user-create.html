@@ -1,95 +1,72 @@
- <app-content-subtopbar
-            kicker="Identity"
-            title="Créer un utilisateur"
-        />
+<app-content-subtopbar kicker="Identity" title="Créer un utilisateur" />
 
-        <p-fluid>
-            <div class="grid grid-cols-12 gap-6">
-                <div class="col-span-12 xl:col-span-8">
-                    <div class="card flex flex-col gap-6">
-                        <div class="font-semibold text-xl">Enregistrement</div>
+<p-fluid>
+    <div class="grid grid-cols-12 gap-6">
+        <div class="col-span-12 xl:col-span-8">
+            <div class="card flex flex-col gap-6">
+                <div class="font-semibold text-xl">Enregistrement</div>
 
-                        @if (successMessage()) {
-                            <p-message severity="success" [text]="successMessage()" />
+                @if (successMessage()) {
+                <p-message severity="success" [text]="successMessage()" />
+                }
+
+                @if (errorMessage()) {
+                <p-message severity="error" [text]="errorMessage()" />
+                }
+
+                <form [formGroup]="form" class="grid grid-cols-12 gap-4" (ngSubmit)="submit()">
+                    <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                        <label for="username">Nom d'utilisateur</label>
+                        <input pInputText id="username" formControlName="username" placeholder="john_kalubi@unh.org"
+                            [class.ng-invalid]="isInvalid('username')" />
+                        @if (isInvalid('username')) {
+                        <small class="text-red-500">
+                            3 à 30 caractères et lettres/chiffres autorisés.
+                        </small>
                         }
-
-                        @if (errorMessage()) {
-                            <p-message severity="error" [text]="errorMessage()" />
-                        }
-
-                        <form [formGroup]="form" class="grid grid-cols-12 gap-4" (ngSubmit)="submit()">
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="username">Nom d'utilisateur</label>
-                                <input
-                                    pInputText
-                                    id="username"
-                                    formControlName="username"
-                                    placeholder="john_kalubi@unh.org"
-                                    [class.ng-invalid]="isInvalid('username')"
-                                />
-                                @if (isInvalid('username')) {
-                                    <small class="text-red-500">
-                                        3 à 30 caractères et lettres/chiffres autorisés.
-                                    </small>
-                                }
-                            </div>
-
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="email">Email</label>
-                                <input
-                                    pInputText
-                                    id="email"
-                                    type="email"
-                                    formControlName="email"
-                                    placeholder="tresor.mbale@unhorizons.org"
-                                    [class.ng-invalid]="isInvalid('email')"
-                                />
-                                @if (isInvalid('email')) {
-                                    <small class="text-red-500">
-                                        Saisis une adresse email valide.
-                                    </small>
-                                }
-                            </div>
-
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="profile">Profil</label>
-                                <p-select
-                                    id="profile"
-                                    formControlName="profile"
-                                    [options]="profiles"
-                                    optionLabel="label"
-                                    optionValue="value"
-                                    placeholder="Sélectionner un profil"
-                                    class="w-full"
-                                />
-                                @if (isInvalid('profile')) {
-                                    <small class="text-red-500">
-                                        Le profil est obligatoire.
-                                    </small>
-                                }
-                            </div>
-
-                            <div class="col-span-12 flex gap-3 pt-2">
-                                <button
-                                    pButton
-                                    type="button"
-                                    label="Annuler"
-                                    severity="secondary"
-                                    [outlined]="true"
-                                    (click)="cancel()"
-                                ></button>
-
-                                <button
-                                    pButton
-                                    type="submit"
-                                    label="Créer l'utilisateur"
-                                    icon="pi pi-save"
-                                    [loading]="submitting()"
-                                    [disabled]="submitting()"
-                                ></button>
-                            </div>
-                        </form>
                     </div>
-                </div>
+
+                    <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                        <label for="email">Email</label>
+                        <input pInputText id="email" type="email" formControlName="email"
+                            placeholder="tresor.mbale@unhorizons.org" [class.ng-invalid]="isInvalid('email')" />
+                        @if (isInvalid('email')) {
+                        <small class="text-red-500">
+                            Saisis une adresse email valide.
+                        </small>
+                        }
+                    </div>
+
+                    <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                        <label for="profile">Profil</label>
+                        <p-select id="profile" formControlName="profile" [options]="profiles()" optionLabel="label"
+                            optionValue="value" placeholder="Sélectionner un profil" class="w-full"
+                            [loading]="loadingProfiles()" />
+
+                        @if (validationErrors()['profile']) {
+                        <small class="text-red-500">
+                            {{ validationErrors()['profile'] }}
+                        </small>
+                        }
+
+
+                        @if (isInvalid('profile')) {
+                        <small class="text-red-500">
+                            Le profil est obligatoire.
+                        </small>
+                        }
+                    </div>
+
+                    <div class="col-span-12 flex gap-3 pt-2">
+                        <button pButton type="button" label="Annuler" severity="secondary" [outlined]="true"
+                            (click)="cancel()"></button>
+
+                        <button pButton type="submit" label="Créer l'utilisateur" icon="pi pi-save"
+                            [loading]="submitting()" [disabled]="submitting() || loadingProfiles()"></button>
+
+                    </div>
+                </form>
             </div>
-        </p-fluid>
+        </div>
+    </div>
+</p-fluid>

@@ -6,17 +6,11 @@ export interface User {
     email: string;
     profile: UserProfile;
     enabled: boolean;
-    avatar_url?: string;
+    created_at: string;
+    updated_at: string;
+    last_connected_at: string | null;
+    avatar_url: string | null;
     authorities: string[];
-    created_at?: string;
-}
-
-export interface PagedResponse<T> {
-    content: T[];
-    page: number;
-    size: number;
-    total_elements: number;
-    total_pages: number;
 }
 
 export interface RegisterRequest {
@@ -33,10 +27,29 @@ export interface RegisterResponse {
     created_at: string;
 }
 
-export interface UserContextResponse {
-    id: string;
+export type UserContextResponse = User;
+
+export interface UpdateUserRequest {
     username: string;
     email: string;
-    profile: UserProfile;
-    authorities: string[];
+}
+
+export interface UserProfileResponse {
+    id: string;
+    name: string;
+    roles: string[];
+}
+
+export interface PageableQuery {
+    page?: number;
+    size?: number;
+    sort?: string[];
+}
+
+export interface PagedResponse<T> {
+    content: T[];
+    page: number;
+    size: number;
+    total_elements: number;
+    total_pages: number;
 }
