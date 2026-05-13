@@ -1,80 +1,50 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TableModule } from 'primeng/table';
-import { RouterLink } from '@angular/router';
 
-type UserRow = {
-    id: string;
-    fullName: string;
-    email: string;
-    businessProfile: string;
-    status: 'Actif' | 'Inactif' | 'En attente' | 'Suspendu';
-    photo: string;
-};
+import { User } from '../../models/user.model';
+import { UsersService } from '../../services/user.service';
 
 @Component({
     selector: 'app-user-list',
     standalone: true,
     imports: [CommonModule, RouterLink, TableModule, ButtonModule, TagModule],
     templateUrl: './user-list.html',
-    styleUrl: './user-list.scss',
+    styleUrl: './user-list.scss'
 })
-export class UserList {
-    users: UserRow[] = [
-        {
-            id: 'USR-001',
-            fullName: 'Amina Diallo',
-            email: 'amina.diallo@unh.edu',
-            businessProfile: 'Assistant d’enseignement',
-            status: 'Actif',
-            photo: 'https://i.pravatar.cc/100?img=5'
-        },
-        {
-            id: 'USR-002',
-            fullName: 'Jean Mbala',
-            email: 'jean.mbala@unh.edu',
-            businessProfile: 'SAF',
-            status: 'Actif',
-            photo: 'https://i.pravatar.cc/100?img=12'
-        },
-        {
-            id: 'USR-003',
-            fullName: 'Claire Mbuyi',
-            email: 'claire.mbuyi@unh.edu',
-            businessProfile: 'Doyen',
-            status: 'En attente',
-            photo: 'https://i.pravatar.cc/100?img=20'
-        },
-        {
-            id: 'USR-004',
-            fullName: 'David Kanku',
-            email: 'david.kanku@unh.edu',
-            businessProfile: 'Comptable',
-            status: 'Inactif',
-            photo: 'https://i.pravatar.cc/100?img=33'
-        },
-        {
-            id: 'USR-005',
-            fullName: 'Sarah Ilunga',
-            email: 'sarah.ilunga@unh.edu',
-            businessProfile: 'Doyen',
-            status: 'Suspendu',
-            photo: 'https://i.pravatar.cc/100?img=47'
-        }
-    ];
+export class UserList implements OnInit {
+    private readonly usersService = inject(UsersService);
 
-    statusSeverity(status: UserRow['status']): 'success' | 'secondary' | 'warn' | 'danger' {
-        switch (status) {
-            case 'Actif':
-                return 'success';
-            case 'En attente':
-                return 'warn';
-            case 'Suspendu':
-                return 'danger';
-            default:
-                return 'secondary';
-        }
+    users = signal<User[]>([]);
+    loading = signal(false);
+
+    ngOnInit(): void {
+        this.loadUsers();
+    }
+
+    loadUsers(): void {
+        this.loading.set(true);
+
+        this.usersService.getUsers({ page: 0, size: 10, sort: ['createdAt,desc']}).subscribe({
+            next: (response) => {
+                this.users.set(response.content);
+                this.loading.set(false);
+            },
+            error: () => {
+                this.users.set([]);
+                this.loading.set(false);
+            }
+        });
+    }
+
+    statusLabel(user: User): string {
+        return user.enabled ? 'Actif' : 'Inactif';
+    }
+
+    statusSeverity(user: User): 'success' | 'secondary' {
+        return user.enabled ? 'success' : 'secondary';
     }
 }
