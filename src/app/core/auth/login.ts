@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MessageModule } from 'primeng/message';
@@ -8,15 +9,14 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { RippleModule } from 'primeng/ripple';
-
-import { AppFloatingConfigurator } from '../../layout/component/app.floatingconfigurator';
 import { appBrand } from '@/app/core/config/app-brand';
 import { AuthService } from './services/auth.service';
+import { AuthFooter } from './auth-footer/auth-footer';
 
 @Component({
     selector: 'app-login',
     standalone: true,
-    imports: [MessageModule, ButtonModule, CheckboxModule, InputTextModule, PasswordModule, FormsModule, RippleModule, AppFloatingConfigurator],
+    imports: [MessageModule, ButtonModule, AuthFooter, CheckboxModule, InputTextModule, PasswordModule, FormsModule, RippleModule, RouterModule],
     templateUrl: './login.html',
     styleUrl: './login.scss'
 })

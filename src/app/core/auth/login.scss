@@ -1,0 +1,86 @@
+.login-page {
+    padding: 2rem 1rem;
+}
+
+.login-shell {
+    width: 100%;
+}
+
+.login-card-frame {
+    width: min(100%, 400px);
+}
+
+.login-card {
+    border: 1px solid var(--surface-border);
+    border-radius: 4px;
+    box-shadow: 0 8px 16px rgba(9, 30, 66, 0.15);
+    padding: 2rem 2.5rem 1.75rem;
+}
+
+.login-brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.login-logo {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin: 0;
+    object-fit: contain;
+}
+
+.login-brand {
+    font-size: 1.8rem;
+    line-height: 1;
+    font-weight: 200;
+    
+}
+
+.login-heading {
+    font-size: 1rem;
+    line-height: 1.4;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.login-form label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+}
+
+.login-form .p-button {
+    height: 2.5rem;
+    border-radius: 3px;
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+@media (max-width: 480px) {
+    .login-card {
+        padding: 2rem 1.25rem 1.5rem;
+    }
+}
+
+
+
+//Forget-password
+
+.login-back {
+    margin-top: 1rem;
+    text-align: center;
+
+    a {
+        color: var(--primary-color);
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-decoration: none;
+
+        &:hover {
+            color: var(--primary-color-hover);
+            text-decoration: none;
+        }
+    }
+}
