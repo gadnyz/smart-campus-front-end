@@ -1,0 +1,77 @@
+<div class="flex flex-col gap-6">
+    <div class="flex items-center gap-3">
+        <i class="pi pi-cog text-primary"></i>
+        <div class="font-semibold text-xl">Préférences</div>
+    </div>
+
+    @if (successMessage()) {
+    <p-message severity="success" [text]="successMessage()" />
+    }
+
+    <div class="card p-0 overflow-hidden">
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-6">
+                <i class="pi pi-palette text-primary"></i>
+                <div>
+                    <div class="font-semibold text-lg">Affichage et Thème</div>
+                    <div class="text-sm text-color-secondary">
+                        Personnalisez l’apparence de l’interface.
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-5">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-3 border-b border-surface">
+                    <div>
+                        <div class="font-medium">Thème de l’interface</div>
+                        <div class="text-sm text-color-secondary">
+                            Sélectionnez votre mode d’affichage préféré.
+                        </div>
+                    </div>
+
+                    <p-selectbutton
+                        [options]="themeOptions"
+                        [ngModel]="selectedTheme()"
+                        (ngModelChange)="onThemeChange($event)"
+                        [allowEmpty]="false"
+                    />
+                </div>
+
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-3">
+                    <div>
+                        <div class="font-medium">Preset de l’interface</div>
+                        <div class="text-sm text-color-secondary">
+                            Sélectionnez le style visuel de l’application.
+                        </div>
+                    </div>
+
+                    <p-selectbutton
+                        [options]="presetOptions"
+                        [ngModel]="selectedPreset()"
+                        (ngModelChange)="onPresetChange($event)"
+                        [allowEmpty]="false"
+                    />
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-3 px-6 py-4 border-t border-surface bg-surface-50 dark:bg-surface-900">
+            <button
+                pButton
+                type="button"
+                label="Annuler"
+                severity="secondary"
+                outlined
+                (click)="resetPreferences()"
+            ></button>
+
+            <button
+                pButton
+                type="button"
+                label="Enregistrer les modifications"
+                icon="pi pi-save"
+                (click)="savePreferences()"
+            ></button>
+        </div>
+    </div>
+</div>

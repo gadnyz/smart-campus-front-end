@@ -8,8 +8,8 @@ import { UserList } from '../../components/user-list/user-list';
     imports: [ContentSubtopbar, UserList],
     template: `
         <app-content-subtopbar
-            kicker="Identity"
-            title="Gestion des utilisateurs"
+            kicker="Gestion des utilisateurs"
+            title="Liste"
             [actions]="actions"
         />
 
@@ -19,20 +19,6 @@ import { UserList } from '../../components/user-list/user-list';
 })
 export class UserManagement {
     actions: SubtopbarAction[] = [
-        {
-            label: 'Exporter',
-            icon: 'pi pi-download',
-            severity: 'secondary',
-            outlined: true,
-            command: () => this.exportUsers()
-        },
-        {
-            label: 'Filtrer',
-            icon: 'pi pi-filter',
-            severity: 'secondary',
-            outlined: true,
-            command: () => this.openFilters()
-        },
         {
             label: 'Nouveau',
             icon: 'pi pi-plus',

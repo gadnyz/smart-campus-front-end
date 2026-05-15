@@ -1,0 +1,108 @@
+<app-content-subtopbar kicker="Compte utilisateur" title="Mon profil" [actions]="actions()" />
+
+@if (successMessage()) {
+<p-message severity="success" [text]="successMessage()" />
+}
+
+@if (errorMessage()) {
+<p-message severity="error" [text]="errorMessage()" />
+}
+
+@if (loading()) {
+<div class="card">Chargement...</div>
+} @else if (user(); as currentUser) {
+<div class="grid grid-cols-12 gap-6">
+    <div class="col-span-12 xl:col-span-8">
+        <div class="card">
+            <div class="font-semibold text-xl mb-6">Informations personnelles</div>
+
+            <div class="profile-header mb-6">
+                <div class="profile-avatar" aria-label="Photo de profil">
+                    @if (avatarImageUrl()) {
+                    <img [src]="avatarImageUrl()" [alt]="currentUser.username" />
+                    } @else {
+                    <span>{{ userInitial() }}</span>
+                    }
+                </div>
+
+                <div class="profile-summary">
+                    <div class="font-semibold text-lg text-surface-900 dark:text-surface-0">
+                        {{ currentUser.username }}
+                    </div>
+                    <div class="text-color-secondary">{{ currentUser.email }}</div>
+
+                    <div class="flex items-center gap-2 mt-3">
+                        <p-tag [value]="statusLabel(currentUser)" [severity]="statusSeverity(currentUser)" />
+                        <span class="text-sm text-color-secondary">{{ currentUser.profile }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <form [formGroup]="form" class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 md:col-span-6">
+                    <label for="username" class="block text-sm text-color-secondary mb-1">Nom d'utilisateur</label>
+                    <input pInputText id="username" formControlName="username" class="w-full" [readonly]="!editing()" />
+                    @if (isInvalid('username')) {
+                    <small class="text-red-500 block mt-1">
+                        Le nom d'utilisateur doit contenir 3 à 30 caractères, commencer par une lettre et ne pas contenir
+                        d'espaces.
+                    </small>
+                    }
+                    @if (validationErrors()['username']) {
+                    <small class="text-red-500 block mt-1">{{ validationErrors()['username'] }}</small>
+                    }
+                </div>
+
+                <div class="col-span-12 md:col-span-6">
+                    <label for="email" class="block text-sm text-color-secondary mb-1">Email</label>
+                    <input pInputText id="email" formControlName="email" class="w-full" [readonly]="!editing()" />
+                    @if (isInvalid('email')) {
+                    <small class="text-red-500 block mt-1">Saisis une adresse email valide.</small>
+                    }
+                    @if (validationErrors()['email']) {
+                    <small class="text-red-500 block mt-1">{{ validationErrors()['email'] }}</small>
+                    }
+                </div>
+
+                <!-- <div class="col-span-12 md:col-span-6">
+                    <div class="text-sm text-color-secondary mb-1">Profil</div>
+                    <div class="font-medium">{{ currentUser.profile }}</div>
+                </div> -->
+<!-- 
+                <div class="col-span-12 md:col-span-6">
+                    <div class="text-sm text-color-secondary mb-2">Photo de profil</div>
+                    <p-fileupload
+                        #avatarUpload
+                        mode="basic"
+                        chooseLabel="Choisir une photo"
+                        chooseIcon="pi pi-camera"
+                        accept="image/png,image/jpeg"
+                        [maxFileSize]="1000000"
+                        [disabled]="!editing() || saving()"
+                        [customUpload]="true"
+                        (onSelect)="onAvatarSelect($event)"
+                    />
+                    @if (selectedAvatarFile()) {
+                    <small class="text-color-secondary block mt-2">
+                        La photo sera envoyée après l'enregistrement.
+                    </small>
+                    }
+                </div> -->
+            </form>
+
+            @if (editing()) {
+            <div class="flex gap-2 mt-6">
+                <button
+                    pButton
+                    type="button"
+                    label="Enregistrer"
+                    icon="pi pi-save"
+                    [loading]="saving()"
+                    (click)="save()"
+                ></button>
+            </div>
+            }
+        </div>
+    </div>
+</div>
+}

@@ -1,70 +1,61 @@
-<app-content-subtopbar
-    kicker="Identity"
-    title="Détail utilisateur"
-    [actions]="actions()"
-/>
+<app-content-subtopbar kicker="Gestion des utilisateurs" title="Details" [actions]="actions()" />
 
 @if (successMessage()) {
-    <p-message severity="success" [text]="successMessage()" />
+<p-message severity="success" [text]="successMessage()" />
 }
 
 @if (errorMessage()) {
-    <p-message severity="error" [text]="errorMessage()" />
+<p-message severity="error" [text]="errorMessage()" />
 }
 
 @if (loading()) {
-    <div class="card">Chargement...</div>
+<div class="card">Chargement...</div>
 } @else if (user(); as currentUser) {
-    <div class="grid grid-cols-12 gap-6">
-          <div class="col-span-12 xl:col-span-8">
-            <div class="card">
-                <div class="font-semibold text-xl mb-6">Informations utilisateur</div>
+<div class="grid grid-cols-12 gap-6">
+    <div class="col-span-12 xl:col-span-8">
+        <div class="card">
+            <div class="font-semibold text-xl mb-6">Informations utilisateur</div>
 
-                <form [formGroup]="form" class="grid grid-cols-12 gap-4">
-                    <div class="col-span-12 md:col-span-6">
-                        <label for="username" class="block text-sm text-color-secondary mb-1">Nom d'utilisateur</label>
-                        <input pInputText id="username" formControlName="username" class="w-full" [readonly]="!editing()" />
-                        @if (isInvalid('username')) {
-                            <small class="text-red-500 block mt-1">
-                                Le nom d'utilisateur doit contenir 3 à 30 caractères, commencer par une lettre et ne pas contenir d'espaces.
-                            </small>
-                        }
-                        @if (validationErrors()['username']) {
-                            <small class="text-red-500 block mt-1">{{ validationErrors()['username'] }}</small>
-                        }
-                    </div>
+            <form [formGroup]="form" class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 md:col-span-6">
+                    <label for="username" class="block text-sm text-color-secondary mb-1">Nom d'utilisateur</label>
+                    <input pInputText id="username" formControlName="username" class="w-full" [readonly]="!editing()" />
+                    @if (isInvalid('username')) {
+                    <small class="text-red-500 block mt-1">
+                        Le nom d'utilisateur doit contenir 3 à 30 caractères, commencer par une lettre et ne pas
+                        contenir d'espaces.
+                    </small>
+                    }
+                    @if (validationErrors()['username']) {
+                    <small class="text-red-500 block mt-1">{{ validationErrors()['username'] }}</small>
+                    }
+                </div>
 
-                    <div class="col-span-12 md:col-span-6">
-                        <label for="email" class="block text-sm text-color-secondary mb-1">Email</label>
-                        <input pInputText id="email" formControlName="email" class="w-full" [readonly]="!editing()" />
-                        @if (isInvalid('email')) {
-                            <small class="text-red-500 block mt-1">Saisis une adresse email valide.</small>
-                        }
-                        @if (validationErrors()['email']) {
-                            <small class="text-red-500 block mt-1">{{ validationErrors()['email'] }}</small>
-                        }
-                    </div>
+                <div class="col-span-12 md:col-span-6">
+                    <label for="email" class="block text-sm text-color-secondary mb-1">Email</label>
+                    <input pInputText id="email" formControlName="email" class="w-full" [readonly]="!editing()" />
+                    @if (isInvalid('email')) {
+                    <small class="text-red-500 block mt-1">Saisis une adresse email valide.</small>
+                    }
+                    @if (validationErrors()['email']) {
+                    <small class="text-red-500 block mt-1">{{ validationErrors()['email'] }}</small>
+                    }
+                </div>
 
-                    <div class="col-span-12 md:col-span-6">
-                        <div class="text-sm text-color-secondary mb-1">Profil</div>
-                        <div class="font-medium">{{ currentUser.profile }}</div>
-                    </div>
+                <div class="col-span-12 md:col-span-6">
+                    <div class="text-sm text-color-secondary mb-1">Profil</div>
+                    <div class="font-medium">{{ currentUser.profile }}</div>
+                </div>
 
-                </form>
+            </form>
 
-                @if (editing()) {
-                    <div class="flex gap-2 mt-6">
-                        <button
-                            pButton
-                            type="button"
-                            label="Enregistrer"
-                            icon="pi pi-save"
-                            [loading]="saving()"
-                            (click)="save()"
-                        ></button>
-                    </div>
-                }
+            @if (editing()) {
+            <div class="flex gap-2 mt-6">
+                <button pButton type="button" label="Enregistrer" icon="pi pi-save" [loading]="saving()"
+                    (click)="save()"></button>
             </div>
+            }
         </div>
     </div>
+</div>
 }
