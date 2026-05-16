@@ -189,7 +189,7 @@ export class UserProfile implements OnInit, OnDestroy {
                         return throwError(() => new Error('Refresh token introuvable.'));
                     }
 
-                    return this.authService.refreshToken({ refresh_token: refreshToken }).pipe(
+                    return this.authService.refreshCurrentSession().pipe(
                         map((authResponse) => ({
                             updatedUser,
                             authResponse
