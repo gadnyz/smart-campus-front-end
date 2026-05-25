@@ -37,21 +37,11 @@ type PresetName = keyof typeof presets;
 @Component({
     selector: 'app-preferences',
     standalone: true,
-    imports: [
-        CommonModule,
-        FormsModule,
-        ToastModule,
-        SelectButtonModule,
-        ContentSubtopbar
-    ],
+    imports: [CommonModule, FormsModule, ToastModule, SelectButtonModule, ContentSubtopbar],
     template: `
         <p-toast />
 
-        <app-content-subtopbar
-            kicker="Compte utilisateur"
-            title="Préférences"
-            [actions]="actions()"
-        />
+        <app-content-subtopbar kicker="Compte utilisateur" title="Préférences" [actions]="actions()" />
 
         <div class="flex flex-col gap-6">
             <div class="card p-0 overflow-hidden">
@@ -60,9 +50,7 @@ type PresetName = keyof typeof presets;
                         <i class="pi pi-palette text-primary"></i>
                         <div>
                             <div class="font-semibold text-lg">Affichage et Thème</div>
-                            <div class="text-sm text-color-secondary">
-                                Personnalisez l’apparence de l’interface.
-                            </div>
+                            <div class="text-sm text-color-secondary">Personnalisez l’apparence de l’interface.</div>
                         </div>
                     </div>
 
@@ -70,35 +58,19 @@ type PresetName = keyof typeof presets;
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-3 border-b border-surface">
                             <div>
                                 <div class="font-medium">Thème de l’interface</div>
-                                <div class="text-sm text-color-secondary">
-                                    Sélectionnez votre mode d’affichage préféré.
-                                </div>
+                                <div class="text-sm text-color-secondary">Sélectionnez votre mode d’affichage préféré.</div>
                             </div>
 
-                            <p-selectbutton
-                                [options]="themeOptions"
-                                optionLabel="label"
-                                optionValue="value"
-                                [ngModel]="selectedTheme()"
-                                (ngModelChange)="onThemeChange($event)"
-                                [allowEmpty]="false"
-                            />
+                            <p-selectbutton [options]="themeOptions" optionLabel="label" optionValue="value" [ngModel]="selectedTheme()" (ngModelChange)="onThemeChange($event)" [allowEmpty]="false" />
                         </div>
 
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-3">
                             <div>
                                 <div class="font-medium">Preset de l’interface</div>
-                                <div class="text-sm text-color-secondary">
-                                    Sélectionnez le style visuel de l’application.
-                                </div>
+                                <div class="text-sm text-color-secondary">Sélectionnez le style visuel de l’application.</div>
                             </div>
 
-                            <p-selectbutton
-                                [options]="presetOptions"
-                                [ngModel]="selectedPreset()"
-                                (ngModelChange)="onPresetChange($event)"
-                                [allowEmpty]="false"
-                            />
+                            <p-selectbutton [options]="presetOptions" [ngModel]="selectedPreset()" (ngModelChange)="onPresetChange($event)" [allowEmpty]="false" />
                         </div>
                     </div>
                 </div>
@@ -174,7 +146,7 @@ export class Preferences implements OnInit, OnDestroy {
         this.savedConfig = { ...this.layoutService.layoutConfig() };
         this.layoutService.saveCurrentConfig();
 
-        this.showSuccess('Les modifications ont été enregistrées localement avec succès.');
+        this.showSuccess('Les modifications ont été enregistrées avec succès.');
     }
 
     resetPreferences(): void {
@@ -205,10 +177,7 @@ export class Preferences implements OnInit, OnDestroy {
     }
 
     private applyPreset(presetName: PresetName): void {
-        $t()
-            .preset(presets[presetName])
-            .preset(this.getUnhPresetExt(presetName))
-            .use({ useDefaultOptions: true });
+        $t().preset(presets[presetName]).preset(this.getUnhPresetExt(presetName)).use({ useDefaultOptions: true });
     }
 
     private getUnhPresetExt(presetName: PresetName) {
@@ -240,10 +209,7 @@ export class Preferences implements OnInit, OnDestroy {
     private isCurrentConfigSaved(): boolean {
         const currentConfig = this.layoutService.layoutConfig();
 
-        return (
-            currentConfig.darkTheme === this.savedConfig.darkTheme &&
-            currentConfig.preset === this.savedConfig.preset
-        );
+        return currentConfig.darkTheme === this.savedConfig.darkTheme && currentConfig.preset === this.savedConfig.preset;
     }
 
     private isPresetName(value: string): value is PresetName {

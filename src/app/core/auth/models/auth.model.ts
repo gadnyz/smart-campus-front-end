@@ -17,3 +17,23 @@ export interface LogoutRequest {
     access_token: string;
     refresh_token: string;
 }
+
+export interface RefreshRequest {
+    refresh_token: string;
+}
+
+export interface ForgotPasswordRequest {
+    email: string;
+}
+
+export interface ChangeOwnPasswordRequest {
+    current_password: string;
+    new_password: string;
+    confirm_password: string;
+}
+
+export interface ResetPasswordRequest {
+    reset_password_token: string;
+    password: string;
+    confirm_password: string;
+}

@@ -3,13 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { environment } from '@/environments/environment';
-import {
-    RegisterRequest,
-    RegisterResponse,
-    UpdateUserRequest,
-    User,
-    UserProfileResponse
-} from '../models/user.model';
+import { AvatarUploadUrlResponse, ConfirmAvatarRequest, ConfirmAvatarResponse, RegisterRequest, RegisterResponse, UpdateUserRequest, User, UserProfileResponse } from '../models/user.model';
 
 export interface PageableQuery {
     page?: number;
@@ -31,7 +25,6 @@ export class UsersService {
     private readonly baseUrl = `${environment.apiBaseUrl}/api/v1/users`;
     private readonly authBaseUrl = `${environment.apiBaseUrl}/api/v1/auth`;
     private readonly profilesUrl = `${environment.apiBaseUrl}/api/v1/profiles`;
-
 
     getUsers(query: PageableQuery = {}): Observable<PagedResponse<User>> {
         let params = new HttpParams();
@@ -73,7 +66,6 @@ export class UsersService {
         return this.http.get<PagedResponse<UserProfileResponse>>(this.profilesUrl, { params });
     }
 
-
     getUserById(userId: string): Observable<User> {
         return this.http.get<User>(`${this.baseUrl}/${userId}`);
     }
@@ -96,5 +88,25 @@ export class UsersService {
 
     disableUser(userId: string): Observable<void> {
         return this.http.put<void>(`${this.baseUrl}/${userId}/disable`, {});
+    }
+
+    requestAvatarUploadUrl(extension: string): Observable<AvatarUploadUrlResponse> {
+        const normalizedExtension = extension.startsWith('.') ? extension : `.${extension}`;
+        const params = new HttpParams().set('extension', normalizedExtension);
+
+        return this.http.get<AvatarUploadUrlResponse>(`${this.baseUrl}/me/avatar/upload-url`, { params });
+    }
+
+    uploadAvatarFile(uploadUrl: string, file: File): Observable<string> {
+        return this.http.put(uploadUrl, file, {
+            headers: {
+                'Content-Type': file.type
+            },
+            responseType: 'text'
+        });
+    }
+
+    confirmAvatarUpload(payload: ConfirmAvatarRequest): Observable<ConfirmAvatarResponse> {
+        return this.http.post<ConfirmAvatarResponse>(`${this.baseUrl}/me/avatar/confirm`, payload);
     }
 }

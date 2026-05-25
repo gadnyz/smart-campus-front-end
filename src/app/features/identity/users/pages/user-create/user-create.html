@@ -12,67 +12,43 @@
                     <div class="col-span-12 md:col-span-4 flex flex-col gap-2">
                         <label for="username">Nom d'utilisateur</label>
 
-                        <input pInputText id="username" formControlName="username"
-                            placeholder="Saisissez le nom d'utilisateur" [class.ng-invalid]="isInvalid('username')" />
+                        <input pInputText id="username" formControlName="username" placeholder="Saisissez le nom d'utilisateur" [class.ng-invalid]="isInvalid('username')" />
 
                         @if (isInvalid('username')) {
-                        <small class="text-red-500">
-                            3 à 30 caractères et lettres/chiffres autorisés sans espace.
-                        </small>
-                        }
-
-                        @if (validationErrors()['username']) {
-                        <small class="text-red-500">
-                            {{ validationErrors()['username'] }}
-                        </small>
+                        <small class="text-red-500"> 3 à 30 caractères et lettres/chiffres autorisés sans espace. </small>
+                        } @if (validationErrors()['username']) {
+                        <small class="text-red-500"> {{ validationErrors()['username'] }} </small>
                         }
                     </div>
 
                     <div class="col-span-12 md:col-span-4 flex flex-col gap-2">
                         <label for="email">Email</label>
 
-                        <input pInputText id="email" type="email" formControlName="email"
-                            placeholder="Saisissez l'adresse mail" [class.ng-invalid]="isInvalid('email')" />
+                        <input pInputText id="email" type="email" formControlName="email" placeholder="Saisissez l'adresse mail" [class.ng-invalid]="isInvalid('email')" />
 
                         @if (isInvalid('email')) {
-                        <small class="text-red-500">
-                            Saisissez une adresse email valide.
-                        </small>
-                        }
-
-                        @if (validationErrors()['email']) {
-                        <small class="text-red-500">
-                            {{ validationErrors()['email'] }}
-                        </small>
+                        <small class="text-red-500"> Saisissez une adresse email valide. </small>
+                        } @if (validationErrors()['email']) {
+                        <small class="text-red-500"> {{ validationErrors()['email'] }} </small>
                         }
                     </div>
 
                     <div class="col-span-12 md:col-span-4 flex flex-col gap-2">
                         <label for="profile">Profil métier</label>
 
-                        <p-select id="profile" formControlName="profile" [options]="profiles()" optionLabel="label"
-                            optionValue="value" placeholder="Sélectionner le profil métier" class="w-full"
-                            [loading]="loadingProfiles()" />
+                        <p-select id="profile" formControlName="profile" [options]="profiles()" optionLabel="label" optionValue="value" placeholder="Sélectionner le profil métier" class="w-full" [loading]="loadingProfiles()" />
 
                         @if (isInvalid('profile')) {
-                        <small class="text-red-500">
-                            Le profil est obligatoire.
-                        </small>
-                        }
-
-                        @if (validationErrors()['profile']) {
-                        <small class="text-red-500">
-                            {{ validationErrors()['profile'] }}
-                        </small>
+                        <small class="text-red-500"> Le profil est obligatoire. </small>
+                        } @if (validationErrors()['profile']) {
+                        <small class="text-red-500"> {{ validationErrors()['profile'] }} </small>
                         }
                     </div>
 
                     <div class="col-span-12 flex flex-col sm:flex-row sm:justify-end gap-3 pt-2">
-                        <button pButton type="button" label="Annuler" severity="secondary" [outlined]="true"
-                            class="w-full sm:w-auto" (click)="cancel()"></button>
+                        <button pButton type="button" label="Annuler" severity="secondary" [outlined]="true" class="w-full sm:w-auto" (click)="cancel()"></button>
 
-                        <button pButton type="submit" label="Créer" icon="pi pi-save" class="w-full sm:w-auto"
-                            [loading]="submitting()" [disabled]="submitting() || loadingProfiles()"></button>
+                        <button pButton type="submit" label="Créer" icon="pi pi-save" class="w-full sm:w-auto" [loading]="submitting()" [disabled]="submitting() || loadingProfiles()"></button>
                     </div>
                 </form>
             </div>

@@ -18,16 +18,7 @@ import { UsersService } from '../../services/user.service';
 @Component({
     selector: 'app-user-profile',
     standalone: true,
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        ButtonModule,
-        FileUploadModule,
-        InputTextModule,
-        MessageModule,
-        TagModule,
-        ContentSubtopbar
-    ],
+    imports: [CommonModule, ReactiveFormsModule, ButtonModule, FileUploadModule, InputTextModule, MessageModule, TagModule, ContentSubtopbar],
     templateUrl: './user-profile.html',
     styleUrl: './user-profile.scss'
 })
@@ -53,15 +44,7 @@ export class UserProfile implements OnInit, OnDestroy {
     readonly avatarPreviewUrl = signal<string | null>(null);
 
     readonly form = this.fb.nonNullable.group({
-        username: [
-            '',
-            [
-                Validators.required,
-                Validators.minLength(3),
-                Validators.maxLength(30),
-                Validators.pattern(/^[a-zA-Z][a-zA-Z0-9._-]{2,29}$/)
-            ]
-        ],
+        username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30), Validators.pattern(/^[a-zA-Z][a-zA-Z0-9._-]{2,29}$/)]],
         email: ['', [Validators.required, Validators.email]]
     });
 
@@ -238,7 +221,6 @@ export class UserProfile implements OnInit, OnDestroy {
                 }
             });
     }
-
 
     onAvatarSelect(event: FileSelectEvent): void {
         const file = event.files[0];

@@ -5,7 +5,9 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { appBrand } from '@/app/core/config/app-brand';
-import { AuthFooter } from "../auth-footer/auth-footer";
+import { AuthFooter } from '../auth-footer/auth-footer';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../services/auth.service';
 
 @Component({
     selector: 'app-forget-password',
@@ -14,14 +16,16 @@ import { AuthFooter } from "../auth-footer/auth-footer";
     templateUrl: './forget-password.html',
     styleUrl: '../login.scss'
 })
-
 export class forgetPassword {
+    private readonly authService = inject(AuthService);
+
     brand = appBrand;
 
     email = '';
     loading = signal(false);
     successMessage = signal('');
     errorMessage = signal('');
+
 
     submit(form: HTMLFormElement): void {
         this.successMessage.set('');
@@ -33,10 +37,19 @@ export class forgetPassword {
 
         this.loading.set(true);
 
-        // À brancher ensuite sur l’API forget-password.
-        setTimeout(() => {
-            this.loading.set(false);
-            this.successMessage.set("Si cette adresse existe, un lien de récupération sera envoyé. Si vous n'avez pas reçu d'e-mail, vérifiez votre dossier de courrier indésirable.");
-        }, 600);
+        this.authService.forgotPassword({ email: this.email.trim() }).subscribe({
+            next: () => {
+                this.loading.set(false);
+                this.successMessage.set(
+                    "Si cette adresse existe, un lien de récupération sera envoyé."
+                );
+            },
+            error: (error: HttpErrorResponse) => {
+                this.loading.set(false);
+                this.errorMessage.set(
+                    error.error?.detail ?? "Impossible d'envoyer le lien de récupération."
+                );
+            }
+        });
     }
 }

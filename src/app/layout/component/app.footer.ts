@@ -10,7 +10,7 @@ import { appBrand } from '@/app/core/config/app-brand';
                 <span class="desktop-footer-item footer-app-name">{{ brand.appName }}</span>
                 <span class="desktop-footer-item">
                     <i class="pi pi-building-columns"></i>
-                    <span>{{brand.university}}</span>
+                    <span>{{ brand.university }}</span>
                 </span>
             </div>
 

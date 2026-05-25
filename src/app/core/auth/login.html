@@ -6,46 +6,28 @@
                     <div class="login-brand-row text-surface-900 dark:text-surface-0">
                         <img src="images/icons/logo.png" [alt]="brand.appName" class="login-logo shrink-0" />
 
-                        <span class="login-brand">
-                            {{ brand.appName }}
-                        </span>
+                        <span class="login-brand"> {{ brand.appName }} </span>
                     </div>
 
-                    <div class="login-heading text-surface-900 dark:text-surface-0">
-                        Connectez-vous pour continuer
-                    </div>
+                    <div class="login-heading text-surface-900 dark:text-surface-0">Connectez-vous pour continuer</div>
                 </div>
 
                 <form class="login-form" #nativeForm novalidate (ngSubmit)="submit(nativeForm)">
-                    <label for="email1" class="block text-surface-900 dark:text-surface-0">
-                        Email
-                    </label>
+                    <label for="email1" class="block text-surface-900 dark:text-surface-0"> Email </label>
 
-                    <input pInputText id="email1" name="email" type="email" required email
-                        placeholder="Saisissez votre adresse mail" class="w-full mb-4" [(ngModel)]="email"
-                        #emailModel="ngModel" />
+                    <input pInputText id="email1" name="email" type="email" required email placeholder="Saisissez votre adresse mail" class="w-full mb-4" [(ngModel)]="email" #emailModel="ngModel" />
 
                     @if (validationErrors()['email']) {
-                    <small class="text-red-500 block mb-2">
-                        {{ validationErrors()['email'] }}
-                    </small>
+                    <small class="text-red-500 block mb-2"> {{ validationErrors()['email'] }} </small>
                     }
 
-                    <label for="password1" class="block text-surface-900 dark:text-surface-0">
-                        Mot de passe
-                    </label>
+                    <label for="password1" class="block text-surface-900 dark:text-surface-0"> Mot de passe </label>
 
-                    <p-password id="password1" name="password" required [(ngModel)]="password"
-                        placeholder="Saisissez votre mot de passe" [toggleMask]="true" styleClass="mb-3" [fluid]="true"
-                        [feedback]="false" #passwordModel="ngModel" />
+                    <p-password id="password1" name="password" required [(ngModel)]="password" placeholder="Saisissez votre mot de passe" [toggleMask]="true" styleClass="mb-3" [fluid]="true" [feedback]="false" #passwordModel="ngModel" />
 
                     @if (validationErrors()['password']) {
-                    <small class="text-red-500 block mb-3">
-                        {{ validationErrors()['password'] }}
-                    </small>
-                    }
-
-                    @if (errorMessage()) {
+                    <small class="text-red-500 block mb-3"> {{ validationErrors()['password'] }} </small>
+                    } @if (errorMessage()) {
                     <p-message severity="error" [text]="errorMessage()" styleClass="w-full mb-4 block" />
                     }
 
@@ -53,13 +35,10 @@
                 </form>
 
                 <div class="login-back">
-                    <a routerLink="/auth/forget-password" class="font-medium no-underline cursor-pointer text-primary">
-                        Mot de passe oublié ?
-                    </a>
-
+                    <a routerLink="/auth/forget-password" class="font-medium no-underline cursor-pointer text-primary"> Mot de passe oublié ? </a>
                 </div>
 
-                <app-auth-footer/>
+                <app-auth-footer />
             </div>
         </div>
     </div>

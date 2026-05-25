@@ -40,6 +40,19 @@ export interface UserProfileResponse {
     roles: string[];
 }
 
+export interface AvatarUploadUrlResponse {
+    upload_url: string;
+    object_path: string;
+}
+
+export interface ConfirmAvatarRequest {
+    object_path: string;
+}
+
+export interface ConfirmAvatarResponse {
+    public_url: string;
+}
+
 export interface PageableQuery {
     page?: number;
     size?: number;

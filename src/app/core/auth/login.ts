@@ -20,7 +20,6 @@ import { AuthFooter } from './auth-footer/auth-footer';
     templateUrl: './login.html',
     styleUrl: './login.scss'
 })
-
 export class Login {
     private readonly authService = inject(AuthService);
     private readonly router = inject(Router);
@@ -70,29 +69,30 @@ export class Login {
         this.errorMessage.set(apiError?.detail ?? error.message ?? 'Une erreur est survenue lors de la connexion.');
     }
 
-    submit(form : HTMLFormElement): void {
+    submit(form: HTMLFormElement): void {
         this.clearErrors();
 
-        if(!form.reportValidity())
-        {
+        if (!form.reportValidity()) {
             return;
         }
 
         this.loading.set(true);
 
-        this.authService.login({
-            email: this.email.trim(),
-            password: this.password
-        }).subscribe({
-            next: (response) => {
-                this.authService.storeSession(response);
-                this.loading.set(false);
-                void this.router.navigate(['/']);
-            },
-            error: (error: HttpErrorResponse) => {
-                this.loading.set(false);
-                this.resolveError(error);
-            }
-        });
+        this.authService
+            .login({
+                email: this.email.trim(),
+                password: this.password
+            })
+            .subscribe({
+                next: (response) => {
+                    this.authService.storeSession(response);
+                    this.loading.set(false);
+                    void this.router.navigate(['/']);
+                },
+                error: (error: HttpErrorResponse) => {
+                    this.loading.set(false);
+                    this.resolveError(error);
+                }
+            });
     }
 }

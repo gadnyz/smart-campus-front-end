@@ -1,28 +1,45 @@
-import { Component } from '@angular/core';
-import { StatsWidget } from './components/statswidget';
-import { ContentSubtopbar , SubtopbarAction} from '@/app/shared/ui/content-subtopbar/content-subtopbar';
-import { UserList } from '@/app/features/identity/users/components/user-list/user-list';
+import { CommonModule, NgComponentOutlet } from '@angular/common';
+import { Component, computed, inject } from '@angular/core';
+import { PermissionService } from '@/app/core/permissions/permission.service';
+import { dashboardWidgets } from './dashboard.widgets';
 
 @Component({
     selector: 'app-dashboard',
-    imports: [StatsWidget, UserList, ContentSubtopbar],
+    standalone: true,
+    imports: [CommonModule, NgComponentOutlet],
     template: `
-        <app-content-subtopbar
-            kicker=""
-            title=""
-            [actions]="dashboardActions"
-        />
-
         <div class="grid grid-cols-12 gap-8">
-            <app-stats-widget class="contents" />
-            <div class="col-span-12">
-                <app-user-list/>
-            </div>
+            @for (widget of visibleWidgets(); track widget.key) {
+                <div [class]="getWidgetClass(widget.size)">
+                    <ng-container *ngComponentOutlet="widget.component" />
+                </div>
+            }
         </div>
     `
 })
 export class Dashboard {
-      dashboardActions: SubtopbarAction[] = [
-        { label: 'Filtrer', icon: 'pi pi-filter', severity: 'info', outlined: true },
-    ];
+    private readonly permissionService = inject(PermissionService);
+
+    readonly visibleWidgets = computed(() =>
+        dashboardWidgets
+            .filter((widget) =>
+                this.permissionService.canAccess({
+                    permissions: widget.permissions,
+                    mode: widget.mode
+                })
+            )
+            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    );
+
+    getWidgetClass(size = 'full'): string {
+        const classes = {
+            sm: 'col-span-12 md:col-span-6 xl:col-span-3',
+            md: 'col-span-12 md:col-span-6',
+            lg: 'col-span-12 xl:col-span-8',
+            xl: 'col-span-12',
+            full: 'col-span-12'
+        };
+
+        return classes[size as keyof typeof classes] ?? classes.full;
+    }
 }

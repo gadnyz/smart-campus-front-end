@@ -16,16 +16,7 @@ import { UsersService } from '../../services/user.service';
 @Component({
     selector: 'app-user-create',
     standalone: true,
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        FluidModule,
-        InputTextModule,
-        SelectModule,
-        ButtonModule,
-        ToastModule,
-        ContentSubtopbar
-    ],
+    imports: [CommonModule, ReactiveFormsModule, FluidModule, InputTextModule, SelectModule, ButtonModule, ToastModule, ContentSubtopbar],
     templateUrl: './user-create.html',
     styleUrl: './user-create.scss',
     providers: [MessageService]
@@ -44,21 +35,8 @@ export class UserCreate implements OnInit {
     readonly profiles = signal<{ label: string; value: string }[]>([]);
 
     readonly form = this.fb.nonNullable.group({
-        username: [
-            '',
-            [
-                Validators.required,
-                Validators.minLength(3),
-                Validators.maxLength(30)
-            ]
-        ],
-        email: [
-            '',
-            [
-                Validators.required,
-                Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)
-            ]
-        ],
+        username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
+        email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]],
         profile: ['', Validators.required]
     });
 

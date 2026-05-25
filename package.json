@@ -9,7 +9,7 @@
     "format": "prettier --write \"**/*.{js,mjs,ts,mts,d.ts,html}\" --cache",
     "lint": "ng lint  smart-campus",
     "test": "ng test",
-    "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage"
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadlessNoSandbox --code-coverage"
   },
   "private": true,
   "dependencies": {

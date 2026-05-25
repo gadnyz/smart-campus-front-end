@@ -1,10 +1,12 @@
 :root {
-    --layout-topbar-height: 4.25rem;
+    --layout-topbar-height: 3rem;
     --layout-sidebar-width: 18rem;
     --layout-content-gap: 0;
     --layout-content-padding-inline: 0.5rem;
     --layout-content-padding-left-collapsed: 2rem;
+    --layout-sidebar-collapsed-width: 4.5rem;
 }
+
 
 .layout-main-container {
     display: flex;
