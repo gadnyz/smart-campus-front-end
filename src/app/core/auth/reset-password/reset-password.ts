@@ -9,15 +9,16 @@ import { PasswordModule } from 'primeng/password';
 import { appBrand } from '@/app/core/config/app-brand';
 import { AuthFooter } from '../auth-footer/auth-footer';
 import { AuthService } from '../services/auth.service';
+import { DividerModule } from 'primeng/divider';
 
 @Component({
-    selector: 'app-change-password',
+    selector: 'app-reset-password',
     standalone: true,
-    imports: [FormsModule, RouterModule, ButtonModule, PasswordModule, MessageModule, AuthFooter],
-    templateUrl: './change-password.html',
+    imports: [FormsModule, RouterModule, ButtonModule, DividerModule, PasswordModule, MessageModule, AuthFooter],
+    templateUrl: './reset-password.html',
     styleUrl: '../login.scss'
 })
-export class ChangePassword implements OnInit {
+export class ResetPassword implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly authService = inject(AuthService);
@@ -40,6 +41,33 @@ export class ChangePassword implements OnInit {
         }
     }
 
+    private getPasswordValidationMessage(password: string): string | null {
+        if (!/[a-z]/.test(password)) {
+            return 'Le mot de passe doit contenir au moins une lettre minuscule.';
+        }
+        if (!/[A-Z]/.test(password)) {
+            return 'Le mot de passe doit contenir au moins une lettre majuscule.';
+        }
+
+        if (!/[0-9]/.test(password)) {
+            return 'Le mot de passe doit contenir au moins un chiffre.';
+        }
+
+        if (!/[@$!%*?&]/.test(password)) {
+            return 'Le mot de passe doit contenir au moins un caractère spécial accepté : @ $ ! % * ? & ';
+        }
+
+        if (password.length < 8) {
+            return 'Le mot de passe doit contenir au minimum 8 caractères.';
+        }
+
+        if (password.length > 12) {
+            return 'Le mot de passe ne doit pas dépasser 12 caractères.';
+        }
+
+        return null;
+    }
+
     submit(form: HTMLFormElement): void {
         this.errorMessage.set('');
         this.successMessage.set('');
@@ -50,6 +78,13 @@ export class ChangePassword implements OnInit {
         }
 
         if (!form.reportValidity()) {
+            return;
+        }
+
+        const passwordValidationMessage = this.getPasswordValidationMessage(this.password);
+
+        if (passwordValidationMessage) {
+            this.errorMessage.set(passwordValidationMessage);
             return;
         }
 
@@ -68,13 +103,14 @@ export class ChangePassword implements OnInit {
             .pipe(finalize(() => this.loading.set(false)))
             .subscribe({
                 next: () => {
-                    this.successMessage.set('Votre mot de passe a été mis à jour.');
+                    this.errorMessage.set('');
+                    this.successMessage.set('');
                     this.password = '';
                     this.confirmPassword = '';
 
-                    setTimeout(() => {
-                        void this.router.navigate(['/auth/login']);
-                    }, 1200);
+                    void this.router.navigate(['/auth/login'], {
+                        queryParams: { reset: 'success' }
+                    });
                 },
                 error: (error: HttpErrorResponse) => {
                     this.errorMessage.set(

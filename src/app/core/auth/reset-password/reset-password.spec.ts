@@ -1,19 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
-import { ChangePassword } from './change-password';
+import { ResetPassword } from './reset-password';
 
-describe('ChangePassword', () => {
-    let component: ChangePassword;
-    let fixture: ComponentFixture<ChangePassword>;
+describe('ResetPassword', () => {
+    let component: ResetPassword;
+    let fixture: ComponentFixture<ResetPassword>;
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-            imports: [ChangePassword],
+            imports: [ResetPassword],
             providers: [provideRouter([])]
         }).compileComponents();
 
-        fixture = TestBed.createComponent(ChangePassword);
+        fixture = TestBed.createComponent(ResetPassword);
         component = fixture.componentInstance;
         await fixture.whenStable();
     });

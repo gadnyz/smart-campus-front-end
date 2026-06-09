@@ -26,6 +26,36 @@ export class forgetPassword {
     successMessage = signal('');
     errorMessage = signal('');
 
+    private resolveError(error: HttpErrorResponse): void {
+        const apiError = error.error;
+
+        if (error.status === 0) {
+            this.errorMessage.set('Le service de récupération de mot de passe est momentanément indisponible. Veuillez patienter puis réessayer.');
+            return;
+        }
+
+        if (error.status === 400 && apiError?.invalid_fields) {
+            this.errorMessage.set('Veuillez vérifier les informations saisies.');
+            return;
+        }
+
+        if (error.status === 403) {
+            this.successMessage.set('Si cette adresse email est associée à un compte, un lien de récupération vous sera envoyé.'); // Ceci est fais exprès pour eviter que les utilisateurs se mettent à tenter plusieurs mails
+            return;
+        }
+
+        if (error.status === 429) {
+            this.errorMessage.set('Trop de tentatives ont été effectuées. Veuillez patienter avant de réessayer.');
+            return;
+        }
+
+        if ([500, 502, 503, 504].includes(error.status)) {
+            this.errorMessage.set('Une erreur est survenue lors de l’envoi du lien de récupération. Veuillez réessayer plus tard.');
+            return;
+        }
+
+        this.errorMessage.set('Impossible d’envoyer le lien de récupération pour le moment. Veuillez réessayer plus tard.');
+    }
 
     submit(form: HTMLFormElement): void {
         this.successMessage.set('');
@@ -41,14 +71,12 @@ export class forgetPassword {
             next: () => {
                 this.loading.set(false);
                 this.successMessage.set(
-                    "Si cette adresse existe, un lien de récupération sera envoyé."
+                    'Si cette adresse email est associée à un compte, un lien de récupération vous sera envoyé.'
                 );
             },
             error: (error: HttpErrorResponse) => {
                 this.loading.set(false);
-                this.errorMessage.set(
-                    error.error?.detail ?? "Impossible d'envoyer le lien de récupération."
-                );
+                this.resolveError(error);
             }
         });
     }

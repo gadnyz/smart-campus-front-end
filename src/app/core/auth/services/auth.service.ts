@@ -112,7 +112,7 @@ export class AuthService {
 
     changeCurrentUserPassword(payload: ChangeOwnPasswordRequest): Observable<void> {
         return this.http.post<void>(
-            `${environment.apiBaseUrl}/api/v1/auth/change-password`,
+            `${environment.apiBaseUrl}/api/v1/auth/reset-password`,
             payload
         );
     }

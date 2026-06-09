@@ -7,14 +7,14 @@
 }
 
 .login-card-frame {
-    width: min(100%, 400px);
+     width: min(100%, 440px);
 }
 
 .login-card {
     border: 1px solid var(--surface-border);
     border-radius: 4px;
     box-shadow: 0 8px 16px rgba(9, 30, 66, 0.15);
-    padding: 2rem 2.5rem 1.75rem;
+    padding: 2.25rem 2.75rem 2rem;
 }
 
 .login-brand-row {
@@ -26,36 +26,36 @@
 }
 
 .login-logo {
-    width: 3.5rem;
-    height: 3.5rem;
+    width: 3.75rem;
+    height: 3.75rem;
     margin: 0;
     object-fit: contain;
 }
 
 .login-brand {
-    font-size: 1.8rem;
+    font-size: 1.95rem;
     line-height: 1;
     font-weight: 200;
     
 }
 
 .login-heading {
-    font-size: 1rem;
     line-height: 1.4;
     font-weight: 700;
-    margin-bottom: 0.5rem;
+    font-size: 1.08rem;
+    margin-bottom: 0.75rem;
 }
 
 .login-form label {
-    font-size: 0.85rem;
+    font-size: 0.92rem;
     font-weight: 700;
     margin-bottom: 0.4rem;
 }
 
 .login-form .p-button {
-    height: 2.5rem;
+    height: 2.75rem;
     border-radius: 3px;
-    font-size: 0.875rem;
+    font-size: 0.95rem;
     font-weight: 700;
 }
 @media (max-width: 480px) {
@@ -74,7 +74,7 @@
 
     a {
         color: var(--primary-color);
-        font-size: 0.82rem;
+        font-size: 0.9rem;
         font-weight: 600;
         text-decoration: none;
 
