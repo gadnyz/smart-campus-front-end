@@ -47,6 +47,15 @@ export class UserCreate implements OnInit {
             severity: 'secondary',
             outlined: true,
             command: () => this.goBack()
+        },
+        {
+            label: 'Créer',
+            icon: 'pi pi-save',
+            severity: 'info',
+            outlined: false,
+            loading: this.submitting(),
+            disabled: this.submitting() || this.loadingProfiles(),
+            command: () => this.submit()
         }
     ]);
 
@@ -138,10 +147,6 @@ export class UserCreate implements OnInit {
                 this.showError(error.error?.detail ?? 'Une erreur est survenue lors de la création de l’utilisateur.');
             }
         });
-    }
-
-    cancel(): void {
-        void this.router.navigate(['/identity/users']);
     }
 
     goBack(): void {

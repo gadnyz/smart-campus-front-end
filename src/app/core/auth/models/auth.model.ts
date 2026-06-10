@@ -27,9 +27,10 @@ export interface ForgotPasswordRequest {
 }
 
 export interface ChangeOwnPasswordRequest {
-    current_password: string;
+    old_password: string;
     new_password: string;
     confirm_password: string;
+    refresh_token: string;
 }
 
 export interface ResetPasswordRequest {

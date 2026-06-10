@@ -14,6 +14,7 @@ export type SubtopbarAction = {
     routerLink?: string | string[];
     command?: () => void;
     disabled?: boolean;
+    loading?: boolean;
     permissions?: readonly PermissionValue[];
     mode?: PermissionMode;
 };

@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError, tap } from 'rxjs';
 import { environment } from '@/environments/environment';
@@ -8,7 +8,7 @@ import { UserContextResponse } from '@/app/features/identity/users/models/user.m
 @Injectable({ providedIn: 'root' })
 export class AuthService {
     private readonly http = inject(HttpClient);
-
+    readonly currentUser = signal<UserContextResponse | null>(this.readCurrentUser());
     private readonly accessTokenKey = 'access_token';
     private readonly refreshTokenKey = 'refresh_token';
     private readonly currentUserKey = 'current_user';
@@ -21,6 +21,22 @@ export class AuthService {
         sessionStorage.setItem(this.accessTokenKey, response.access_token);
         sessionStorage.setItem(this.refreshTokenKey, response.refresh_token);
         sessionStorage.setItem(this.currentUserKey, JSON.stringify(response.user));
+        this.currentUser.set(response.user);
+    }
+
+    private readCurrentUser(): UserContextResponse | null {
+        const storedUser = sessionStorage.getItem(this.currentUserKey);
+
+        if (!storedUser) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(storedUser) as UserContextResponse;
+        } catch {
+            sessionStorage.removeItem(this.currentUserKey);
+            return null;
+        }
     }
 
     getAccessToken(): string | null {
@@ -48,6 +64,7 @@ export class AuthService {
 
     updateCurrentUser(user: UserContextResponse): void {
         sessionStorage.setItem(this.currentUserKey, JSON.stringify(user));
+        this.currentUser.set(user);
     }
 
     isAuthenticated(): boolean {
@@ -58,6 +75,7 @@ export class AuthService {
         sessionStorage.removeItem(this.accessTokenKey);
         sessionStorage.removeItem(this.refreshTokenKey);
         sessionStorage.removeItem(this.currentUserKey);
+        this.currentUser.set(null);
     }
 
     logout(): void {
@@ -111,9 +129,10 @@ export class AuthService {
     }
 
     changeCurrentUserPassword(payload: ChangeOwnPasswordRequest): Observable<void> {
-        return this.http.post<void>(
-            `${environment.apiBaseUrl}/api/v1/auth/reset-password`,
+        return this.http.put<void>(
+            `${environment.apiBaseUrl}/api/v1/users/me/password`,
             payload
         );
     }
+
 }

@@ -3,42 +3,46 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { switchMap, map, of, throwError } from 'rxjs';
+import { switchMap, map, of, finalize } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
-import { FileUpload, FileUploadModule } from 'primeng/fileupload';
+import { FileUploadModule } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
-import { MessageModule } from 'primeng/message';
 import { TagModule } from 'primeng/tag';
 import { FileSelectEvent } from 'primeng/types/fileupload';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { AuthService } from '@/app/core/auth/services/auth.service';
 import { UpdateUserRequest, User } from '../../models/user.model';
 import { UsersService } from '../../services/user.service';
+import { ElementRef } from '@angular/core';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { PasswordModule } from 'primeng/password';
 
 @Component({
     selector: 'app-user-profile',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, ButtonModule, FileUploadModule, InputTextModule, MessageModule, TagModule, ContentSubtopbar],
+    imports: [CommonModule, ReactiveFormsModule, ButtonModule, FileUploadModule, InputTextModule, PasswordModule, ToastModule, TagModule, ContentSubtopbar],
+    providers: [MessageService],
     templateUrl: './user-profile.html',
     styleUrl: './user-profile.scss'
 })
 export class UserProfile implements OnInit, OnDestroy {
-    @ViewChild('avatarUpload') avatarUpload?: FileUpload;
-
+    @ViewChild('avatarInput') avatarInput?: ElementRef<HTMLInputElement>;
+    private readonly messageService = inject(MessageService);
     private readonly location = inject(Location);
     private readonly router = inject(Router);
     private readonly fb = inject(FormBuilder);
     private readonly authService = inject(AuthService);
     private readonly usersService = inject(UsersService);
-
+    readonly removingAvatar = signal(false);
     private avatarPreviewObjectUrl: string | null = null;
+    readonly passwordSaving = signal(false);
+
 
     readonly user = signal<User | null>(null);
     readonly loading = signal(false);
     readonly saving = signal(false);
     readonly editing = signal(false);
-    readonly errorMessage = signal('');
-    readonly successMessage = signal('');
     readonly validationErrors = signal<Record<string, string>>({});
     readonly selectedAvatarFile = signal<File | null>(null);
     readonly avatarPreviewUrl = signal<string | null>(null);
@@ -73,8 +77,31 @@ export class UserProfile implements OnInit, OnDestroy {
         }
     ]);
 
+    readonly passwordForm = this.fb.nonNullable.group({
+        current_password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(16)]],
+        new_password: [
+            '',
+            [
+                Validators.required,
+                Validators.minLength(8),
+                Validators.maxLength(16),
+                Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/)
+            ]
+        ],
+        confirm_password: [
+            '',
+            [
+                Validators.required,
+                Validators.minLength(8),
+                Validators.maxLength(16),
+                Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/)
+            ]
+        ]
+    });
+
     ngOnInit(): void {
         this.form.disable();
+        this.passwordForm.disable();
         this.loadCurrentUser();
     }
 
@@ -86,12 +113,11 @@ export class UserProfile implements OnInit, OnDestroy {
         const sessionUser = this.authService.getCurrentUser();
 
         if (!sessionUser?.id) {
-            this.errorMessage.set('Session utilisateur introuvable. Reconnecte-toi pour charger ton profil.');
+            this.showSuccess('Session utilisateur introuvable. Reconnecte-toi pour charger ton profil.');
             return;
         }
 
         this.loading.set(true);
-        this.errorMessage.set('');
 
         this.usersService.getUserById(sessionUser.id).subscribe({
             next: (user) => {
@@ -99,45 +125,164 @@ export class UserProfile implements OnInit, OnDestroy {
                 this.loading.set(false);
             },
             error: (error: HttpErrorResponse) => {
-                this.errorMessage.set(error.error?.detail ?? 'Impossible de charger ton profil.');
+                this.showError(error.error?.detail ?? 'Impossible de charger ton profil.');
                 this.loading.set(false);
             }
         });
     }
 
+    submitPassword(): void {
+        if (!this.editing()) {
+            return;
+        }
+
+        if (this.passwordForm.invalid) {
+            this.passwordForm.markAllAsTouched();
+            return;
+        }
+
+        const formValue = this.passwordForm.getRawValue();
+
+        if (formValue.new_password !== formValue.confirm_password) {
+            this.showWarning('Les mots de passe ne correspondent pas.');
+            return;
+        }
+
+        const refreshToken = this.authService.getRefreshToken();
+
+        if (!refreshToken) {
+            this.showError('Session expirée. Reconnecte-toi pour continuer.');
+            return;
+        }
+
+        this.passwordSaving.set(true);
+
+        this.authService
+            .changeCurrentUserPassword({
+                old_password: formValue.current_password,
+                new_password: formValue.new_password,
+                confirm_password: formValue.confirm_password,
+                refresh_token: refreshToken
+            })
+            .pipe(finalize(() => this.passwordSaving.set(false)))
+            .subscribe({
+                next: () => {
+                    this.passwordForm.reset();
+                    this.passwordForm.disable();
+                    this.form.disable();
+                    this.editing.set(false);
+                    this.clearAvatarSelection();
+                    this.showSuccess('Mot de passe modifié avec succès.');
+                },
+                error: (error: HttpErrorResponse) => {
+                    this.showError(error.error?.detail ?? 'Impossible de modifier le mot de passe.');
+                }
+            });
+    }
+
+    isPasswordInvalid(controlName: 'current_password' | 'new_password' | 'confirm_password'): boolean {
+        const control = this.passwordForm.controls[controlName];
+        return control.invalid && (control.dirty || control.touched);
+    }
+
     toggleEdit(): void {
         const currentUser = this.user();
+
         if (!currentUser) {
             return;
         }
 
-        this.errorMessage.set('');
-        this.successMessage.set('');
         this.validationErrors.set({});
 
         if (this.editing()) {
             this.editing.set(false);
+
             this.form.reset({
                 username: currentUser.username,
                 email: currentUser.email
             });
+
+            this.passwordForm.reset();
+
             this.form.disable();
+            this.passwordForm.disable();
             this.clearAvatarSelection();
             return;
         }
 
         this.editing.set(true);
         this.form.enable();
+        this.passwordForm.enable();
+    }
+
+    private showSuccess(detail: string): void {
+        this.messageService.add({ severity: 'success', summary: 'Succès', detail, life: 3000 });
+    }
+
+    private showError(detail: string): void {
+        this.messageService.add({ severity: 'error', summary: 'Erreur', detail, life: 3000 });
+    }
+
+    private showWarning(detail: string): void {
+        this.messageService.add({ severity: 'warn', summary: 'Attention', detail, life: 3000 });
+    }
+
+    openAvatarPicker(): void {
+        if (!this.editing() || this.saving()) {
+            return;
+        }
+
+        this.avatarInput?.nativeElement.click();
+    }
+
+    onAvatarInputChange(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+        this.selectAvatarFile(file);
+        input.value = '';
+    }
+
+    removeAvatar(): void {
+        const currentUser = this.user();
+
+        if (!currentUser || this.removingAvatar()) {
+            return;
+        }
+
+        this.removingAvatar.set(true);
+
+        this.usersService.deleteCurrentUserAvatar().subscribe({
+            next: () => {
+                const updatedUser = {
+                    ...currentUser,
+                    avatar_url: null
+                };
+
+                this.setLoadedUser(updatedUser);
+                this.authService.updateCurrentUser(updatedUser);
+                this.clearAvatarSelection();
+                this.showSuccess('Photo de profil supprimée avec succès.');
+                this.removingAvatar.set(false);
+            },
+            error: (error: HttpErrorResponse) => {
+                this.showError(error.error?.detail ?? 'Impossible de supprimer la photo de profil.');
+                this.removingAvatar.set(false);
+            }
+        });
     }
 
     save(): void {
         const currentUser = this.user();
+
         if (!currentUser) {
             return;
         }
 
-        this.errorMessage.set('');
-        this.successMessage.set('');
         this.validationErrors.set({});
 
         if (this.form.invalid) {
@@ -147,6 +292,7 @@ export class UserProfile implements OnInit, OnDestroy {
 
         const payload: UpdateUserRequest = this.form.getRawValue();
         const avatarFile = this.selectedAvatarFile();
+        const usernameChanged = payload.username !== currentUser.username;
 
         this.saving.set(true);
 
@@ -164,60 +310,51 @@ export class UserProfile implements OnInit, OnDestroy {
                             avatar_url: avatar.public_url
                         }))
                     );
-                }),
-                switchMap((updatedUser) => {
-                    const refreshToken = this.authService.getRefreshToken();
-
-                    if (!refreshToken) {
-                        return throwError(() => new Error('Refresh token introuvable.'));
-                    }
-
-                    return this.authService.refreshCurrentSession().pipe(
-                        map((authResponse) => ({
-                            updatedUser,
-                            authResponse
-                        }))
-                    );
                 })
             )
             .subscribe({
-                next: ({ updatedUser, authResponse }) => {
-                    this.authService.storeSession(authResponse);
-
+                next: (updatedUser) => {
                     this.setLoadedUser(updatedUser);
                     this.authService.updateCurrentUser(updatedUser);
 
                     this.editing.set(false);
                     this.form.disable();
                     this.clearAvatarSelection();
-                    this.successMessage.set('Profil modifié avec succès.');
-                    this.saving.set(false);
-                },
-                error: (error: HttpErrorResponse | Error) => {
                     this.saving.set(false);
 
-                    if (error instanceof Error) {
-                        this.errorMessage.set(error.message);
+                    if (usernameChanged) {
+                        this.showSuccess('Profil modifié avec succès. Reconnecte-toi pour continuer.');
+
+                        setTimeout(() => {
+                            this.authService.clearSession();
+                            void this.router.navigate(['/auth/login']);
+                        }, 1200);
+
                         return;
                     }
 
+                    this.showSuccess('Profil modifié avec succès.');
+                },
+                error: (error: HttpErrorResponse) => {
+                    this.saving.set(false);
+
                     if (error.status === 400 && error.error?.invalid_fields) {
-                        this.errorMessage.set(error.error?.detail ?? 'La requête contient des champs non valides.');
+                        this.showError(error.error?.detail ?? 'La requête contient des champs non valides.');
                         this.validationErrors.set(error.error.invalid_fields);
                         return;
                     }
 
                     if (error.status === 409) {
-                        this.errorMessage.set(error.error?.detail ?? 'Ces informations existent déjà.');
+                        this.showError(error.error?.detail ?? 'Ces informations existent déjà.');
                         return;
                     }
 
                     if (error.status === 401) {
-                        this.errorMessage.set('La session a expiré. Reconnecte-toi pour continuer.');
+                        this.showError('La session a expiré. Reconnecte-toi pour continuer.');
                         return;
                     }
 
-                    this.errorMessage.set(error.error?.detail ?? 'Une erreur est survenue lors de la modification du profil.');
+                    this.showError(error.error?.detail ?? 'Une erreur est survenue lors de la modification du profil.');
                 }
             });
     }
@@ -229,8 +366,19 @@ export class UserProfile implements OnInit, OnDestroy {
             return;
         }
 
-        if (!['image/png', 'image/jpeg'].includes(file.type)) {
-            this.errorMessage.set('Sélectionne une image PNG ou JPG.');
+        this.selectAvatarFile(file);
+    }
+
+    private selectAvatarFile(file: File): void {
+        const allowedMimeTypes = ['image/png', 'image/jpeg'];
+        const allowedExtensions = ['.png', '.jpg'];
+
+        const fileName = file.name.toLowerCase();
+        const hasAllowedExtension = allowedExtensions.some((extension) => fileName.endsWith(extension));
+        const hasAllowedMimeType = allowedMimeTypes.includes(file.type);
+
+        if (!hasAllowedExtension || !hasAllowedMimeType) {
+            this.showWarning('Sélectionne uniquement une image PNG ou JPG.');
             return;
         }
 
@@ -308,10 +456,12 @@ export class UserProfile implements OnInit, OnDestroy {
 
     private clearAvatarSelection(): void {
         this.selectedAvatarFile.set(null);
-        this.avatarUpload?.clear();
         this.revokeAvatarPreview();
-    }
 
+        if (this.avatarInput?.nativeElement) {
+            this.avatarInput.nativeElement.value = '';
+        }
+    }
     private revokeAvatarPreview(): void {
         if (this.avatarPreviewObjectUrl) {
             URL.revokeObjectURL(this.avatarPreviewObjectUrl);

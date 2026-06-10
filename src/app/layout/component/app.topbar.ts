@@ -1,5 +1,5 @@
 import { CommonModule, UpperCasePipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
@@ -38,7 +38,11 @@ import { FirstCharPipe } from '@/app/core/services/Pipes';
                 </button> -->
 
                 <button type="button" class="layout-topbar-avatar-button" aria-label="Profil utilisateur" (click)="userMenu.toggle($event)">
-                    <p-avatar label="{{username | firstChar }}" shape="circle" styleClass="layout-topbar-avatar" />
+                    @if (avatarUrl()) {
+                    <p-avatar [image]="avatarUrl()" shape="circle" styleClass="layout-topbar-avatar" />
+                    } @else {
+                    <p-avatar [label]="userInitial()" shape="circle" styleClass="layout-topbar-avatar" />
+                    }
                 </button>
 
                 <p-menu #userMenu [model]="userMenuItems" [popup]="true" appendTo="body" styleClass="layout-topbar-user-menu" />
@@ -53,7 +57,13 @@ export class AppTopbar {
     private readonly authService = inject(AuthService);
 
     readonly notificationCount = 5;
-    readonly username = this.authService.getCurrentUser()?.username;
+    readonly currentUser = this.authService.currentUser;
+    readonly avatarUrl = computed(() => this.currentUser()?.avatar_url ?? '');
+    readonly userInitial = computed(() => {
+        const user = this.currentUser();
+        const source = user?.username || user?.email || '';
+        return source.charAt(0).toUpperCase();
+    });
 
     readonly notificationMenuItems: MenuItem[] = [
         {
@@ -143,8 +153,8 @@ export class AppTopbar {
                 })
             )
             .subscribe({
-                next: () => {},
-                error: () => {}
+                next: () => { },
+                error: () => { }
             });
     }
 }

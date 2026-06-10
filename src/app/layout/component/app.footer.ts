@@ -14,7 +14,7 @@ import { appBrand } from '@/app/core/config/app-brand';
                 </span>
             </div>
 
-            <div class="desktop-footer-right">
+            <!-- <div class="desktop-footer-right">
                 <span class="desktop-footer-item">
                     <i class="pi pi-sync"></i>
                     <span>Synchronisé</span>
@@ -23,7 +23,7 @@ import { appBrand } from '@/app/core/config/app-brand';
                     <i class="pi pi-shield"></i>
                     <span>Sécurisé</span>
                 </span>
-            </div>
+            </div> -->
         </div>
     `
 })

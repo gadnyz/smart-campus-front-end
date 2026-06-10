@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
 import { environment } from '@/environments/environment';
 import { AvatarUploadUrlResponse, ConfirmAvatarRequest, ConfirmAvatarResponse, RegisterRequest, RegisterResponse, UpdateUserRequest, User, UserProfileResponse } from '../models/user.model';
 
@@ -109,4 +108,9 @@ export class UsersService {
     confirmAvatarUpload(payload: ConfirmAvatarRequest): Observable<ConfirmAvatarResponse> {
         return this.http.post<ConfirmAvatarResponse>(`${this.baseUrl}/me/avatar/confirm`, payload);
     }
+
+    deleteCurrentUserAvatar(): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/me/avatar`);
+    }
+
 }

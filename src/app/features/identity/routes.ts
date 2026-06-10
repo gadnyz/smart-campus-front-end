@@ -7,7 +7,7 @@ import { IdentityPlaceholder } from './pages/identity-placeholder/identity-place
 import { Preferences } from './users/pages/preferences/preferences';
 import { permissionGuard } from '@/app/core/permissions/permission.guard';
 import { IdentityPermission } from './permissions/permission.model';
-import { UserPassword } from './pages/user-password';
+
 export default [
     {
         path: 'users',
@@ -73,6 +73,7 @@ export default [
         }
     },
     
+
     { path: 'preferences', component: Preferences },
 
     { path: '', redirectTo: 'users', pathMatch: 'full' }

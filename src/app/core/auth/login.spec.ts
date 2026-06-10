@@ -99,7 +99,7 @@ describe('Login', () => {
                     new HttpErrorResponse({
                         status: 500,
                         statusText: 'Server Error',
-                        error: { detail: 'Service indisponible.' }
+                        error: { detail: 'Une erreur est survenue lors de la connexion. Veuillez réessayer plus tard.' }
                     })
             )
         );
@@ -111,7 +111,7 @@ describe('Login', () => {
         expect(authService.storeSession).not.toHaveBeenCalled();
         expect(router.navigate).not.toHaveBeenCalled();
         expect(component.loading()).toBeFalse();
-        expect(component.errorMessage()).toBe('Service indisponible.');
+        expect(component.errorMessage()).toBe('Une erreur est survenue lors de la connexion. Veuillez réessayer plus tard.');
     });
 
     it('should surface invalid credentials without storing a session', () => {
@@ -121,7 +121,7 @@ describe('Login', () => {
                     new HttpErrorResponse({
                         status: 401,
                         statusText: 'Unauthorized',
-                        error: { detail: 'Email ou mot de passe invalide.' }
+                        error: { detail: 'Email ou mot de passe incorrect. Veuillez réessayer' }
                     })
             )
         );
@@ -133,7 +133,7 @@ describe('Login', () => {
         expect(authService.storeSession).not.toHaveBeenCalled();
         expect(router.navigate).not.toHaveBeenCalled();
         expect(component.loading()).toBeFalse();
-        expect(component.errorMessage()).toBe('Email ou mot de passe invalide.');
+        expect(component.errorMessage()).toBe('Email ou mot de passe incorrect. Veuillez réessayer');
     });
 
     it('should not call login when email is missing', () => {
@@ -187,7 +187,7 @@ describe('Login', () => {
                         status: 400,
                         statusText: 'Bad Request',
                         error: {
-                            detail: 'Champs non valides.',
+                            detail: 'Veuillez vérifier les informations saisies.',
                             invalid_fields: {
                                 email: 'Format email invalide.',
                                 password: 'Mot de passe trop court.'
@@ -202,7 +202,7 @@ describe('Login', () => {
         component.submit(createForm(true));
 
         expect(component.loading()).toBeFalse();
-        expect(component.errorMessage()).toBe('Champs non valides.');
+        expect(component.errorMessage()).toBe('Veuillez vérifier les informations saisies.');
         expect(component.validationErrors()).toEqual({
             email: 'Format email invalide.',
             password: 'Mot de passe trop court.'
@@ -255,7 +255,7 @@ describe('Login', () => {
                     new HttpErrorResponse({
                         status: 404,
                         statusText: 'Not Found',
-                        error: { detail: 'Service non trouvé.' }
+                        error: { detail: 'Une erreur est survenue lors de la connexion. Veuillez réessayer plus tard' }
                     })
             )
         );
@@ -265,6 +265,6 @@ describe('Login', () => {
         component.submit(createForm(true));
 
         expect(component.loading()).toBeFalse();
-        expect(component.errorMessage()).toBe('Service non trouvé.');
+        expect(component.errorMessage()).toBe('Une erreur est survenue lors de la connexion. Veuillez réessayer plus tard.');
     });
 });

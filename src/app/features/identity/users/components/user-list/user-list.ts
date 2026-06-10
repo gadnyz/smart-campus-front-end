@@ -10,7 +10,6 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { Table, TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 
 import { User } from '../../models/user.model';
@@ -19,7 +18,7 @@ import { UsersService } from '../../services/user.service';
 @Component({
     selector: 'app-user-list',
     standalone: true,
-    imports: [CommonModule, TableModule, ButtonModule, TagModule, ToastModule, ConfirmDialogModule, InputTextModule, IconFieldModule, InputIconModule],
+    imports: [CommonModule, TableModule, ButtonModule, ToastModule, ConfirmDialogModule, InputTextModule, IconFieldModule, InputIconModule],
     templateUrl: './user-list.html',
     styleUrl: './user-list.scss',
     providers: [ConfirmationService, MessageService]
@@ -110,11 +109,4 @@ export class UserList implements OnInit {
         });
     }
 
-    statusLabel(user: User): string {
-        return user.enabled ? 'Actif' : 'Inactif';
-    }
-
-    statusSeverity(user: User): 'success' | 'secondary' {
-        return user.enabled ? 'success' : 'secondary';
-    }
 }

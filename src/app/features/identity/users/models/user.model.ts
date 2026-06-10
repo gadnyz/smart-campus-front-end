@@ -66,3 +66,10 @@ export interface PagedResponse<T> {
     total_elements: number;
     total_pages: number;
 }
+
+export interface ChangeOwnPasswordRequest {
+    old_password: string;
+    new_password: string;
+    confirm_password: string;
+    refresh_token: string;
+}
