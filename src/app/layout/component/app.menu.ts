@@ -52,7 +52,7 @@ export class AppMenu implements OnInit {
                         label: 'Utilisateurs',
                         icon: 'pi pi-fw pi-users',
                         routerLink: ['/identity/users'],
-                        permissions: [IdentityPermission.UserRead,  IdentityPermission.UserManage]
+                        permissions: [IdentityPermission.UserReadAll]
                     },
                     // {
                     //     label: 'Rôles',

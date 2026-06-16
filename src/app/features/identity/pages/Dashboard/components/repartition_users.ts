@@ -38,7 +38,7 @@ export class RepartitionUsers implements OnInit {
     private readonly permissionService = inject(PermissionService);
 
     readonly canReadUsers = computed(() =>
-        this.permissionService.hasAnyPermission([IdentityPermission.UserRead, IdentityPermission.UserManage])
+        this.permissionService.hasAnyPermission([IdentityPermission.UserReadAll])
     );
 
     ngOnInit(): void {
@@ -80,12 +80,9 @@ export class RepartitionUsers implements OnInit {
         const textMutedColor = documentStyle.getPropertyValue('--text-color-secondary');
 
         const users = this.users();
-
-        const profiles = [...new Set(users.map((user) => user.profile))];
-
-        const activeUsersByProfile = profiles.map((profile) => users.filter((user) => user.profile === profile && user.enabled).length);
-
-        const inactiveUsersByProfile = profiles.map((profile) => users.filter((user) => user.profile === profile && !user.enabled).length);
+        const profiles = [...new Set(users.map((user) => user.profiles))];
+        const activeUsersByProfile = profiles.map((profile) => users.filter((user) => user.profiles === profile && user.enabled).length);
+        const inactiveUsersByProfile = profiles.map((profile) => users.filter((user) => user.profiles === profile && !user.enabled).length);
 
         this.chartData.set({
             labels: profiles,

@@ -22,7 +22,7 @@ export class StatsWidget implements OnInit {
     private readonly permissionService = inject(PermissionService);
 
     readonly canReadUsers = computed(() =>
-        this.permissionService.hasAnyPermission([IdentityPermission.UserRead, IdentityPermission.UserManage])
+        this.permissionService.hasAnyPermission([IdentityPermission.UserReadAll])
     );
     readonly stats = signal<DashboardStat[]>([
         {

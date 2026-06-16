@@ -14,7 +14,7 @@ export default [
         component: UserManagement,
         canActivate: [permissionGuard],
         data: {
-            permissions: [IdentityPermission.UserRead, IdentityPermission.UserManage],
+            permissions: [IdentityPermission.UserReadAll],
             mode: 'any'
         }
     },
@@ -23,7 +23,7 @@ export default [
         component: UserCreate,
         canActivate: [permissionGuard],
         data: {
-            permissions: [IdentityPermission.UserCreate, IdentityPermission.UserManage],
+            permissions: [IdentityPermission.UserCreateAll],
             mode: 'any'
         }
     },
@@ -33,8 +33,7 @@ export default [
         canActivate: [permissionGuard],
         data: {
             permissions: [
-                IdentityPermission.UserRead,
-                IdentityPermission.UserReadOwn
+                IdentityPermission.UserReadAll
             ],
             mode: 'any'
         }
@@ -45,7 +44,7 @@ export default [
         canActivate: [permissionGuard],
         data: {
             title: 'Rôles',
-            permissions: [IdentityPermission.RoleRead],
+            permissions: [IdentityPermission.RoleReadAll],
             mode: 'any'
         }
     },
@@ -55,7 +54,7 @@ export default [
         canActivate: [permissionGuard],
         data: {
             title: 'Privilèges',
-            permissions: [IdentityPermission.PrivilegeRead],
+            permissions: [IdentityPermission.PrivilegeReadAll],
             mode: 'any'
         }
     },

@@ -9,7 +9,7 @@ export const identityDashboardWidgets: DashboardWidget[] = [
         title: 'Statistiques utilisateurs',
         module: 'identity',
         component: StatsWidget,
-        permissions: [IdentityPermission.UserRead, IdentityPermission.UserManage],
+        permissions: [IdentityPermission.UserReadAll],
         mode: 'any',
         size: 'sm',
         order: 10
@@ -19,7 +19,7 @@ export const identityDashboardWidgets: DashboardWidget[] = [
         title: 'Utilisateurs par profil',
         module: 'identity',
         component: RepartitionUsers,
-        permissions: [IdentityPermission.UserRead, IdentityPermission.UserManage],
+        permissions: [IdentityPermission.UserReadAll],
         mode: 'any',
         size: 'full',
         order: 20

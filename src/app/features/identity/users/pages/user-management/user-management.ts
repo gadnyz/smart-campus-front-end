@@ -22,7 +22,7 @@ export class UserManagement {
             severity: 'info',
             outlined: false,
             routerLink: ['/identity/users/new'],
-            permissions: [IdentityPermission.UserCreate, IdentityPermission.UserManage],
+            permissions: [IdentityPermission.UserCreateAll],
             mode: 'any'
         }
     ];

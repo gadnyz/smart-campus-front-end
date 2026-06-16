@@ -16,14 +16,14 @@ import { FirstCharPipe } from '@/app/core/services/Pipes';
 @Component({
     selector: 'app-topbar',
     standalone: true,
-    imports: [RouterModule, CommonModule, ButtonModule, MenuModule, AvatarModule, BadgeModule, OverlayBadgeModule, FirstCharPipe],
+    imports: [RouterModule, CommonModule, ButtonModule, MenuModule, AvatarModule, BadgeModule, OverlayBadgeModule],
     template: `
         <header class="layout-topbar">
             <div class="layout-topbar-left">
                 <button type="button" class="layout-menu-button layout-topbar-action" (click)="layoutService.onMenuToggle()">
                     <i class="pi pi-th-large"></i>
                 </button>
-
+                
                 <a class="layout-topbar-logo" routerLink="/">
                     <img [src]="brand.logos.main" [alt]="brand.appName" />
                     <span>{{ brand.appName }}</span>

@@ -30,7 +30,7 @@ export class UserList implements OnInit {
     private readonly permissionService = inject(PermissionService);
 
     readonly canDeleteUsers = computed(() =>
-        this.permissionService.hasAnyPermission([IdentityPermission.UserDelete,IdentityPermission.UserManage])
+        this.permissionService.hasAnyPermission([IdentityPermission.UserDeleteAll])
     );
 
     @ViewChild('dt') dt!: Table;
