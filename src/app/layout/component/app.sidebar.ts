@@ -105,11 +105,6 @@ export class AppSidebar implements OnInit, OnDestroy {
         const topbarButtonEl = document.querySelector('.topbar-start > button');
         const sidebarEl = this.el.nativeElement;
 
-        return !(
-            sidebarEl?.isSameNode(event.target as Node) ||
-            sidebarEl?.contains(event.target as Node) ||
-            topbarButtonEl?.isSameNode(event.target as Node) ||
-            topbarButtonEl?.contains(event.target as Node)
-        );
+        return !(sidebarEl?.isSameNode(event.target as Node) || sidebarEl?.contains(event.target as Node) || topbarButtonEl?.isSameNode(event.target as Node) || topbarButtonEl?.contains(event.target as Node));
     }
 }

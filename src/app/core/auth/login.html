@@ -1,54 +1,45 @@
-<app-floating-configurator />
-<div
-    class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-screen overflow-hidden">
-    <div class="flex flex-col items-center justify-center">
-        <div
-            style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)">
-            <div class="w-full bg-surface-0 dark:bg-surface-900 py-20 px-8 sm:px-20" style="border-radius: 53px">
-                <div class="text-center mb-8">
-                    <img src="images/icons/logo.png" alt="smart-campus" class="mb-8 w-20 shrink-0 mx-auto" />
-                    <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">
-                        Connexion à {{ brand.appName }}
+<p-toast />
+<div class="login-page bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen overflow-hidden">
+    <div class="login-shell flex flex-col items-center justify-center">
+        <div class="login-card-frame">
+            <div class="login-card w-full bg-surface-0 dark:bg-surface-900">
+                <div class="text-center mb-6">
+                    <div class="login-brand-row text-surface-900 dark:text-surface-0">
+                        <img src="images/icons/logo.png" [alt]="brand.appName" class="login-logo shrink-0" />
+
+                        <span class="login-brand"> {{ brand.appName }} </span>
                     </div>
-                    <span class="text-muted-color font-medium">Accédez à votre espace</span>
+
+                    <div class="login-heading text-surface-900 dark:text-surface-0">Connectez-vous pour continuer</div>
                 </div>
 
+                <form class="login-form" #nativeForm novalidate (ngSubmit)="submit(nativeForm)">
+                    <label for="email1" class="block text-surface-900 dark:text-surface-0"> Email </label>
 
-                <div>
-                    <form #nativeForm novalidate (ngSubmit)="submit(nativeForm)">
-                        <label for="email1"
-                            class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Email</label>
-                        <input pInputText id="email1" name="email" type="email" required email
-                            placeholder="Adresse mail" class="w-full md:w-120 mb-8" [(ngModel)]="email" #emailModel="ngModel" />
+                    <input pInputText id="email1" name="email" type="email" required email placeholder="Saisissez votre adresse mail" class="w-full mb-4" [(ngModel)]="email" #emailModel="ngModel" />
 
-                        
-                        @if (validationErrors()['email']) {
-                        <small class="text-red-500 block mb-2">{{ validationErrors()['email'] }}</small>
-                        }
+                    @if (validationErrors()['email']) {
+                    <small class="text-red-500 block mb-2"> {{ validationErrors()['email'] }} </small>
+                    }
 
-                        <p-password id="password1" name="password" required [(ngModel)]="password"
-                            placeholder="Mot de passe" [toggleMask]="true" styleClass="mb-4" [fluid]="true"
-                            [feedback]="false" #passwordModel="ngModel"></p-password>
+                    <label for="password1" class="block text-surface-900 dark:text-surface-0"> Mot de passe </label>
 
-                        @if (validationErrors()['password']) {
-                        <small class="text-red-500 block mb-4">{{ validationErrors()['password'] }}</small>
-                        }
+                    <p-password id="password1" name="password" required [(ngModel)]="password" placeholder="Saisissez votre mot de passe" [toggleMask]="true" styleClass="mb-3" [fluid]="true" [feedback]="false" #passwordModel="ngModel" />
 
-                        @if (errorMessage()) {
-                        <p-message severity="error" [text]="errorMessage()" styleClass="w-full mb-4 block" />
-                        }
+                    @if (validationErrors()['password']) {
+                    <small class="text-red-500 block mb-3"> {{ validationErrors()['password'] }} </small>
+                    } @if (errorMessage()) {
+                    <p-message severity="error" [text]="errorMessage()" styleClass="w-full mb-4 block" />
+                    }
 
-                        <div class="flex items-center justify-between mt-2 mb-8 gap-8">
-                            <span class="font-medium no-underline ml-2 cursor-pointer text-primary">Mot de passe
-                                oublié ?</span>
-                        </div>
+                    <p-button label="Se connecter" styleClass="w-full" [loading]="loading()" type="submit" />
+                </form>
 
-                        <p-button label="Se connecter" styleClass="w-full" [loading]="loading()" type="submit" />
-
-                    </form>
-
+                <div class="login-back">
+                    <a routerLink="/auth/forget-password" class="font-medium no-underline cursor-pointer text-primary"> Mot de passe oublié ? </a>
                 </div>
 
+                <app-auth-footer />
             </div>
         </div>
     </div>

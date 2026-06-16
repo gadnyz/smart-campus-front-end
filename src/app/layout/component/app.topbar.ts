@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { CommonModule, UpperCasePipe } from '@angular/common';
+import { Component, inject, computed } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
@@ -9,27 +9,19 @@ import { MenuModule } from 'primeng/menu';
 import { LayoutService } from '@/app/layout/service/layout.service';
 import { appBrand } from '@/app/core/config/app-brand';
 import { finalize } from 'rxjs';
+import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { AuthService } from '@/app/core/auth/services/auth.service';
+import { FirstCharPipe } from '@/app/core/services/Pipes';
+
 @Component({
     selector: 'app-topbar',
     standalone: true,
-    imports: [
-        RouterModule,
-        CommonModule,
-        ButtonModule,
-        MenuModule,
-        AvatarModule,
-        BadgeModule
-    ],
+    imports: [RouterModule, CommonModule, ButtonModule, MenuModule, AvatarModule, BadgeModule, OverlayBadgeModule, FirstCharPipe],
     template: `
         <header class="layout-topbar">
             <div class="layout-topbar-left">
-                <button
-                    type="button"
-                    class="layout-menu-button layout-topbar-action"
-                    (click)="layoutService.onMenuToggle()"
-                >
-                    <i class="pi pi-bars"></i>
+                <button type="button" class="layout-menu-button layout-topbar-action" (click)="layoutService.onMenuToggle()">
+                    <i class="pi pi-th-large"></i>
                 </button>
 
                 <a class="layout-topbar-logo" routerLink="/">
@@ -39,58 +31,21 @@ import { AuthService } from '@/app/core/auth/services/auth.service';
             </div>
 
             <div class="layout-topbar-right">
-                <button
-                    type="button"
-                    class="layout-topbar-action layout-topbar-action-badge"
-                    aria-label="Notifications"
-                >
-                    <i class="pi pi-bell"></i>
-                    <p-badge
-                        [value]="notificationCount.toString()"
-                        severity="danger"
-                        styleClass="layout-topbar-notification-badge"
-                    />
+                <!-- <button type="button" class="layout-topbar-icon-button layout-topbar-notification" aria-label="Notifications">
+                    <p-overlaybadge value="" styleClass="layout-topbar-overlay-badge">
+                        <i class="pi pi-bell" style="font-size: 1.5rem"></i>
+                    </p-overlaybadge>
+                </button> -->
+
+                <button type="button" class="layout-topbar-avatar-button" aria-label="Profil utilisateur" (click)="userMenu.toggle($event)">
+                    @if (avatarUrl()) {
+                    <p-avatar [image]="avatarUrl()" shape="circle" styleClass="layout-topbar-avatar" />
+                    } @else {
+                    <p-avatar [label]="userInitial()" shape="circle" styleClass="layout-topbar-avatar" />
+                    }
                 </button>
 
-                <p-menu
-                    #notificationsMenu
-                    [model]="notificationMenuItems"
-                    [popup]="true"
-                    appendTo="body"
-                    styleClass="layout-topbar-notification-menu"
-                />
-
-                <button
-                    type="button"
-                    class="layout-topbar-action"
-                    (click)="toggleDarkMode()"
-                    aria-label="Thème"
-                >
-                    <i [ngClass]="{ pi: true, 'pi-moon': !layoutService.isDarkTheme(), 'pi-sun': layoutService.isDarkTheme() }"></i>
-                </button>
-
-                <button
-                    type="button"
-                    class="layout-topbar-user"
-                    aria-label="Profil utilisateur"
-                    (click)="userMenu.toggle($event)"
-                >
-                    <p-avatar
-                        label="G"
-                        shape="circle"
-                        styleClass="layout-topbar-avatar"
-                    />
-                    <span class="layout-topbar-user-label">Gad</span>
-                    <i class="pi pi-angle-down layout-topbar-user-chevron"></i>
-                </button>
-
-                <p-menu
-                    #userMenu
-                    [model]="userMenuItems"
-                    [popup]="true"
-                    appendTo="body"
-                    styleClass="layout-topbar-user-menu"
-                />
+                <p-menu #userMenu [model]="userMenuItems" [popup]="true" appendTo="body" styleClass="layout-topbar-user-menu" />
             </div>
         </header>
     `
@@ -102,6 +57,13 @@ export class AppTopbar {
     private readonly authService = inject(AuthService);
 
     readonly notificationCount = 5;
+    readonly currentUser = this.authService.currentUser;
+    readonly avatarUrl = computed(() => this.currentUser()?.avatar_url ?? '');
+    readonly userInitial = computed(() => {
+        const user = this.currentUser();
+        const source = user?.username || user?.email || '';
+        return source.charAt(0).toUpperCase();
+    });
 
     readonly notificationMenuItems: MenuItem[] = [
         {
@@ -195,5 +157,4 @@ export class AppTopbar {
                 error: () => { }
             });
     }
-
 }

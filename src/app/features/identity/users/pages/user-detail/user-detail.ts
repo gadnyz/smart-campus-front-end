@@ -14,16 +14,7 @@ import { UsersService } from '../../services/user.service';
 @Component({
     selector: 'app-user-detail',
     standalone: true,
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        ButtonModule,
-        CardModule,
-        InputTextModule,
-        MessageModule,
-        TagModule,
-        ContentSubtopbar
-    ],
+    imports: [CommonModule, ReactiveFormsModule, ButtonModule, CardModule, InputTextModule, MessageModule, TagModule, ContentSubtopbar],
     templateUrl: './user-detail.html',
     styleUrl: './user-detail.scss'
 })
@@ -44,15 +35,7 @@ export class UserDetail implements OnInit {
     readonly validationErrors = signal<Record<string, string>>({});
 
     readonly form = this.fb.nonNullable.group({
-        username: [
-            '',
-            [
-                Validators.required,
-                Validators.minLength(3),
-                Validators.maxLength(30),
-                Validators.pattern(/^[a-zA-Z][a-zA-Z0-9._-]{2,29}$/)
-            ]
-        ],
+        username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30), Validators.pattern(/^[a-zA-Z][a-zA-Z0-9._-]{2,29}$/)]],
         email: ['', [Validators.required, Validators.email]]
     });
 

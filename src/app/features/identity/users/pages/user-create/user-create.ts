@@ -1,64 +1,63 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { FluidModule } from 'primeng/fluid';
 import { InputTextModule } from 'primeng/inputtext';
-import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
-import { ContentSubtopbar } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
+import { ToastModule } from 'primeng/toast';
+import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { RegisterRequest } from '../../models/user.model';
 import { UsersService } from '../../services/user.service';
 
 @Component({
     selector: 'app-user-create',
     standalone: true,
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        FluidModule,
-        InputTextModule,
-        SelectModule,
-        ButtonModule,
-        MessageModule,
-        ContentSubtopbar
-    ],
+    imports: [CommonModule, ReactiveFormsModule, FluidModule, InputTextModule, SelectModule, ButtonModule, ToastModule, ContentSubtopbar],
     templateUrl: './user-create.html',
     styleUrl: './user-create.scss',
+    providers: [MessageService]
 })
 export class UserCreate implements OnInit {
+    private readonly location = inject(Location);
     private readonly fb = inject(FormBuilder);
     private readonly usersService = inject(UsersService);
     private readonly router = inject(Router);
+    private readonly messageService = inject(MessageService);
 
     readonly submitting = signal(false);
     readonly loadingProfiles = signal(false);
-    readonly successMessage = signal('');
-    readonly errorMessage = signal('');
     readonly validationErrors = signal<Record<string, string>>({});
 
     readonly profiles = signal<{ label: string; value: string }[]>([]);
 
     readonly form = this.fb.nonNullable.group({
-        username: [
-            '',
-            [
-                Validators.required,
-                Validators.minLength(3),
-                Validators.maxLength(30),
-            ]
-        ],
-        email: [
-            '',
-            [
-                Validators.required,
-                Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)
-            ]
-        ],
+        username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
+        email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]],
         profile: ['', Validators.required]
     });
+
+    readonly actions = computed<SubtopbarAction[]>(() => [
+        {
+            label: 'Retour',
+            icon: 'pi pi-arrow-left',
+            severity: 'secondary',
+            outlined: true,
+            command: () => this.goBack()
+        },
+        {
+            label: 'Créer',
+            icon: 'pi pi-save',
+            severity: 'info',
+            outlined: false,
+            loading: this.submitting(),
+            disabled: this.submitting() || this.loadingProfiles(),
+            command: () => this.submit()
+        }
+    ]);
 
     ngOnInit(): void {
         this.loadProfiles();
@@ -66,7 +65,7 @@ export class UserCreate implements OnInit {
 
     loadProfiles(): void {
         this.loadingProfiles.set(true);
-        this.errorMessage.set('');
+        this.validationErrors.set({});
 
         this.usersService.getProfiles().subscribe({
             next: (response) => {
@@ -82,18 +81,17 @@ export class UserCreate implements OnInit {
                 this.loadingProfiles.set(false);
 
                 if (error.status === 401) {
-                    this.errorMessage.set('Session expirée ou non authentifiée.');
+                    this.showError('Session expirée ou non authentifiée.');
                     return;
                 }
 
                 if (error.status === 403) {
-                    this.errorMessage.set('Accès refusé au chargement des profils.');
+                    this.showError('Accès refusé au chargement des profils.');
                     return;
                 }
 
-                this.errorMessage.set(error.error?.detail ?? `Impossible de charger les profils `);
+                this.showError(error.error?.detail ?? 'Impossible de charger les profils.');
             }
-
         });
     }
 
@@ -103,12 +101,11 @@ export class UserCreate implements OnInit {
     }
 
     submit(): void {
-        this.errorMessage.set('');
-        this.successMessage.set('');
         this.validationErrors.set({});
 
         if (this.form.invalid) {
             this.form.markAllAsTouched();
+            this.showWarning('Veuillez compléter correctement les champs obligatoires.');
             return;
         }
 
@@ -118,40 +115,73 @@ export class UserCreate implements OnInit {
 
         this.usersService.createUser(payload).subscribe({
             next: (response) => {
-                this.successMessage.set(`Utilisateur ${response.username} créé avec succès.`);
+                this.showSuccess(`Utilisateur ${response.username} créé avec succès.`);
+
                 this.form.reset({
                     username: '',
                     email: '',
                     profile: ''
                 });
+
                 this.submitting.set(false);
             },
             error: (error: HttpErrorResponse) => {
                 this.submitting.set(false);
 
                 if (error.status === 400 && error.error?.invalid_fields) {
-                    this.errorMessage.set(error.error?.detail ?? 'La requête contient des champs non valides.');
                     this.validationErrors.set(error.error.invalid_fields);
+                    this.showError(error.error?.detail ?? 'La requête contient des champs non valides.');
                     return;
                 }
 
                 if (error.status === 409) {
-                    this.errorMessage.set(error.error?.detail ?? 'Un utilisateur avec ces informations existe déjà.');
+                    this.showError(error.error?.detail ?? 'Un utilisateur avec ces informations existe déjà.');
                     return;
                 }
 
                 if (error.status === 403) {
-                    this.errorMessage.set(error.error?.detail ?? 'Tu n’as pas les privilèges nécessaires pour créer un utilisateur.');
+                    this.showError(error.error?.detail ?? 'Tu n’as pas les privilèges nécessaires pour créer un utilisateur.');
                     return;
                 }
 
-                this.errorMessage.set(error.error?.detail ?? 'Une erreur est survenue lors de la création de l’utilisateur.');
+                this.showError(error.error?.detail ?? 'Une erreur est survenue lors de la création de l’utilisateur.');
             }
         });
     }
 
-    cancel(): void {
+    goBack(): void {
+        if (window.history.length > 1) {
+            this.location.back();
+            return;
+        }
+
         void this.router.navigate(['/identity/users']);
     }
-}
 
+    private showSuccess(detail: string): void {
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Succès',
+            detail,
+            life: 3000
+        });
+    }
+
+    private showError(detail: string): void {
+        this.messageService.add({
+            severity: 'error',
+            summary: 'Erreur',
+            detail,
+            life: 3000
+        });
+    }
+
+    private showWarning(detail: string): void {
+        this.messageService.add({
+            severity: 'warn',
+            summary: 'Attention',
+            detail,
+            life: 3000
+        });
+    }
+}

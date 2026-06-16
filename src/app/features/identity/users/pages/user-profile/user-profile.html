@@ -1,0 +1,143 @@
+<p-toast />
+<app-content-subtopbar kicker="Compte utilisateur" title="Mon profil" [actions]="actions()" />
+@if (loading()) {
+<div class="card">Chargement...</div>
+} @else if (user(); as currentUser) {
+<div class="grid grid-cols-12 gap-6">
+    <div class="col-span-12 xl:col-span-12">
+        <div class="card p-0 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center gap-3 mb-6">
+                    <i class="pi pi-user text-primary"></i>
+                    <div>
+                        <div class="font-semibold text-lg">Informations personnelles</div>
+                        <div class="text-sm text-color-secondary">Modifiez votre nom, votre email et votre photo.</div>
+                    </div>
+                </div>
+
+                <div class="profile-header mb-6">
+                    <div class="profile-avatar-wrapper">
+                        <button type="button" class="profile-avatar profile-avatar-action"
+                            aria-label="Changer la photo de profil" [disabled]="!editing() || saving()"
+                            (click)="openAvatarPicker()">
+                            @if (avatarImageUrl()) {
+                            <img [src]="avatarImageUrl()" [alt]="currentUser.username" />
+                            } @else {
+                            <span>{{ userInitial() }}</span>
+                            }
+
+                            @if (editing()) {
+                            <span class="profile-avatar-overlay">
+                                <i class="pi pi-pencil"></i>
+                            </span>
+                            }
+                        </button>
+
+                        <input #avatarInput type="file" hidden accept=".png,.jpg,image/png,image/jpeg"
+                            (change)="onAvatarInputChange($event)" />
+                    </div>
+
+                    <div class="profile-summary">
+                        <div class="font-semibold text-lg text-surface-900 dark:text-surface-0">
+                            {{ currentUser.username }}
+                        </div>
+                        <div class="text-color-secondary">{{ currentUser.email }}</div>
+                    </div>
+                </div>
+
+                <form [formGroup]="form" class="grid grid-cols-12 gap-4">
+                    <div class="col-span-12">
+                        <label for="username" class="block text-sm text-color-secondary mb-1">Nom d'utilisateur</label>
+                        <input pInputText id="username" formControlName="username" class="w-full"
+                            [readonly]="!editing()" />
+
+                        @if (isInvalid('username')) {
+                        <small class="text-red-500 block mt-1">
+                            Le nom d'utilisateur doit contenir 3 à 30 caractères, commencer par une lettre et ne pas
+                            contenir d'espaces.
+                        </small>
+                        } @if (validationErrors()['username']) {
+                        <small class="text-red-500 block mt-1">{{ validationErrors()['username'] }}</small>
+                        }
+                    </div>
+
+                    <div class="col-span-12">
+                        <label for="email" class="block text-sm text-color-secondary mb-1">Email</label>
+                        <input pInputText id="email" formControlName="email" class="w-full" [readonly]="!editing()" />
+
+                        @if (isInvalid('email')) {
+                        <small class="text-red-500 block mt-1">Saisis une adresse email valide.</small>
+                        } @if (validationErrors()['email']) {
+                        <small class="text-red-500 block mt-1">{{ validationErrors()['email'] }}</small>
+                        }
+                    </div>
+                </form>
+
+                @if (editing()) {
+                <div class="flex justify-end gap-2 mt-6">
+                    <button pButton type="button" label="Enregistrer" icon="pi pi-save" [loading]="saving()"
+                        (click)="save()"></button>
+                </div>
+                }
+            </div>
+
+            <div class="border-t border-surface"></div>
+
+            <div class="p-6">
+                <div class="flex items-center gap-3 mb-6">
+                    <i class="pi pi-lock text-primary"></i>
+                    <div>
+                        <div class="font-semibold text-lg">Mot de passe</div>
+                        <div class="text-sm text-color-secondary">Modifiez votre mot de passe de connexion.</div>
+                    </div>
+                </div>
+
+                <form [formGroup]="passwordForm" class="grid grid-cols-12 gap-4" (ngSubmit)="submitPassword()">
+                    <div class="col-span-12">
+                        <label for="current_password" class="block text-sm text-color-secondary mb-1">Mot de passe
+                            actuel</label>
+                        <p-password id="current_password" formControlName="current_password" [toggleMask]="true"
+                            [feedback]="false" [fluid]="true" />
+
+                        @if (isPasswordInvalid('current_password')) {
+                        <small class="text-red-500 block mt-1">Le mot de passe actuel est obligatoire.</small>
+                        }
+                    </div>
+
+                    <div class="col-span-12">
+                        <label for="new_password" class="block text-sm text-color-secondary mb-1">Nouveau mot de
+                            passe</label>
+                        <p-password id="new_password" formControlName="new_password" [toggleMask]="true"
+                            [feedback]="true" [fluid]="true" />
+
+                        @if (isPasswordInvalid('new_password')) {
+                        <small class="text-red-500 block mt-1">
+                            Le mot de passe doit contenir 8 à 16 caractères, une majuscule, une minuscule, un chiffre et
+                            un caractère spécial.
+                        </small>
+                        }
+                    </div>
+
+                    <div class="col-span-12">
+                        <label for="confirm_password" class="block text-sm text-color-secondary mb-1">Confirmation du
+                            mot de passe</label>
+                        <p-password id="confirm_password" formControlName="confirm_password" [toggleMask]="true"
+                            [feedback]="false" [fluid]="true" />
+
+                        @if (isPasswordInvalid('confirm_password')) {
+                        <small class="text-red-500 block mt-1">La confirmation est obligatoire.</small>
+                        }
+                    </div>
+
+                    @if (editing()) {
+                    <div class="col-span-12 flex justify-end pt-2">
+                        <button pButton type="submit" label="Modifier le mot de passe" icon="pi pi-save"
+                            [loading]="passwordSaving()" [disabled]="passwordSaving()"></button>
+                    </div>
+                    }
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+}

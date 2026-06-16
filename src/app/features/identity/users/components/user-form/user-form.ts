@@ -11,16 +11,7 @@ import { TextareaModule } from 'primeng/textarea';
 @Component({
     selector: 'app-user-form',
     standalone: true,
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        InputTextModule,
-        SelectModule,
-        TextareaModule,
-        CheckboxModule,
-        ButtonModule,
-        CardModule
-    ],
+    imports: [CommonModule, ReactiveFormsModule, InputTextModule, SelectModule, TextareaModule, CheckboxModule, ButtonModule, CardModule],
     template: `
         <div class="grid grid-cols-12 gap-6">
             <div class="col-span-12 xl:col-span-8">
@@ -50,41 +41,17 @@ import { TextareaModule } from 'primeng/textarea';
 
                         <div class="col-span-12 md:col-span-6">
                             <label for="businessProfile" class="block text-sm font-medium mb-2">Profil métier</label>
-                            <p-select
-                                id="businessProfile"
-                                formControlName="businessProfile"
-                                [options]="businessProfiles"
-                                optionLabel="label"
-                                optionValue="value"
-                                placeholder="Sélectionner un profil"
-                                class="w-full"
-                            />
+                            <p-select id="businessProfile" formControlName="businessProfile" [options]="businessProfiles" optionLabel="label" optionValue="value" placeholder="Sélectionner un profil" class="w-full" />
                         </div>
 
                         <div class="col-span-12 md:col-span-6">
                             <label for="role" class="block text-sm font-medium mb-2">Rôle</label>
-                            <p-select
-                                id="role"
-                                formControlName="role"
-                                [options]="roles"
-                                optionLabel="label"
-                                optionValue="value"
-                                placeholder="Sélectionner un rôle"
-                                class="w-full"
-                            />
+                            <p-select id="role" formControlName="role" [options]="roles" optionLabel="label" optionValue="value" placeholder="Sélectionner un rôle" class="w-full" />
                         </div>
 
                         <div class="col-span-12 md:col-span-6">
                             <label for="status" class="block text-sm font-medium mb-2">Statut</label>
-                            <p-select
-                                id="status"
-                                formControlName="status"
-                                [options]="statuses"
-                                optionLabel="label"
-                                optionValue="value"
-                                placeholder="Sélectionner un statut"
-                                class="w-full"
-                            />
+                            <p-select id="status" formControlName="status" [options]="statuses" optionLabel="label" optionValue="value" placeholder="Sélectionner un statut" class="w-full" />
                         </div>
 
                         <div class="col-span-12">
