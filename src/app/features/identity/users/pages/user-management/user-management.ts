@@ -26,12 +26,4 @@ export class UserManagement {
             mode: 'any'
         }
     ];
-
-    exportUsers(): void {
-        console.log('export users');
-    }
-
-    openFilters(): void {
-        console.log('open filters');
-    }
 }

@@ -28,8 +28,6 @@ export interface RegisterResponse {
     created_at: string;
 }
 
-export type UserContextResponse = User;
-
 export interface UpdateUserRequest {
     username: string;
     email: string;

@@ -118,21 +118,13 @@ export class UserCreate implements OnInit {
             faculty_id: null
         };
 
-        console.log(payload);
-
         this.submitting.set(true);
 
         this.usersService.createUser(payload).subscribe({
             next: (response) => {
                 this.showSuccess(`Utilisateur ${response.username} créé avec succès.`);
-
-                this.form.reset({
-                    username: '',
-                    email: '',
-                    profiles: []
-                });
-
                 this.submitting.set(false);
+                void this.router.navigate(['/identity/users']);
             },
             error: (error: HttpErrorResponse) => {
                 this.submitting.set(false);

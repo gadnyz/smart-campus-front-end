@@ -13,7 +13,6 @@ import { appBrand } from '@/app/core/config/app-brand';
 import { AuthService } from './services/auth.service';
 import { AuthFooter } from './auth-footer/auth-footer';
 import { ActivatedRoute } from '@angular/router';
-import { OnInit } from '@angular/core';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 

@@ -4,8 +4,9 @@ import { RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { PermissionAwareItem } from '@/app/core/permissions/permission.model';
 import { PermissionService } from '@/app/core/permissions/permission.service';
-import { IdentityPermission } from '@/app/features/identity/permissions/permission.model';
 import { AppMenuitem } from './app.menuitem';
+import { FeatureMenuItem } from '@/app/core/modules/app-feature.model';
+import { appMenuItems } from '@/app/core/modules/app-feature.registry';
 
 type AppMenuItem = MenuItem &
     PermissionAwareItem & {
@@ -19,7 +20,7 @@ type AppMenuItem = MenuItem &
     template: `
         <ul class="layout-menu">
             @for (item of model; track item.label) {
-                @if (!item.separator) {
+                @if (!item['separator']) {
                     <li app-menuitem [item]="item" [root]="true"></li>
                 } @else {
                     <li class="menu-separator"></li>
@@ -34,9 +35,10 @@ export class AppMenu implements OnInit {
     model: AppMenuItem[] = [];
 
     ngOnInit(): void {
-        const menu: AppMenuItem[] = [
+        const menu: FeatureMenuItem[] = [
             {
                 label: 'Tableau de bord',
+                order: 0,
                 items: [
                     {
                         label: 'Dashboard',
@@ -45,43 +47,15 @@ export class AppMenu implements OnInit {
                     }
                 ]
             },
-            {
-                label: 'Identité',
-                items: [
-                    {
-                        label: 'Utilisateurs',
-                        icon: 'pi pi-fw pi-users',
-                        routerLink: ['/identity/users'],
-                        permissions: [IdentityPermission.UserReadAll]
-                    },
-                    // {
-                    //     label: 'Rôles',
-                    //     icon: 'pi pi-fw pi-shield',
-                    //     routerLink: ['/identity/roles'],
-                    //     permissions: [IdentityPermission.RoleRead]
-                    // },
-                    // {
-                    //     label: 'Privilèges',
-                    //     icon: 'pi pi-fw pi-key',
-                    //     routerLink: ['/identity/privileges'],
-                    //     permissions: [IdentityPermission.PrivilegeRead]
-                    // },
-                    // {
-                    //     label: 'Profils métier',
-                    //     icon: 'pi pi-fw pi-id-card',
-                    //     routerLink: ['/identity/business-profiles'],
-                    //     permissions: [IdentityPermission.ProfileRead]
-                    // }
-                ]
-            }
+            ...appMenuItems
         ];
 
         this.model = this.filterMenu(menu);
     }
 
-    private filterMenu(items: AppMenuItem[]): AppMenuItem[] {
+    private filterMenu(items: FeatureMenuItem[]): FeatureMenuItem[] {
         return items.reduce<AppMenuItem[]>((visibleItems, item) => {
-            if (item.separator) {
+            if (item['separator']) {
                 visibleItems.push(item);
                 return visibleItems;
             }

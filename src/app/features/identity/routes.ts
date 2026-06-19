@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { UserManagement } from './users/pages/user-management/user-management';
 import { UserCreate } from './users/pages/user-create/user-create';
-import { UserDetail } from './users/pages/user-detail/user-detail';
 import { UserProfile } from './users/pages/user-profile/user-profile';
 import { IdentityPlaceholder } from './pages/identity-placeholder/identity-placeholder';
 import { Preferences } from './users/pages/preferences/preferences';
@@ -27,17 +26,7 @@ export default [
             mode: 'any'
         }
     },
-    {
-        path: 'users/:id',
-        component: UserDetail,
-        canActivate: [permissionGuard],
-        data: {
-            permissions: [
-                IdentityPermission.UserReadAll
-            ],
-            mode: 'any'
-        }
-    },
+    
     {
         path: 'roles',
         component: IdentityPlaceholder,

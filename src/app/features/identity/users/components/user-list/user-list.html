@@ -2,25 +2,29 @@
 <p-confirmdialog [style]="{ width: '450px' }" />
 
 <div class="card">
-    <p-table #dt [value]="users()" [loading]="loading()" [paginator]="true" [rows]="10"
+    <p-table
+        #dt
+        [value]="rows()"
+        [loading]="loading()"
+        [paginator]="true"
+        [rows]="10"
         [rowsPerPageOptions]="[10, 20, 50]"
-        [globalFilterFields]="['username', 'email', 'profiles', 'last_connected_at']" [rowHover]="true" dataKey="id"
+        [globalFilterFields]="['username', 'email', 'profilesLabel', 'last_connected_at']"
+        [rowHover]="true"
+        dataKey="id"
         responsiveLayout="scroll"
         currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} utilisateurs"
-        [showCurrentPageReport]="true" [tableStyle]="{ 'min-width': '70rem' }">
+        [showCurrentPageReport]="true"
+        [tableStyle]="{ 'min-width': '60rem' }"
+    >
         <ng-template pTemplate="caption">
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                    <div class="font-semibold text-xl">Liste des utilisateurs</div>
-                </div>
+                <div class="font-semibold text-xl">Liste des utilisateurs</div>
 
-                <div class="flex items-center gap-2">
-                    <p-iconfield>
-                        <p-inputicon styleClass="pi pi-search" />
-                        <input pInputText type="text" placeholder="Rechercher..."
-                            (input)="onGlobalFilter(dt, $event)" />
-                    </p-iconfield>
-                </div>
+                <p-iconfield>
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text" placeholder="Rechercher..." (input)="onGlobalFilter(dt, $event)" />
+                </p-iconfield>
             </div>
         </ng-template>
 
@@ -36,9 +40,9 @@
                     <p-sortIcon field="email"></p-sortIcon>
                 </th>
 
-                <th pSortableColumn="profiles" style="min-width: 12rem">
+                <th pSortableColumn="profilesLabel" style="min-width: 12rem">
                     Profils
-                    <p-sortIcon field="profiles"></p-sortIcon>
+                    <p-sortIcon field="profilesLabel"></p-sortIcon>
                 </th>
 
                 <th pSortableColumn="last_connected_at" style="min-width: 12rem">
@@ -54,7 +58,7 @@
             <tr>
                 <td>{{ user.username }}</td>
                 <td>{{ user.email }}</td>
-                <td>{{ user.profiles.join(', ') }}</td>
+                <td>{{ user.profilesLabel }}</td>
                 <td>
                     @if (user.last_connected_at) {
                     <span>{{ user.last_connected_at | date: 'dd/MM/yyyy HH:mm' }}</span>
@@ -64,18 +68,19 @@
                 </td>
                 <td>
                     <div class="flex items-center gap-2">
-                        <!-- <button
+                        @if (canDeleteUsers()) {
+                        <button
                             pButton
                             type="button"
-                            icon="pi pi-pencil"
+                            icon="pi pi-trash"
                             rounded
                             outlined
-                            severity="secondary"
-                            [routerLink]="['/identity/users', user.id]"
-                        ></button> -->
-                        @if (canDeleteUsers()) {
-                        <button pButton type="button" icon="pi pi-trash" rounded outlined severity="danger"
-                            (click)="confirmDelete(user)"></button>
+                            severity="danger"
+                            [attr.aria-label]="'Supprimer ' + user.username"
+                            [loading]="deletingUserId() === user.id"
+                            [disabled]="deletingUserId() === user.id"
+                            (click)="confirmDelete(user)"
+                        ></button>
                         }
                     </div>
                 </td>

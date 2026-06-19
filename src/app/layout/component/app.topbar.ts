@@ -1,4 +1,4 @@
-import { CommonModule, UpperCasePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, computed } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
@@ -11,7 +11,6 @@ import { appBrand } from '@/app/core/config/app-brand';
 import { finalize } from 'rxjs';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { AuthService } from '@/app/core/auth/services/auth.service';
-import { FirstCharPipe } from '@/app/core/services/Pipes';
 
 @Component({
     selector: 'app-topbar',

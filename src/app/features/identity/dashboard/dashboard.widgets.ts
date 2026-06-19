@@ -1,7 +1,7 @@
-import { DashboardWidget } from '@/app/pages/dashboard/models/widget.model';
+import { DashboardWidget } from '@/app/core/modules/app-feature.model';
 import { IdentityPermission } from '@/app/features/identity/permissions/permission.model';
-import { StatsWidget } from '@/app/features/identity/pages/Dashboard/components/statswidget';
-import { RepartitionUsers } from '@/app/features/identity/pages/Dashboard/components/repartition_users';
+import { StatsWidget } from './components/statswidget';
+import { RepartitionUsers } from './components/repartition_users';
 
 export const identityDashboardWidgets: DashboardWidget[] = [
     {

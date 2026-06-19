@@ -1,10 +1,8 @@
-import { afterNextRender, Component, effect, inject, signal } from '@angular/core';
+import { afterNextRender, Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ChartModule } from 'primeng/chart';
 import { LayoutService } from '@/app/layout/service/layout.service';
-import { OnInit } from '@angular/core';
 import { UsersService } from '@/app/features/identity/users/services/user.service';
 import { User } from '@/app/features/identity/users/models/user.model';
-import { computed } from '@angular/core';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { IdentityPermission } from '@/app/features/identity/permissions/permission.model';
 
@@ -13,33 +11,44 @@ import { IdentityPermission } from '@/app/features/identity/permissions/permissi
     selector: 'app-repartition-users',
     imports: [ChartModule],
     template: `
-      @if (canReadUsers()) {
-        <div class="card mb-8!">
-            <div class="font-semibold text-xl mb-4">Utilisateurs par profil</div>
-            <p-chart type="bar" [data]="chartData()" [options]="chartOptions()" class="h-100" />
-        </div>
+        @if (canReadUsers()) {
+            <div class="card mb-8!">
+                <div class="font-semibold text-xl mb-4">Utilisateurs par profil</div>
+                <p-chart type="bar" [data]="chartData()" [options]="chartOptions()" class="h-100" />
+            </div>
         }
     `
-
 })
 export class RepartitionUsers implements OnInit {
-
-    layoutService = inject(LayoutService);
-
-    chartData = signal<any>(null);
-
-    chartOptions = signal<any>(null);
-
     private readonly usersService = inject(UsersService);
-
-    users = signal<User[]>([]);
-
-    //
     private readonly permissionService = inject(PermissionService);
+    readonly layoutService = inject(LayoutService);
+
+    private readonly emptyProfileLabel = 'Sans profil';
+
+    readonly users = signal<User[]>([]);
+    readonly chartData = signal<any>(null);
+    readonly chartOptions = signal<any>(null);
 
     readonly canReadUsers = computed(() =>
         this.permissionService.hasAnyPermission([IdentityPermission.UserReadAll])
     );
+
+    constructor() {
+        afterNextRender(() => {
+            setTimeout(() => {
+                this.initChart();
+            }, 150);
+        });
+
+        effect(() => {
+            this.layoutService.layoutConfig().darkTheme;
+
+            setTimeout(() => {
+                this.initChart();
+            }, 150);
+        });
+    }
 
     ngOnInit(): void {
         if (!this.canReadUsers()) {
@@ -58,31 +67,35 @@ export class RepartitionUsers implements OnInit {
         });
     }
 
-    constructor() {
-        afterNextRender(() => {
-            setTimeout(() => {
-                this.initChart();
-            }, 150);
-        });
+    private getUserProfiles(user: User): string[] {
+        const profiles = Array.isArray(user.profiles) ? user.profiles.filter(Boolean) : [];
 
-        effect(() => {
-            this.layoutService.layoutConfig().darkTheme;
-            setTimeout(() => {
-                this.initChart();
-            }, 150);
-        });
+        return profiles.length ? profiles : [this.emptyProfileLabel];
     }
 
-    initChart() {
+    initChart(): void {
         const documentStyle = getComputedStyle(document.documentElement);
         const textColor = documentStyle.getPropertyValue('--text-color');
         const borderColor = documentStyle.getPropertyValue('--surface-border');
         const textMutedColor = documentStyle.getPropertyValue('--text-color-secondary');
 
         const users = this.users();
-        const profiles = [...new Set(users.map((user) => user.profiles))];
-        const activeUsersByProfile = profiles.map((profile) => users.filter((user) => user.profiles === profile && user.enabled).length);
-        const inactiveUsersByProfile = profiles.map((profile) => users.filter((user) => user.profiles === profile && !user.enabled).length);
+        const usersWithProfiles = users.map((user) => ({
+            user,
+            profiles: this.getUserProfiles(user)
+        }));
+
+        const profiles = [...new Set(usersWithProfiles.flatMap(({ profiles }) => profiles))].sort((a, b) =>
+            a.localeCompare(b, 'fr')
+        );
+
+        const activeUsersByProfile = profiles.map((profile) =>
+            usersWithProfiles.filter(({ user, profiles }) => user.enabled && profiles.includes(profile)).length
+        );
+
+        const inactiveUsersByProfile = profiles.map((profile) =>
+            usersWithProfiles.filter(({ user, profiles }) => !user.enabled && profiles.includes(profile)).length
+        );
 
         this.chartData.set({
             labels: profiles,

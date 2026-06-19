@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewChild, inject, signal } from '@angular/core';
-import { computed } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { IdentityPermission } from '@/app/features/identity/permissions/permission.model';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -14,6 +13,10 @@ import { ToastModule } from 'primeng/toast';
 
 import { User } from '../../models/user.model';
 import { UsersService } from '../../services/user.service';
+
+type UserTableRow = User & {
+    profilesLabel: string;
+};
 
 @Component({
     selector: 'app-user-list',
@@ -29,14 +32,20 @@ export class UserList implements OnInit {
     private readonly messageService = inject(MessageService);
     private readonly permissionService = inject(PermissionService);
 
+    readonly users = signal<User[]>([]);
+    readonly loading = signal(false);
+    readonly deletingUserId = signal<string | null>(null);
+
     readonly canDeleteUsers = computed(() =>
         this.permissionService.hasAnyPermission([IdentityPermission.UserDeleteAll])
     );
 
-    @ViewChild('dt') dt!: Table;
-
-    users = signal<User[]>([]);
-    loading = signal(false);
+    readonly rows = computed<UserTableRow[]>(() =>
+        this.users().map((user) => ({
+            ...user,
+            profilesLabel: this.formatProfiles(user)
+        }))
+    );
 
     ngOnInit(): void {
         this.loadUsers();
@@ -64,8 +73,8 @@ export class UserList implements OnInit {
         });
     }
 
-    exportCSV(): void {
-        this.dt.exportCSV();
+    formatProfiles(user: User): string {
+        return user.profiles?.length ? user.profiles.join(', ') : 'Sans profil';
     }
 
     onGlobalFilter(table: Table, event: Event): void {
@@ -73,7 +82,7 @@ export class UserList implements OnInit {
         table.filterGlobal(value, 'contains');
     }
 
-    confirmDelete(user: User): void {
+    confirmDelete(user: UserTableRow): void {
         this.confirmationService.confirm({
             message: `Voulez-vous vraiment supprimer l'utilisateur ${user.username} ?`,
             header: 'Confirmation',
@@ -86,10 +95,17 @@ export class UserList implements OnInit {
         });
     }
 
-    private deleteUser(user: User): void {
+    private deleteUser(user: UserTableRow): void {
+        if (this.deletingUserId()) {
+            return;
+        }
+
+        this.deletingUserId.set(user.id);
+
         this.usersService.deleteUser(user.id).subscribe({
             next: () => {
                 this.users.set(this.users().filter((item) => item.id !== user.id));
+                this.deletingUserId.set(null);
 
                 this.messageService.add({
                     severity: 'success',
@@ -99,6 +115,8 @@ export class UserList implements OnInit {
                 });
             },
             error: (error) => {
+                this.deletingUserId.set(null);
+
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Erreur',
@@ -108,5 +126,4 @@ export class UserList implements OnInit {
             }
         });
     }
-
 }
