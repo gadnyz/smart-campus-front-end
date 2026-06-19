@@ -21,7 +21,7 @@
                             aria-label="Changer la photo de profil" [disabled]="!editing() || saving()"
                             (click)="openAvatarPicker()">
                             @if (avatarImageUrl()) {
-                            <img [src]="avatarImageUrl()" [alt]="currentUser.username" />
+                            <img [src]="avatarImageUrl()" [alt]="currentUser.username" (error)="onAvatarImageError()" />
                             } @else {
                             <span>{{ userInitial() }}</span>
                             }

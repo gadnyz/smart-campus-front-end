@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, computed } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
+
+import { Component, inject, computed, signal, effect } from '@angular/core';
+import { getUserInitial, resolveAvatarUrl } from '@/app/shared/utils/avatar-url';
 import { MenuItem } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
@@ -30,17 +32,16 @@ import { AuthService } from '@/app/core/auth/services/auth.service';
             </div>
 
             <div class="layout-topbar-right">
-                <!-- <button type="button" class="layout-topbar-icon-button layout-topbar-notification" aria-label="Notifications">
-                    <p-overlaybadge value="" styleClass="layout-topbar-overlay-badge">
-                        <i class="pi pi-bell" style="font-size: 1.5rem"></i>
-                    </p-overlaybadge>
-                </button> -->
-
                 <button type="button" class="layout-topbar-avatar-button" aria-label="Profil utilisateur" (click)="userMenu.toggle($event)">
-                    @if (avatarUrl()) {
-                    <p-avatar [image]="avatarUrl()" shape="circle" styleClass="layout-topbar-avatar" />
+                   @if (avatarUrl()) {
+                        <p-avatar
+                            [image]="avatarUrl()"
+                            shape="circle"
+                            styleClass="layout-topbar-avatar"
+                            (onImageError)="onAvatarImageError()"
+                        />
                     } @else {
-                    <p-avatar [label]="userInitial()" shape="circle" styleClass="layout-topbar-avatar" />
+                        <p-avatar [label]="userInitial()" shape="circle" styleClass="layout-topbar-avatar" />
                     }
                 </button>
 
@@ -57,12 +58,32 @@ export class AppTopbar {
 
     readonly notificationCount = 5;
     readonly currentUser = this.authService.currentUser;
-    readonly avatarUrl = computed(() => this.currentUser()?.avatar_url ?? '');
+    readonly avatarLoadFailed = signal(false);
+
+    readonly avatarUrl = computed(() => {
+        if (this.avatarLoadFailed()) {
+            return '';
+        }
+
+        return resolveAvatarUrl(this.currentUser()?.avatar_url);
+    });
+
     readonly userInitial = computed(() => {
         const user = this.currentUser();
-        const source = user?.username || user?.email || '';
-        return source.charAt(0).toUpperCase();
+        return getUserInitial(user?.username, user?.email);
     });
+
+    constructor() {
+        effect(() => {
+            this.currentUser()?.avatar_url;
+            this.avatarLoadFailed.set(false);
+        });
+    }
+
+    onAvatarImageError(): void {
+        this.avatarLoadFailed.set(true);
+    }
+
 
     readonly notificationMenuItems: MenuItem[] = [
         {
