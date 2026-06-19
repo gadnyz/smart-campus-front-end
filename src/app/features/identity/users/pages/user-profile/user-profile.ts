@@ -156,8 +156,8 @@ export class UserProfile implements OnInit, OnDestroy {
         }
 
         this.passwordSaving.set(true);
-
-        this.authService
+        
+        this.usersService
             .changeCurrentUserPassword({
                 old_password: formValue.current_password,
                 new_password: formValue.new_password,

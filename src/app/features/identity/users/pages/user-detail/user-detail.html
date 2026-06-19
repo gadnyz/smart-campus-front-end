@@ -17,7 +17,8 @@
                     <label for="username" class="block text-sm text-color-secondary mb-1">Nom d'utilisateur</label>
                     <input pInputText id="username" formControlName="username" class="w-full" [readonly]="!editing()" />
                     @if (isInvalid('username')) {
-                    <small class="text-red-500 block mt-1"> Le nom d'utilisateur doit contenir 3 à 30 caractères, commencer par une lettre et ne pas contenir d'espaces. </small>
+                    <small class="text-red-500 block mt-1"> Le nom d'utilisateur doit contenir 3 à 30 caractères,
+                        commencer par une lettre et ne pas contenir d'espaces. </small>
                     } @if (validationErrors()['username']) {
                     <small class="text-red-500 block mt-1">{{ validationErrors()['username'] }}</small>
                     }
@@ -35,13 +36,14 @@
 
                 <div class="col-span-12 md:col-span-6">
                     <div class="text-sm text-color-secondary mb-1">Profil</div>
-                    <div class="font-medium">{{ currentUser.profile }}</div>
+                    <div class="font-medium">{{ currentUser.profiles.join(', ') }}</div>
                 </div>
             </form>
 
             @if (editing()) {
             <div class="flex gap-2 mt-6">
-                <button pButton type="button" label="Enregistrer" icon="pi pi-save" [loading]="saving()" (click)="save()"></button>
+                <button pButton type="button" label="Enregistrer" icon="pi pi-save" [loading]="saving()"
+                    (click)="save()"></button>
             </div>
             }
         </div>
