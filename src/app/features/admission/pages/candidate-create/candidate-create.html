@@ -1,0 +1,206 @@
+<p-toast />
+
+<app-content-subtopbar kicker="Admission" title="Nouvelle candidature" [actions]="actions()" />
+
+<div class="grid grid-cols-12 gap-6">
+    <div class="col-span-12 xl:col-span-10">
+        <div class="card">
+            <form [formGroup]="form" class="grid grid-cols-12 gap-4" (ngSubmit)="submit()">
+                <div class="col-span-12">
+                    <div class="font-semibold text-xl mb-4">Choix académique</div>
+                </div>
+
+                <div class="col-span-12 md:col-span-4">
+                    <label for="faculty_id" class="block text-sm text-color-secondary mb-1">Faculté</label>
+                    <p-select id="faculty_id" formControlName="faculty_id" [options]="faculties()" optionLabel="label" optionValue="value" placeholder="Sélectionner une faculté" class="w-full" [filter]="true" />
+                    @if (isInvalid('faculty_id') || fieldError('faculty_id')) {
+                    <small class="text-red-500 block mt-1">{{ fieldError('faculty_id') || 'La faculté est obligatoire.' }}</small>
+                    }
+                </div>
+
+                <div class="col-span-12 md:col-span-4">
+                    <label for="program_id" class="block text-sm text-color-secondary mb-1">Programme</label>
+                    <p-select id="program_id" formControlName="program_id" [options]="programs()" optionLabel="label" optionValue="value" placeholder="Sélectionner un programme" class="w-full" [filter]="true" />
+                    @if (isInvalid('program_id') || fieldError('program_id')) {
+                    <small class="text-red-500 block mt-1">{{ fieldError('program_id') || 'Le programme est obligatoire.' }}</small>
+                    }
+                </div>
+
+                <div class="col-span-12 md:col-span-4">
+                    <label for="level_id" class="block text-sm text-color-secondary mb-1">Niveau</label>
+                    <p-select id="level_id" formControlName="level_id" [options]="levels()" optionLabel="label" optionValue="value" placeholder="Sélectionner un niveau" class="w-full" [filter]="true" />
+                    @if (isInvalid('level_id') || fieldError('level_id')) {
+                    <small class="text-red-500 block mt-1">{{ fieldError('level_id') || 'Le niveau est obligatoire.' }}</small>
+                    }
+                </div>
+
+                <div class="col-span-12 md:col-span-4">
+                    <label for="candidature_type" class="block text-sm text-color-secondary mb-1">Type de candidature</label>
+                    <p-select id="candidature_type" formControlName="candidature_type" [options]="candidatureTypeOptions" optionLabel="label" optionValue="value" class="w-full" />
+                </div>
+
+                <div class="col-span-12 mt-4">
+                    <div class="font-semibold text-xl mb-4">Identité du candidat</div>
+                </div>
+
+                <div class="col-span-12 md:col-span-4">
+                    <label for="first_name" class="block text-sm text-color-secondary mb-1">Prénom</label>
+                    <input pInputText id="first_name" formControlName="first_name" class="w-full" />
+                    @if (isInvalid('first_name') || fieldError('first_name')) {
+                    <small class="text-red-500 block mt-1">{{ fieldError('first_name') || 'Le prénom est obligatoire.' }}</small>
+                    }
+                </div>
+
+                <div class="col-span-12 md:col-span-4">
+                    <label for="last_name" class="block text-sm text-color-secondary mb-1">Nom</label>
+                    <input pInputText id="last_name" formControlName="last_name" class="w-full" />
+                    @if (isInvalid('last_name') || fieldError('last_name')) {
+                    <small class="text-red-500 block mt-1">{{ fieldError('last_name') || 'Le nom est obligatoire.' }}</small>
+                    }
+                </div>
+
+                <div class="col-span-12 md:col-span-4">
+                    <label for="middle_name" class="block text-sm text-color-secondary mb-1">Post-nom</label>
+                    <input pInputText id="middle_name" formControlName="middle_name" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="gender" class="block text-sm text-color-secondary mb-1">Genre</label>
+                    <p-select id="gender" formControlName="gender" [options]="genderOptions" optionLabel="label" optionValue="value" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="birth_date" class="block text-sm text-color-secondary mb-1">Date de naissance</label>
+                    <input pInputText id="birth_date" type="date" formControlName="birth_date" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="birth_place" class="block text-sm text-color-secondary mb-1">Lieu de naissance</label>
+                    <input pInputText id="birth_place" formControlName="birth_place" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="marital_status" class="block text-sm text-color-secondary mb-1">État civil</label>
+                    <p-select id="marital_status" formControlName="marital_status" [options]="maritalStatusOptions" optionLabel="label" optionValue="value" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-4">
+                    <label for="nationality" class="block text-sm text-color-secondary mb-1">Nationalité</label>
+                    <input pInputText id="nationality" formControlName="nationality" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-4">
+                    <label for="email" class="block text-sm text-color-secondary mb-1">Email</label>
+                    <input pInputText id="email" type="email" formControlName="email" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-4">
+                    <label for="phone" class="block text-sm text-color-secondary mb-1">Téléphone</label>
+                    <input pInputText id="phone" formControlName="phone" class="w-full" />
+                </div>
+
+                <div class="col-span-12 mt-4">
+                    <div class="font-semibold text-xl mb-4">Origine</div>
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="province" class="block text-sm text-color-secondary mb-1">Province</label>
+                    <input pInputText id="province" formControlName="province" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="territory" class="block text-sm text-color-secondary mb-1">Territoire</label>
+                    <input pInputText id="territory" formControlName="territory" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="sector" class="block text-sm text-color-secondary mb-1">Secteur</label>
+                    <input pInputText id="sector" formControlName="sector" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="commune" class="block text-sm text-color-secondary mb-1">Commune</label>
+                    <input pInputText id="commune" formControlName="commune" class="w-full" />
+                </div>
+
+                <div class="col-span-12 mt-4">
+                    <div class="font-semibold text-xl mb-4">Tuteur et contact d’urgence</div>
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="tutor_full_name" class="block text-sm text-color-secondary mb-1">Nom du tuteur</label>
+                    <input pInputText id="tutor_full_name" formControlName="tutor_full_name" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="tutor_phone" class="block text-sm text-color-secondary mb-1">Téléphone tuteur</label>
+                    <input pInputText id="tutor_phone" formControlName="tutor_phone" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="tutor_email" class="block text-sm text-color-secondary mb-1">Email tuteur</label>
+                    <input pInputText id="tutor_email" type="email" formControlName="tutor_email" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="tutor_profession" class="block text-sm text-color-secondary mb-1">Profession tuteur</label>
+                    <input pInputText id="tutor_profession" formControlName="tutor_profession" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="emergency_full_name" class="block text-sm text-color-secondary mb-1">Contact urgence</label>
+                    <input pInputText id="emergency_full_name" formControlName="emergency_full_name" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="emergency_phone" class="block text-sm text-color-secondary mb-1">Téléphone urgence</label>
+                    <input pInputText id="emergency_phone" formControlName="emergency_phone" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="emergency_email" class="block text-sm text-color-secondary mb-1">Email urgence</label>
+                    <input pInputText id="emergency_email" type="email" formControlName="emergency_email" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-3">
+                    <label for="emergency_relationship" class="block text-sm text-color-secondary mb-1">Lien</label>
+                    <input pInputText id="emergency_relationship" formControlName="emergency_relationship" class="w-full" />
+                </div>
+
+                <div class="col-span-12 mt-4">
+                    <div class="font-semibold text-xl mb-4">Parcours scolaire</div>
+                </div>
+
+                <div class="col-span-12 md:col-span-4">
+                    <label for="school_name" class="block text-sm text-color-secondary mb-1">École</label>
+                    <input pInputText id="school_name" formControlName="school_name" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-4">
+                    <label for="option" class="block text-sm text-color-secondary mb-1">Option</label>
+                    <input pInputText id="option" formControlName="option" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-2">
+                    <label for="percentage" class="block text-sm text-color-secondary mb-1">Pourcentage</label>
+                    <input pInputText id="percentage" type="number" formControlName="percentage" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-2">
+                    <label for="graduation_year" class="block text-sm text-color-secondary mb-1">Année</label>
+                    <input pInputText id="graduation_year" type="number" formControlName="graduation_year" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-6">
+                    <label for="study_country" class="block text-sm text-color-secondary mb-1">Pays d’étude</label>
+                    <input pInputText id="study_country" formControlName="study_country" class="w-full" />
+                </div>
+
+                <div class="col-span-12 md:col-span-6">
+                    <label for="study_city" class="block text-sm text-color-secondary mb-1">Ville d’étude</label>
+                    <input pInputText id="study_city" formControlName="study_city" class="w-full" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
