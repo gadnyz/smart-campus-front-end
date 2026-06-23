@@ -13,7 +13,7 @@ import { ToastModule } from 'primeng/toast';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { CandidateGender, CandidatureType, MaritalStatus, SubmitCandidatureRequest } from '../../models/candidate.model';
 import { CandidateService } from '../../services/candidate.service';
-import { AdmissionCatalogItem, AdmissionCatalogService } from '../../services/admission-catalog.service';
+import { AdmissionAcademicReferenceService } from '../../services/admission-academic-reference.service';
 
 type SelectOption<T = string> = {
     label: string;
@@ -35,7 +35,7 @@ export class CandidateCreate implements OnInit {
     private readonly fb = inject(FormBuilder);
     private readonly messageService = inject(MessageService);
     private readonly candidateService = inject(CandidateService);
-    private readonly catalogService = inject(AdmissionCatalogService);
+    private readonly academicReferenceService = inject(AdmissionAcademicReferenceService);
 
     readonly submitting = signal(false);
     readonly loadingFaculties = signal(false);
@@ -212,9 +212,9 @@ export class CandidateCreate implements OnInit {
     private loadFaculties(): void {
         this.loadingFaculties.set(true);
 
-        this.catalogService.getFaculties().subscribe({
-            next: (response) => {
-                this.faculties.set(this.toOptions(response.content));
+        this.academicReferenceService.getFacultyOptions().subscribe({
+            next: (options) => {
+                this.faculties.set(options);
                 this.loadingFaculties.set(false);
             },
             error: () => {
@@ -227,9 +227,9 @@ export class CandidateCreate implements OnInit {
     private loadPrograms(facultyId: string): void {
         this.loadingPrograms.set(true);
 
-        this.catalogService.getProgramsByFaculty(facultyId).subscribe({
-            next: (response) => {
-                this.programs.set(this.toOptions(response.content));
+        this.academicReferenceService.getProgramOptionsByFaculty(facultyId).subscribe({
+            next: (options) => {
+                this.programs.set(options);
                 this.form.controls.program_id.enable();
                 this.loadingPrograms.set(false);
             },
@@ -243,9 +243,9 @@ export class CandidateCreate implements OnInit {
     private loadLevels(): void {
         this.loadingLevels.set(true);
 
-        this.catalogService.getLevels().subscribe({
-            next: (response) => {
-                this.levels.set(this.toOptions(response.content));
+        this.academicReferenceService.getLevelOptions().subscribe({
+            next: (options) => {
+                this.levels.set(options);
                 this.loadingLevels.set(false);
             },
             error: () => {
@@ -254,13 +254,12 @@ export class CandidateCreate implements OnInit {
             }
         });
     }
-
-    private toOptions(items: AdmissionCatalogItem[]): SelectOption[] {
-        return items.map((item) => ({
-            label: item.code ? `${item.code} - ${item.name}` : item.name,
-            value: item.id
-        }));
-    }
+    // private toOptions(items: AdmissionCatalogItem[]): SelectOption[] {
+    //     return items.map((item) => ({
+    //         label: item.code ? `${item.code} - ${item.name}` : item.name,
+    //         value: item.id
+    //     }));
+    // }
 
     private buildPayload(): SubmitCandidatureRequest {
         const raw = this.form.getRawValue();

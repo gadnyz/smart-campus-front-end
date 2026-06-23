@@ -1,1 +1,171 @@
-<p>candidate-detail works!</p>
+<p-toast />
+
+<app-content-subtopbar kicker="Admission" [title]="pageTitle()" [actions]="actions()" />
+<p-confirmdialog [style]="{ width: '450px' }" />
+
+@if (loading()) {
+<div class="card">Chargement...</div>
+} @else if (candidate(); as candidate) {
+<div class="grid grid-cols-12 gap-6">
+    <div class="col-span-12">
+        <div class="card p-0 overflow-hidden">
+            <div class="p-6">
+                <div class="flex flex-wrap justify-between items-start gap-4">
+                    <div>
+                        <div class="font-semibold text-2xl">{{ fullName(candidate) }}</div>
+                        <div class="text-color-secondary">{{ candidate.email }} · {{ candidate.phone }}</div>
+                    </div>
+
+                    <p-tag [value]="statusLabel(candidate.candidature.status)" [severity]="statusSeverity(candidate.candidature.status)" />
+                </div>
+            </div>
+
+            <div class="border-t border-surface"></div>
+
+            <div class="p-6">
+                <div class="section-heading">
+                    <i class="pi pi-user text-primary"></i>
+                    <div>
+                        <div class="font-semibold text-lg">Informations personnelles</div>
+                        <div class="text-sm text-color-secondary">Identité et contact du candidat.</div>
+                    </div>
+                </div>
+
+                <div class="detail-grid">
+                    @for (row of studentRows(); track row.label) {
+                    <div>
+                        <span>{{ row.label }}</span>
+                        <strong>{{ displayValue(row.value) }}</strong>
+                    </div>
+                    }
+                </div>
+            </div>
+
+            <div class="border-t border-surface"></div>
+
+            <div class="p-6">
+                <div class="section-heading">
+                    <i class="pi pi-graduation-cap text-primary"></i>
+                    <div>
+                        <div class="font-semibold text-lg">Cursus demandé</div>
+                        <div class="text-sm text-color-secondary">Choix académique et parcours scolaire.</div>
+                    </div>
+                </div>
+
+                <div class="detail-grid mb-6">
+                    @for (row of admissionRows(); track row.label) {
+                    <div>
+                        <span>{{ row.label }}</span>
+                        <strong>{{ displayValue(row.value) }}</strong>
+                    </div>
+                    }
+                </div>
+
+                <div class="detail-grid">
+                    @for (row of academicRows(); track row.label) {
+                    <div>
+                        <span>{{ row.label }}</span>
+                        <strong>{{ displayValue(row.value) }}</strong>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-span-12">
+        <div class="card p-0 overflow-hidden">
+            <div class="p-6">
+                <div class="section-heading">
+                    <i class="pi pi-map-marker text-primary"></i>
+                    <div>
+                        <div class="font-semibold text-lg">Origine</div>
+                        <div class="text-sm text-color-secondary">Informations géographiques du candidat.</div>
+                    </div>
+                </div>
+
+                <div class="detail-grid">
+                    @for (row of originRows(); track row.label) {
+                    <div>
+                        <span>{{ row.label }}</span>
+                        <strong>{{ displayValue(row.value) }}</strong>
+                    </div>
+                    }
+                </div>
+            </div>
+
+            <div class="border-t border-surface"></div>
+
+            <div class="p-6">
+                <div class="section-heading">
+                    <i class="pi pi-users text-primary"></i>
+                    <div>
+                        <div class="font-semibold text-lg">Tuteur</div>
+                        <div class="text-sm text-color-secondary">Personne responsable du candidat.</div>
+                    </div>
+                </div>
+
+                <div class="detail-grid">
+                    @for (row of tutorRows(); track row.label) {
+                    <div>
+                        <span>{{ row.label }}</span>
+                        <strong>{{ displayValue(row.value) }}</strong>
+                    </div>
+                    }
+                </div>
+            </div>
+
+            <div class="border-t border-surface"></div>
+
+            <div class="p-6">
+                <div class="section-heading">
+                    <i class="pi pi-phone text-primary"></i>
+                    <div>
+                        <div class="font-semibold text-lg">Contact d’urgence</div>
+                        <div class="text-sm text-color-secondary">Contact à joindre en cas de nécessité.</div>
+                    </div>
+                </div>
+
+                <div class="detail-grid">
+                    @for (row of emergencyRows(); track row.label) {
+                    <div>
+                        <span>{{ row.label }}</span>
+                        <strong>{{ displayValue(row.value) }}</strong>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-span-12">
+        <div class="card p-0 overflow-hidden">
+            <div class="p-6">
+                <div class="section-heading">
+                    <i class="pi pi-file text-primary"></i>
+                    <div>
+                        <div class="font-semibold text-lg">Documents</div>
+                        <div class="text-sm text-color-secondary">Pièces liées à la candidature.</div>
+                    </div>
+                </div>
+
+                @if (candidate.documents.length) {
+                <div class="document-list">
+                    @for (document of candidate.documents; track document.id) {
+                    <a [href]="document.file_url" target="_blank" rel="noopener noreferrer" class="document-row">
+                        <div>
+                            <div class="font-medium">{{ document.document_type }}</div>
+                            <div class="text-sm text-color-secondary">{{ document.uploaded_at | date: 'dd/MM/yyyy HH:mm' }}</div>
+                        </div>
+                        <i class="pi pi-external-link"></i>
+                    </a>
+                    }
+                </div>
+                } @else {
+                <div class="text-color-secondary">Aucun document chargé.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+}

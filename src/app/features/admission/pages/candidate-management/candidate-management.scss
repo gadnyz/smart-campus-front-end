@@ -1,0 +1,21 @@
+:host {
+    display: block;
+}
+
+.candidate-table {
+    border-collapse: collapse;
+}
+
+.candidate-table th,
+.candidate-table td {
+    padding: 0.875rem 0.75rem;
+    border-bottom: 1px solid var(--surface-border);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.candidate-table th {
+    font-size: 0.875rem;
+    color: var(--text-color-secondary);
+    font-weight: 600;
+}

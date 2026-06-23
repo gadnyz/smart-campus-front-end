@@ -3,5 +3,6 @@ export const environment = {
     appName: 'Smart-campus',
     univesity: 'UNH',
     apiBaseUrl: '',
-    enableDebug: true
+    enableDebug: true,
+    SMARTCAMPUS_API_PASSWORD : 'admin@password'
 };
