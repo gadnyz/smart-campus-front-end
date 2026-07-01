@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, forkJoin, map, of } from 'rxjs';
-import { AcademicCatalogService, AcademicReference } from '@/app/features/academic/academic.public-api';
+import { AcademicCatalogService, AcademicReference, LevelReference, ProgramReference } from '@/app/features/academic/academic.public-api';
 import { CandidateResponse } from '../models/candidate.model';
 
 export type SelectOption = {
@@ -19,16 +19,30 @@ export interface CandidateAcademicLabels {
 export class AdmissionAcademicReferenceService {
     private readonly academicCatalogService = inject(AcademicCatalogService);
 
-    getFacultyOptions(): Observable<SelectOption[]> {
-        return this.academicCatalogService.getFaculties().pipe(map((items) => items.map((item) => this.toOption(item))));
+    getFacultyOptions(publicRequest = false): Observable<SelectOption[]> {
+        return this.academicCatalogService
+            .getFaculties({ publicRequest })
+            .pipe(map((items) => items.map((item) => this.toOption(item))));
     }
 
-    getLevelOptions(): Observable<SelectOption[]> {
-        return this.academicCatalogService.getLevels().pipe(map((items) => items.map((item) => this.toOption(item))));
+    getLevelOptions(publicRequest = false): Observable<SelectOption[]> {
+        return this.academicCatalogService
+            .getLevels({ publicRequest })
+            .pipe(map((items) => items.map((item) => this.toOption(item))));
     }
 
-    getProgramOptionsByFaculty(facultyId: string): Observable<SelectOption[]> {
-        return this.academicCatalogService.getProgramsByFaculty(facultyId).pipe(map((items) => items.map((item) => this.toOption(item))));
+    getProgramOptionsByFaculty(facultyId: string, publicRequest = false): Observable<SelectOption[]> {
+        return this.academicCatalogService
+            .getProgramsByFaculty(facultyId, { publicRequest })
+            .pipe(map((items) => items.map((item) => this.toOption(item))));
+    }
+
+    getLevelReferences(publicRequest = false): Observable<LevelReference[]> {
+        return this.academicCatalogService.getLevels({ publicRequest });
+    }
+
+    getProgramReferencesByFaculty(facultyId: string, publicRequest = false): Observable<ProgramReference[]> {
+        return this.academicCatalogService.getProgramsByFaculty(facultyId, { publicRequest });
     }
 
     resolveCandidateLabels(candidate: CandidateResponse): Observable<CandidateAcademicLabels> {
@@ -61,4 +75,6 @@ export class AdmissionAcademicReferenceService {
 
         return item.code ? `${item.code} - ${item.name}` : item.name;
     }
+
+
 }

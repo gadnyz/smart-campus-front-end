@@ -18,12 +18,19 @@ export interface AcademicReference {
 
 export interface FacultyReference extends AcademicReference {}
 
-export interface LevelReference extends AcademicReference {}
+export interface LevelReference extends AcademicReference {
+    level_order?: number;
+}
+
+export interface ProgramLevelReference {
+    level: LevelReference;
+    is_common: boolean;
+}
 
 export interface ProgramReference extends AcademicReference {
     faculty_id: string;
     faculty_name?: string;
-    levels?: LevelReference[];
+    levels?: ProgramLevelReference[];
 }
 
 export interface AcademicYearReference {

@@ -7,7 +7,6 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
-import { AdmissionPermission } from '../../permissions/permission.model';
 import { CandidateListItem, CandidatureStatus, PagedResponse } from '../../models/candidate.model';
 import { CandidateService } from '../../services/candidate.service';
 import {
@@ -53,15 +52,6 @@ export class CandidateManagement implements OnInit {
     ];
 
     readonly actions = computed<SubtopbarAction[]>(() => [
-        {
-            label: 'Nouveau',
-            icon: 'pi pi-plus',
-            severity: 'info',
-            outlined: false,
-            routerLink: ['/admission/candidates/new'],
-            permissions: [AdmissionPermission.AdmissionCandidateCreateAll],
-            mode: 'any'
-        },
         {
             label: 'Actualiser',
             icon: 'pi pi-refresh',

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, catchError, finalize, shareReplay, switchMap, throwError } from 'rxjs';
 import { AuthResponse } from '../models/auth.model';
 import { AuthService } from '../services/auth.service';
+import { PUBLIC_API_REQUEST } from './public-api.context';
 
 const PUBLIC_AUTH_URLS = ['/api/v1/auth/login', '/api/v1/auth/logout', '/api/v1/auth/refresh-token', '/api/v1/auth/forgot-password', '/api/v1/auth/reset-password'];
 
@@ -12,17 +13,28 @@ let refreshRequest$: Observable<AuthResponse> | null = null;
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const authService = inject(AuthService);
     const router = inject(Router);
+    const isPublicApiRequest = req.context.get(PUBLIC_API_REQUEST);
+
 
     const isApiRequest = req.url.startsWith('/api/') || req.url.includes('/api/');
     const isPublicAuthRoute = PUBLIC_AUTH_URLS.some((url) => req.url.includes(url));
 
     const token = authService.getAccessToken();
 
-    const authReq = isApiRequest && !isPublicAuthRoute && token ? addAuthorizationHeader(req, token) : req;
 
+    const authReq =
+        isApiRequest && !isPublicAuthRoute && !isPublicApiRequest && token
+            ? addAuthorizationHeader(req, token)
+            : req;
     return next(authReq).pipe(
         catchError((error: unknown) => {
-            if (!(error instanceof HttpErrorResponse) || error.status !== 401 || !isApiRequest || isPublicAuthRoute) {
+            if (
+                !(error instanceof HttpErrorResponse) ||
+                error.status !== 401 ||
+                !isApiRequest ||
+                isPublicAuthRoute ||
+                isPublicApiRequest
+            ) {
                 return throwError(() => error);
             }
 

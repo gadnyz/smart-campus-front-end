@@ -78,14 +78,14 @@ const seedCatalog = {
     },
     semesters: [
         {
-            code: 'S1-2026-SEED',
+            code: 'S1-2026',
             name: 'Semestre 1 2026-2027',
             semester_order: 1,
             start_date: '2026-09-01',
             end_date: '2027-01-31'
         },
         {
-            code: 'S2-2027-SEED',
+            code: 'S2-2027',
             name: 'Semestre 2 2026-2027',
             semester_order: 2,
             start_date: '2027-02-01',
@@ -114,7 +114,7 @@ const seedCatalog = {
     programs: [
         {
             code: 'MED',
-            name: 'Facult\u00e9 de M\u00e9decine',
+            name: 'M\u00e9decine G\u00e9n\u00e9rale',
             facultyCode: 'MED',
             levelCodes: commonLevelCodes
         },
@@ -152,7 +152,7 @@ const seedCatalog = {
             code: 'DRT-LIC',
             name: 'Droit',
             facultyCode: 'DRT',
-            levelCodes: ['PREP', 'L1', 'L2', 'L3']
+            levelCodes: ['L1', 'L2', 'L3']
         },
         {
             code: 'DRT-MDEA',
@@ -252,7 +252,7 @@ const seedCatalog = {
         },
         {
             code: 'ARCHI',
-            name: '\u00c9cole Sup\u00e9rieure d\u2019Architecture et d\u2019Urbanisme',
+            name: 'Architecture et Urbanisme',
             facultyCode: 'ARCHI',
             levelCodes: preparatoryLevelCodes
         }
@@ -300,27 +300,27 @@ const seedCatalog = {
         }
     ],
     professorGrades: [
-        { code: 'ASS-SEED', name: 'Assistant' },
-        { code: 'CT-SEED', name: 'Chef de travaux' },
-        { code: 'PROF-SEED', name: 'Professeur' }
+        { code: 'ASS', name: 'Assistant' },
+        { code: 'CT', name: 'Chef de travaux' },
+        { code: 'PROF', name: 'Professeur' }
     ],
     profiles: ['PROFESSOR', 'STUDENT', 'ACADEMIC_SECRETARY'],
     users: [
         {
-            username: 'seed.professor',
-            email: 'seed.professor@smart-campus.org',
+            username: 'professor',
+            email: 'professor@smart-campus.org',
             profiles: ['PROFESSOR'],
             facultyCode: 'FST'
         },
         {
-            username: 'seed.secretary',
-            email: 'seed.secretary@smart-campus.org',
+            username: 'academic.secretary',
+            email: 'academic.secretary@smart-campus.org',
             profiles: ['ACADEMIC_SECRETARY'],
             facultyCode: 'GST'
         },
         {
-            username: 'seed.student',
-            email: 'seed.student@smart-campus.org',
+            username: 'student',
+            email: 'student@smart-campus.org',
             profiles: ['STUDENT'],
             facultyCode: 'FST'
         }
@@ -335,7 +335,7 @@ const seedCatalog = {
             birth_place: 'Kinshasa',
             marital_status: 'SINGLE',
             nationality: 'Congolaise',
-            email: 'aline.medecine.seed@example.com',
+            email: 'aline.medecine@example.com',
             phone: '+243810000001',
             facultyCode: 'MED',
             programCode: 'MED',
@@ -359,7 +359,7 @@ const seedCatalog = {
             birth_place: 'Lubumbashi',
             marital_status: 'SINGLE',
             nationality: 'Congolaise',
-            email: 'david.genie-civil.seed@example.com',
+            email: 'david.genie-civil@example.com',
             phone: '+243810000002',
             facultyCode: 'ST',
             programCode: 'ST-GC',
@@ -383,7 +383,7 @@ const seedCatalog = {
             birth_place: 'Goma',
             marital_status: 'SINGLE',
             nationality: 'Congolaise',
-            email: 'merveille.environnement.seed@example.com',
+            email: 'merveille.environnement@example.com',
             phone: '+243810000003',
             facultyCode: 'SAE',
             programCode: 'SAE-ENV',
@@ -407,7 +407,7 @@ const seedCatalog = {
             birth_place: 'Kolwezi',
             marital_status: 'SINGLE',
             nationality: 'Congolaise',
-            email: 'patrick.droit-minier.seed@example.com',
+            email: 'patrick.droit-minier@example.com',
             phone: '+243810000004',
             facultyCode: 'DRT',
             programCode: 'DRT-MDM',
@@ -431,7 +431,7 @@ const seedCatalog = {
             birth_place: 'Kinshasa',
             marital_status: 'SINGLE',
             nationality: 'Congolaise',
-            email: 'sarah.intelligence-artificielle.seed@example.com',
+            email: 'sarah.intelligence-artificielle@example.com',
             phone: '+243810000005',
             facultyCode: 'FST',
             programCode: 'FST-IA',
@@ -455,7 +455,7 @@ const seedCatalog = {
             birth_place: 'Matadi',
             marital_status: 'SINGLE',
             nationality: 'Congolaise',
-            email: 'joel.finance-banque.seed@example.com',
+            email: 'joel.finance-banque@example.com',
             phone: '+243810000006',
             facultyCode: 'GST',
             programCode: 'GST-MFB',
@@ -479,7 +479,7 @@ const seedCatalog = {
             birth_place: 'Mbuji-Mayi',
             marital_status: 'SINGLE',
             nationality: 'Congolaise',
-            email: 'nadine.multimedia.seed@example.com',
+            email: 'nadine.multimedia@example.com',
             phone: '+243810000007',
             facultyCode: 'SIC',
             programCode: 'SIC',
@@ -503,7 +503,7 @@ const seedCatalog = {
             birth_place: 'Kinshasa',
             marital_status: 'SINGLE',
             nationality: 'Congolaise',
-            email: 'grace.architecture.seed@example.com',
+            email: 'grace.architecture@example.com',
             phone: '+243810000008',
             facultyCode: 'ARCHI',
             programCode: 'ARCHI',
@@ -858,7 +858,7 @@ async function ensureProgram(api, payload) {
 
 async function ensureByCode(api, { label, listPath, createPath, payload }) {
     const items = await listAll(api, listPath);
-    const existing = items.find((item) => equals(item.code, payload.code));
+    const existing = items.find((item) => equals(item.code, payload.code) || (payload.name && equals(item.name, payload.name)) || (payload.label && equals(item.label, payload.label)));
 
     if (existing) {
         return found(label, payload.code, existing);
@@ -869,7 +869,7 @@ async function ensureByCode(api, { label, listPath, createPath, payload }) {
 
 async function ensureCourseUnit(api, payload) {
     const items = await listAll(api, `/api/v1/course-units/faculty/${payload.faculty_id}`);
-    const existing = items.find((item) => equals(item.code, payload.code));
+    const existing = items.find((item) => equals(item.code, payload.code) || (payload.name && equals(item.name, payload.name)) || (payload.label && equals(item.label, payload.label)));
 
     if (existing) {
         return found('course unit', payload.code, existing);
@@ -900,13 +900,32 @@ async function ensureUser(api, payload) {
     try {
         return await create(api, 'user', '/api/v1/auth/register', payload);
     } catch (error) {
-        if (payload.faculty_id && error instanceof HttpError && [400, 422].includes(error.status)) {
-            console.warn(`[warn] user ${payload.email} rejected with faculty_id; retrying with faculty_id=null`);
-            return create(api, 'user', '/api/v1/auth/register', { ...payload, faculty_id: null });
+        if (payload.faculty_id && shouldRetryUserWithoutFaculty(error)) {
+            console.warn(`[warn] user ${payload.email} rejected with faculty_id; retrying without faculty_id`);
+            const fallbackPayload = { ...payload };
+            delete fallbackPayload.faculty_id;
+            return create(api, 'user', '/api/v1/auth/register', fallbackPayload);
         }
 
         throw error;
     }
+}
+
+function shouldRetryUserWithoutFaculty(error) {
+    if (!(error instanceof HttpError)) {
+        return false;
+    }
+
+    return [400, 422].includes(error.status) || isFacultyForeignKeyError(error);
+}
+
+function isFacultyForeignKeyError(error) {
+    if (!(error instanceof HttpError) || error.status !== 500) {
+        return false;
+    }
+
+    const detail = typeof error.payload === 'string' ? error.payload : error.payload?.detail;
+    return /fk_users_faculty|foreign key constraint|users_faculty/i.test(String(detail || ''));
 }
 
 async function ensureCandidate(api, payload) {
@@ -917,11 +936,32 @@ async function ensureCandidate(api, payload) {
         return found('candidate', payload.email, existing);
     }
 
-    return create(api, 'candidate', '/api/v1/candidates', payload);
+    try {
+        return await create(api, 'candidate', '/api/v1/candidates', payload, { retryRateLimit: false });
+    } catch (error) {
+        if (isFacultyForeignKeyError(error)) {
+            console.warn(`[skip] candidate ${payload.email} rejected by backend faculty FK while creating the linked user`);
+            return {
+                email: payload.email,
+                skipped: true
+            };
+        }
+
+        if (error instanceof HttpError && error.status === 429) {
+            console.warn(`[skip] candidate ${payload.email} rejected by backend rate limit`);
+            return {
+                email: payload.email,
+                skipped: true
+            };
+        }
+
+        throw error;
+    }
 }
 
-async function create(api, label, path, payload) {
+async function create(api, label, path, payload, options = {}) {
     const identity = payload.code || payload.email || payload.label || payload.name;
+    const retryRateLimit = options.retryRateLimit ?? true;
 
     if (checkOnly) {
         console.log(`[check] would create ${label}: ${identity}`);
@@ -941,7 +981,7 @@ async function create(api, label, path, payload) {
             console.log(`[post] created ${label}: ${identity}`);
             return created;
         } catch (error) {
-            if (error instanceof HttpError && error.status === 429 && attempt < 4) {
+            if (retryRateLimit && error instanceof HttpError && error.status === 429 && attempt < 4) {
                 const delayMs = 65000;
                 console.warn(`[retry] ${label}: ${identity} hit rate limit, retrying in ${Math.round(delayMs / 1000)}s`);
                 await sleep(delayMs);
@@ -1026,7 +1066,8 @@ function printSummary(context) {
         ['professorGrades', context.professorGrades.length],
         ['profiles', context.profiles.length],
         ['users', context.users.length],
-        ['candidates', context.candidates.length]
+        ['candidates', context.candidates.filter((candidate) => !candidate.skipped).length],
+        ['skippedCandidates', context.candidates.filter((candidate) => candidate.skipped).length]
     ];
 
     console.log('');

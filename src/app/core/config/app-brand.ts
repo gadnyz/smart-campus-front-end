@@ -7,6 +7,7 @@ export const appBrand = {
     footerTagline: 'Oser – Innover – Persévérer',
     logos: {
         main: 'images/icons/logo.png',
+        large : 'images/icons/logo-gf.png',
         compact: 'images/icons/logo.png',
         light: 'images/icons/logo.png',
         dark: 'images/icons/logo-dark.png'

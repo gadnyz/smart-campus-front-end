@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, switchMap, throwError } from 'rxjs';
 import { environment } from '@/environments/environment';
@@ -15,6 +15,8 @@ import {
     SubmitCandidatureRequest,
     UpdateCandidateRequest
 } from '../models/candidate.model';
+
+import { PUBLIC_API_REQUEST } from '@/app/core/auth/interceptors/public-api.context';
 
 type CandidateListItemApi = CandidateListItem & {
     candidature?: {
@@ -62,22 +64,50 @@ export class CandidateService {
         );
     }
 
-    submit(payload: SubmitCandidatureRequest): Observable<CandidateResponse> {
-        return this.http.post<CandidateResponse>(this.baseUrl, payload);
+    submit(payload: SubmitCandidatureRequest, options: { publicRequest?: boolean } = {}): Observable<CandidateResponse> {
+        return this.http.post<CandidateResponse>(this.baseUrl, payload, {
+            context: this.httpContext(options.publicRequest)
+        });
+    }
+
+    private httpContext(publicRequest?: boolean): HttpContext {
+        return publicRequest ? new HttpContext().set(PUBLIC_API_REQUEST, true) : new HttpContext();
     }
     update(id: string, payload: UpdateCandidateRequest): Observable<CandidateResponse> {
         return throwError(() => new Error(`Endpoint update candidat non disponible côté backend: ${id}`));
     }
-    requestDocumentUploadUrl(candidateId: string, type: CandidateDocumentType, extension: string): Observable<DocumentUploadUrlResponse> {
+    requestDocumentUploadUrl(
+        candidateId: string,
+        type: CandidateDocumentType,
+        extension: string,
+        options: { publicRequest?: boolean } = {}
+    ): Observable<DocumentUploadUrlResponse> {
         const params = new HttpParams()
             .set('type', type)
             .set('extension', extension.startsWith('.') ? extension : `.${extension}`);
 
-        return this.http.post<DocumentUploadUrlResponse>(`${this.baseUrl}/${candidateId}/documents/upload-url`, null, { params });
+        return this.http.post<DocumentUploadUrlResponse>(`${this.baseUrl}/${candidateId}/documents/upload-url`, null, {
+            params,
+            context: this.httpContext(options.publicRequest)
+        });
     }
 
-    confirmDocumentUpload(candidateId: string, payload: ConfirmDocumentRequest): Observable<ConfirmDocumentResponse> {
-        return this.http.post<ConfirmDocumentResponse>(`${this.baseUrl}/${candidateId}/documents/confirm`, payload);
+    uploadDocument(uploadUrl: string, file: File): Observable<void> {
+        return this.http.put<void>(uploadUrl, file, {
+            headers: {
+                'Content-Type': file.type || 'application/octet-stream'
+            }
+        });
+    }
+
+    confirmDocumentUpload(
+        candidateId: string,
+        payload: ConfirmDocumentRequest,
+        options: { publicRequest?: boolean } = {}
+    ): Observable<ConfirmDocumentResponse> {
+        return this.http.post<ConfirmDocumentResponse>(`${this.baseUrl}/${candidateId}/documents/confirm`, payload, {
+            context: this.httpContext(options.publicRequest)
+        });
     }
 
     reject(id: string): Observable<CandidateResponse> {

@@ -21,13 +21,6 @@ export const admissionFeature: AppFeature = {
                     routerLink: ['/admission/candidates'],
                     permissions: [AdmissionPermission.AdmissionCandidateReadAll],
                     order: 10
-                },
-                {
-                    label: 'Nouvelle candidature',
-                    icon: 'pi pi-fw pi-user-plus',
-                    routerLink: ['/admission/candidates/new'],
-                    permissions: [AdmissionPermission.AdmissionCandidateCreateAll],
-                    order: 20
                 }
             ]
         }

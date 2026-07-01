@@ -1,6 +1,6 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, map, of, shareReplay } from 'rxjs';
+import { Observable, map, shareReplay } from 'rxjs';
 import { environment } from '@/environments/environment';
 import {
     AcademicYearReference,
@@ -10,6 +10,12 @@ import {
     ProgramReference,
     toContent
 } from '../models/academic-reference.model';
+
+import { PUBLIC_API_REQUEST } from '@/app/core/auth/interceptors/public-api.context';
+
+export interface AcademicCatalogRequestOptions {
+    publicRequest?: boolean;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AcademicCatalogService {
@@ -22,7 +28,13 @@ export class AcademicCatalogService {
     private academicYears$?: Observable<AcademicYearReference[]>;
     private readonly programsByFaculty = new Map<string, Observable<ProgramReference[]>>();
 
-    getFaculties(): Observable<FacultyReference[]> {
+    getFaculties(options: AcademicCatalogRequestOptions = {}): Observable<FacultyReference[]> {
+        if (options.publicRequest) {
+            return this.http
+                .get<ApiListResponse<FacultyReference>>(`${this.baseUrl}/api/v1/faculties`, this.httpOptions(options))
+                .pipe(map(toContent));
+        }
+
         this.faculties$ ??= this.http
             .get<ApiListResponse<FacultyReference>>(`${this.baseUrl}/api/v1/faculties`, { params: this.defaultParams() })
             .pipe(map(toContent), shareReplay(1));
@@ -34,7 +46,13 @@ export class AcademicCatalogService {
         return this.getFaculties().pipe(map((items) => items.find((item) => item.id === id) ?? null));
     }
 
-    getLevels(): Observable<LevelReference[]> {
+    getLevels(options: AcademicCatalogRequestOptions = {}): Observable<LevelReference[]> {
+        if (options.publicRequest) {
+            return this.http
+                .get<ApiListResponse<LevelReference>>(`${this.baseUrl}/api/v1/levels`, this.httpOptions(options))
+                .pipe(map(toContent));
+        }
+
         this.levels$ ??= this.http
             .get<ApiListResponse<LevelReference>>(`${this.baseUrl}/api/v1/levels`, { params: this.defaultParams() })
             .pipe(map(toContent), shareReplay(1));
@@ -46,7 +64,36 @@ export class AcademicCatalogService {
         return this.getLevels().pipe(map((items) => items.find((item) => item.id === id) ?? null));
     }
 
-    getPrograms(): Observable<ProgramReference[]> {
+
+    getProgramsByFaculty(facultyId: string, options: AcademicCatalogRequestOptions = {}): Observable<ProgramReference[]> {
+    if (options.publicRequest) {
+        return this.getPrograms(options).pipe(
+            map((programs) => programs.filter((program) => program.faculty_id === facultyId))
+        );
+    }
+
+    const cached = this.programsByFaculty.get(facultyId);
+
+    if (cached) {
+        return cached;
+    }
+
+    const request$ = this.getPrograms().pipe(
+        map((programs) => programs.filter((program) => program.faculty_id === facultyId)),
+        shareReplay(1)
+    );
+
+    this.programsByFaculty.set(facultyId, request$);
+    return request$;
+}
+
+    getPrograms(options: AcademicCatalogRequestOptions = {}): Observable<ProgramReference[]> {
+        if (options.publicRequest) {
+            return this.http
+                .get<ApiListResponse<ProgramReference>>(`${this.baseUrl}/api/v1/programs`, this.httpOptions(options))
+                .pipe(map(toContent));
+        }
+
         this.programs$ ??= this.http
             .get<ApiListResponse<ProgramReference>>(`${this.baseUrl}/api/v1/programs`, { params: this.defaultParams() })
             .pipe(map(toContent), shareReplay(1));
@@ -54,23 +101,11 @@ export class AcademicCatalogService {
         return this.programs$;
     }
 
-    getProgramsByFaculty(facultyId: string): Observable<ProgramReference[]> {
-        const cached = this.programsByFaculty.get(facultyId);
-
-        if (cached) {
-            return cached;
-        }
-
-        const request$ = this.http
-            .get<ApiListResponse<ProgramReference>>(`${this.baseUrl}/api/v1/programs/faculty/${facultyId}`)
-            .pipe(
-                map(toContent),
-                catchError(() => this.getPrograms().pipe(map((programs) => programs.filter((program) => program.faculty_id === facultyId)))),
-                shareReplay(1)
-            );
-
-        this.programsByFaculty.set(facultyId, request$);
-        return request$;
+    private httpOptions(options: AcademicCatalogRequestOptions): { params: HttpParams; context: HttpContext } {
+        return {
+            params: this.defaultParams(),
+            context: options.publicRequest ? new HttpContext().set(PUBLIC_API_REQUEST, true) : new HttpContext()
+        };
     }
 
     getProgramById(id: string): Observable<ProgramReference | null> {
