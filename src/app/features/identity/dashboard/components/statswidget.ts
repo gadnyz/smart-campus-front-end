@@ -1,19 +1,31 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { StatCard, DashboardStat } from './stat-card/stat-card';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+    DashboardStat,
+    DashboardStatCard
+} from '@/app/shared/ui/dashboard/dashboard-stat-card/dashboard-stat-card';
 import { UsersService } from '@/app/features/identity/users/services/user.service';
-import { computed } from '@angular/core';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { IdentityPermission } from '@/app/features/identity/permissions/permission.model';
 
 @Component({
     standalone: true,
     selector: 'app-stats-widget',
-    imports: [StatCard],
+    imports: [DashboardStatCard],
     template: `
         @if (canReadUsers()) {
-            @for (stat of stats(); track stat.label) {
-                <app-stat-card [stat]="stat" />
-            }
+            <div class="dashboard-stats-grid">
+                @for (stat of stats(); track stat.label) {
+                    <app-dashboard-stat-card [stat]="stat" />
+                }
+            </div>
+        }
+    `,
+    styles: `
+        :host,
+        .dashboard-stats-grid {
+            display: block;
+            height: 100%;
+            min-width: 0;
         }
     `
 })
@@ -22,8 +34,11 @@ export class StatsWidget implements OnInit {
     private readonly permissionService = inject(PermissionService);
 
     readonly canReadUsers = computed(() =>
-        this.permissionService.hasAnyPermission([IdentityPermission.UserReadAll])
+        this.permissionService.hasAnyPermission([
+            IdentityPermission.UserReadAll
+        ])
     );
+
     readonly stats = signal<DashboardStat[]>([
         {
             label: 'Utilisateurs',
@@ -60,7 +75,14 @@ export class StatsWidget implements OnInit {
         });
     }
 
-    private updateStat(label: string, patch: Partial<DashboardStat>): void {
-        this.stats.update((stats) => stats.map((stat) => (stat.label === label ? { ...stat, ...patch } : stat)));
+    private updateStat(
+        label: string,
+        patch: Partial<DashboardStat>
+    ): void {
+        this.stats.update((stats) =>
+            stats.map((stat) =>
+                stat.label === label ? { ...stat, ...patch } : stat
+            )
+        );
     }
 }

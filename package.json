@@ -3,7 +3,7 @@
   "version": "21.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --host localhost --port 4200 --proxy-config proxy.conf.json",
+    "start": "ng serve --host 192.168.209.92 --port 4200 --proxy-config proxy.conf.json",
     "build": "ng build",
     "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",

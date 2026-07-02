@@ -22,7 +22,7 @@ import { AuthService } from '@/app/core/auth/services/auth.service';
         <header class="layout-topbar">
             <div class="layout-topbar-left">
                 <button type="button" class="layout-menu-button layout-topbar-action" (click)="layoutService.onMenuToggle()">
-                    <i class="pi pi-th-large"></i>
+                    <i class="pi pi-th-large"></i> 
                 </button>
                 
                 <a class="layout-topbar-logo" routerLink="/">

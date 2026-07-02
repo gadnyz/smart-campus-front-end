@@ -49,17 +49,17 @@ export class DetailNavigationService {
     getState(scope: string, id: string): DetailNavigationState | null {
         const context = this.getContext(scope);
 
-        if (!context) {
-            return null;
-        }
+        if (!context) return null;
 
         const localIndex = context.items.findIndex((item) => item.id === id);
 
-        if (localIndex < 0) {
-            return null;
-        }
+        if (localIndex < 0) return null;
 
-        const totalElements = Math.max(context.totalElements, context.items.length);
+        const totalElements = Math.max(
+            context.totalElements,
+            context.items.length
+        );
+
         const absoluteIndex = context.page * context.size + localIndex;
 
         return {
@@ -81,13 +81,20 @@ export class DetailNavigationService {
 
     private readAll(): Record<string, DetailNavigationContext> {
         try {
-            return JSON.parse(sessionStorage.getItem(this.storageKey) ?? '{}');
+            return JSON.parse(
+                sessionStorage.getItem(this.storageKey) ?? '{}'
+            ) as Record<string, DetailNavigationContext>;
         } catch {
             return {};
         }
     }
 
-    private writeAll(contexts: Record<string, DetailNavigationContext>): void {
-        sessionStorage.setItem(this.storageKey, JSON.stringify(contexts));
+    private writeAll(
+        contexts: Record<string, DetailNavigationContext>
+    ): void {
+        sessionStorage.setItem(
+            this.storageKey,
+            JSON.stringify(contexts)
+        );
     }
 }

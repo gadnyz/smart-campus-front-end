@@ -1,8 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
-import { MenuItem } from 'primeng/api';
-import { ContextMenu } from 'primeng/contextmenu';
 
 export type DashboardStat = {
     label: string;
@@ -18,13 +16,21 @@ export type DashboardStat = {
 @Component({
     standalone: true,
     selector: 'app-stat-card',
-    imports: [CommonModule, ContextMenu],
+    imports: [CommonModule],
     styleUrl: './stat-card.scss',
     host: {
         class: 'col-span-12 lg:col-span-6 xl:col-span-3'
     },
     template: `
-        <div class="card stat-card mb-0" #statCard>
+        <div
+            class="card stat-card mb-0"
+            [class.stat-card-clickable]="isClickable()"
+            [attr.role]="isClickable() ? 'link' : null"
+            [attr.tabindex]="isClickable() ? 0 : null"
+            [attr.aria-label]="isClickable() ? 'Ouvrir ' + stat().label : null"
+            (click)="open()"
+            (keydown)="onKeydown($event)"
+        >
             <div class="stat-card-content">
                 <div>
                     <span class="stat-card-label block text-muted-color font-medium">
@@ -40,44 +46,44 @@ export type DashboardStat = {
                     </div>
                 </div>
 
-                <div class="stat-card-icon flex items-center justify-center rounded-border" [ngClass]="stat().iconContainerClass">
-                    <i class="text-xl!" [ngClass]="[stat().icon, stat().iconClass]"></i>
+                <div
+                    class="stat-card-icon flex items-center justify-center rounded-border"
+                    [ngClass]="stat().iconContainerClass"
+                >
+                    <i
+                        class="text-xl!"
+                        [ngClass]="[stat().icon, stat().iconClass]"
+                    ></i>
                 </div>
             </div>
         </div>
-
-        <p-contextmenu [target]="statCard" [model]="menuItems()" appendTo="body" />
     `
 })
 export class StatCard {
     private readonly router = inject(Router);
 
-    stat = input.required<DashboardStat>();
+    readonly stat = input.required<DashboardStat>();
 
-    menuItems = computed<MenuItem[]>(() => {
-        const currentStat = this.stat();
+    isClickable(): boolean {
+        return !!(this.stat().listRoute || this.stat().createRoute);
+    }
 
-        return [
-            {
-                label: 'Nouveau',
-                icon: 'pi pi-plus',
-                disabled: !currentStat.createRoute,
-                command: () => this.navigateTo(currentStat.createRoute)
-            },
-            {
-                label: 'Liste',
-                icon: 'pi pi-list',
-                disabled: !currentStat.listRoute,
-                command: () => this.navigateTo(currentStat.listRoute)
-            }
-        ];
-    });
+    open(): void {
+        const route = this.stat().listRoute ?? this.stat().createRoute;
 
-    private navigateTo(route?: string): void {
-        if (!route) {
+        if (route) {
+            void this.router.navigateByUrl(route);
+        }
+    }
+
+    onKeydown(event: KeyboardEvent): void {
+        if (!this.isClickable()) {
             return;
         }
 
-        void this.router.navigateByUrl(route);
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            this.open();
+        }
     }
 }

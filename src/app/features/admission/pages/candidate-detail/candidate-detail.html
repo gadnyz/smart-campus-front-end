@@ -1,171 +1,257 @@
 <p-toast />
 
-<app-content-subtopbar kicker="Admission" [title]="pageTitle()" [actions]="actions()" />
-<p-confirmdialog [style]="{ width: '450px' }" />
+<app-content-subtopbar
+    kicker="Admission"
+    [title]="pageTitle()"
+    [actions]="actions()"
+/>
 
-@if (loading()) {
-<div class="card">Chargement...</div>
+<p-confirmdialog [style]="{ width: '28rem' }" />
+
+@if (!candidate() && loading()) {
+    <p-card>
+        <div class="loading-header">
+            <p-skeleton shape="circle" size="5rem" />
+
+            <div class="loading-content">
+                <p-skeleton width="16rem" height="1.5rem" />
+                <p-skeleton
+                    width="22rem"
+                    styleClass="mt-2"
+                />
+            </div>
+        </div>
+
+        <p-divider />
+
+        <div class="detail-grid">
+            @for (item of [1, 2, 3, 4, 5, 6, 7, 8]; track item) {
+                <div class="detail-item">
+                    <p-skeleton width="6rem" />
+                    <p-skeleton
+                        width="10rem"
+                        height="1.25rem"
+                    />
+                </div>
+            }
+        </div>
+    </p-card>
 } @else if (candidate(); as candidate) {
-<div class="grid grid-cols-12 gap-6">
-    <div class="col-span-12">
-        <div class="card p-0 overflow-hidden">
-            <div class="p-6">
-                <div class="flex flex-wrap justify-between items-start gap-4">
-                    <div>
-                        <div class="font-semibold text-2xl">{{ fullName(candidate) }}</div>
-                        <div class="text-color-secondary">{{ candidate.email }} · {{ candidate.phone }}</div>
-                    </div>
+    @if (refreshing()) {
+        <p-progressbar
+            mode="indeterminate"
+            [style]="{ height: '3px' }"
+            ariaLabel="Actualisation du candidat"
+        />
+    }
 
-                    <p-tag [value]="statusLabel(candidate.candidature.status)" [severity]="statusSeverity(candidate.candidature.status)" />
-                </div>
-            </div>
-
-            <div class="border-t border-surface"></div>
-
-            <div class="p-6">
-                <div class="section-heading">
-                    <i class="pi pi-user text-primary"></i>
-                    <div>
-                        <div class="font-semibold text-lg">Informations personnelles</div>
-                        <div class="text-sm text-color-secondary">Identité et contact du candidat.</div>
-                    </div>
-                </div>
-
-                <div class="detail-grid">
-                    @for (row of studentRows(); track row.label) {
-                    <div>
-                        <span>{{ row.label }}</span>
-                        <strong>{{ displayValue(row.value) }}</strong>
-                    </div>
-                    }
-                </div>
-            </div>
-
-            <div class="border-t border-surface"></div>
-
-            <div class="p-6">
-                <div class="section-heading">
-                    <i class="pi pi-graduation-cap text-primary"></i>
-                    <div>
-                        <div class="font-semibold text-lg">Cursus demandé</div>
-                        <div class="text-sm text-color-secondary">Choix académique et parcours scolaire.</div>
-                    </div>
-                </div>
-
-                <div class="detail-grid mb-6">
-                    @for (row of admissionRows(); track row.label) {
-                    <div>
-                        <span>{{ row.label }}</span>
-                        <strong>{{ displayValue(row.value) }}</strong>
-                    </div>
-                    }
-                </div>
-
-                <div class="detail-grid">
-                    @for (row of academicRows(); track row.label) {
-                    <div>
-                        <span>{{ row.label }}</span>
-                        <strong>{{ displayValue(row.value) }}</strong>
-                    </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-span-12">
-        <div class="card p-0 overflow-hidden">
-            <div class="p-6">
-                <div class="section-heading">
-                    <i class="pi pi-map-marker text-primary"></i>
-                    <div>
-                        <div class="font-semibold text-lg">Origine</div>
-                        <div class="text-sm text-color-secondary">Informations géographiques du candidat.</div>
-                    </div>
-                </div>
-
-                <div class="detail-grid">
-                    @for (row of originRows(); track row.label) {
-                    <div>
-                        <span>{{ row.label }}</span>
-                        <strong>{{ displayValue(row.value) }}</strong>
-                    </div>
-                    }
-                </div>
-            </div>
-
-            <div class="border-t border-surface"></div>
-
-            <div class="p-6">
-                <div class="section-heading">
-                    <i class="pi pi-users text-primary"></i>
-                    <div>
-                        <div class="font-semibold text-lg">Tuteur</div>
-                        <div class="text-sm text-color-secondary">Personne responsable du candidat.</div>
-                    </div>
-                </div>
-
-                <div class="detail-grid">
-                    @for (row of tutorRows(); track row.label) {
-                    <div>
-                        <span>{{ row.label }}</span>
-                        <strong>{{ displayValue(row.value) }}</strong>
-                    </div>
-                    }
-                </div>
-            </div>
-
-            <div class="border-t border-surface"></div>
-
-            <div class="p-6">
-                <div class="section-heading">
-                    <i class="pi pi-phone text-primary"></i>
-                    <div>
-                        <div class="font-semibold text-lg">Contact d’urgence</div>
-                        <div class="text-sm text-color-secondary">Contact à joindre en cas de nécessité.</div>
-                    </div>
-                </div>
-
-                <div class="detail-grid">
-                    @for (row of emergencyRows(); track row.label) {
-                    <div>
-                        <span>{{ row.label }}</span>
-                        <strong>{{ displayValue(row.value) }}</strong>
-                    </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-span-12">
-        <div class="card p-0 overflow-hidden">
-            <div class="p-6">
-                <div class="section-heading">
-                    <i class="pi pi-file text-primary"></i>
-                    <div>
-                        <div class="font-semibold text-lg">Documents</div>
-                        <div class="text-sm text-color-secondary">Pièces liées à la candidature.</div>
-                    </div>
-                </div>
-
-                @if (candidate.documents.length) {
-                <div class="document-list">
-                    @for (document of candidate.documents; track document.id) {
-                    <a [href]="document.file_url" target="_blank" rel="noopener noreferrer" class="document-row">
-                        <div>
-                            <div class="font-medium">{{ document.document_type }}</div>
-                            <div class="text-sm text-color-secondary">{{ document.uploaded_at | date: 'dd/MM/yyyy HH:mm' }}</div>
-                        </div>
-                        <i class="pi pi-external-link"></i>
-                    </a>
-                    }
-                </div>
+    <div
+        class="candidate-content"
+        [class.candidate-content--refreshing]="refreshing()"
+        [attr.aria-busy]="busy()"
+    >
+        <p-card>
+            <div class="candidate-header">
+                @if (photoUrl()) {
+                    <p-avatar
+                        [image]="photoUrl()"
+                        shape="circle"
+                        size="xlarge"
+                        styleClass="candidate-avatar"
+                        (onImageError)="photoLoadFailed.set(true)"
+                    />
                 } @else {
-                <div class="text-color-secondary">Aucun document chargé.</div>
+                    <p-avatar
+                        [label]="candidateInitial()"
+                        shape="circle"
+                        size="xlarge"
+                        styleClass="candidate-avatar"
+                    />
                 }
+
+                <div class="candidate-heading">
+                    <h3>{{ fullName(candidate) }}</h3>
+
+                    <div class="candidate-contact">
+                        <span>{{ candidate.email }}</span>
+                        <span>{{ candidate.phone }}</span>
+                    </div>
+                </div>
+
+                <p-tag
+                    [value]="statusLabel(candidate.candidature.status)"
+                    [severity]="statusSeverity(candidate.candidature.status)"
+                />
             </div>
-        </div>
+
+            <p-divider />
+
+            @for (
+                section of detailSections();
+                track section.title;
+                let isLast = $last
+            ) {
+                <section class="detail-section">
+                    <div class="section-heading">
+                        <i
+                            [class]="section.icon"
+                            class="text-primary"
+                        ></i>
+
+                        <div>
+                            <h4>{{ section.title }}</h4>
+                            <span>
+                                {{ section.description }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="detail-grid">
+                        @for (
+                            row of section.rows;
+                            track row.label
+                        ) {
+                            <div class="detail-item">
+                                <span>{{ row.label }}</span>
+                                <strong>
+                                    {{ displayValue(row.value) }}
+                                </strong>
+                            </div>
+                        }
+                    </div>
+                </section>
+
+                @if (!isLast) {
+                    <p-divider />
+                }
+            }
+        </p-card>
+
+        <p-card header="Documents">
+            @if (supportingDocuments().length) {
+                <div class="document-grid">
+                    @for (
+                        document of supportingDocuments();
+                        track document.id
+                    ) {
+                        <article class="document-item">
+                            @if (
+                                documentKind(document) === 'image'
+                            ) {
+                                <p-image
+                                    [src]="document.file_url"
+                                    [previewImageSrc]="document.file_url"
+                                    [alt]="documentLabel(document)"
+                                    [preview]="true"
+                                    [imageStyle]="{
+                                        width: '100%',
+                                        height: '10rem',
+                                        objectFit: 'cover'
+                                    }"
+                                />
+                            } @else {
+                                <div class="document-placeholder">
+                                    <i
+                                        [class]="
+                                            documentKind(document) === 'pdf'
+                                                ? 'pi pi-file-pdf'
+                                                : 'pi pi-file'
+                                        "
+                                    ></i>
+                                </div>
+                            }
+
+                            <div class="document-information">
+                                <strong>
+                                    {{ documentLabel(document) }}
+                                </strong>
+
+                                @if (document.file_name) {
+                                    <span>
+                                        {{ document.file_name }}
+                                    </span>
+                                }
+
+                                <span>
+                                    {{
+                                        document.uploaded_at
+                                            | date: 'dd/MM/yyyy HH:mm'
+                                    }}
+                                </span>
+                            </div>
+
+                            @if (
+                                documentKind(document) === 'pdf'
+                            ) {
+                                <button
+                                    pButton
+                                    type="button"
+                                    icon="pi pi-eye"
+                                    label="Prévisualiser"
+                                    size="small"
+                                    (click)="openDocument(document)"
+                                ></button>
+                            } @else if (
+                                documentKind(document) === 'unknown'
+                            ) {
+                                <a
+                                    pButton
+                                    [href]="document.file_url"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    icon="pi pi-external-link"
+                                    label="Ouvrir"
+                                    size="small"
+                                ></a>
+                            }
+                        </article>
+                    }
+                </div>
+            } @else {
+                <div class="empty-documents">
+                    <i class="pi pi-file"></i>
+                    <span>Aucun document chargé.</span>
+                </div>
+            }
+        </p-card>
     </div>
-</div>
 }
+
+<p-dialog
+    [header]="previewTitle()"
+    [visible]="previewVisible()"
+    (visibleChange)="onPreviewVisibleChange($event)"
+    [modal]="true"
+    [maximizable]="true"
+    [style]="{ width: '75vw' }"
+    [contentStyle]="{ padding: '0' }"
+    [breakpoints]="{
+        '960px': '92vw',
+        '640px': '98vw'
+    }"
+>
+    @if (safePreviewUrl(); as url) {
+        <iframe
+            class="preview-pdf"
+            [src]="url"
+            title="Document du candidat"
+        ></iframe>
+    } @else {
+        <div class="preview-unavailable">
+            Prévisualisation indisponible.
+        </div>
+    }
+
+    @if (previewDocument(); as document) {
+        <div class="preview-actions">
+            <a
+                pButton
+                [href]="document.file_url"
+                target="_blank"
+                rel="noopener noreferrer"
+                icon="pi pi-external-link"
+                label="Ouvrir dans un nouvel onglet"
+            ></a>
+        </div>
+    }
+</p-dialog>

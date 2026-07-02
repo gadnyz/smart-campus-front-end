@@ -77,6 +77,9 @@ export interface CandidateDocument {
     id: string;
     document_type: CandidateDocumentType;
     file_url: string;
+    file_name?: string;
+    content_type?: string;
+    size_bytes?: number;
     uploaded_at: string;
 }
 

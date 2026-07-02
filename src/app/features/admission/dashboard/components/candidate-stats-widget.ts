@@ -1,27 +1,44 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+    DashboardStat,
+    DashboardStatCard
+} from '@/app/shared/ui/dashboard/dashboard-stat-card/dashboard-stat-card';
 import { CandidateService } from '../../services/candidate.service';
 
 @Component({
     selector: 'app-candidate-stats-widget',
     standalone: true,
-    imports: [CommonModule],
+    imports: [DashboardStatCard],
     template: `
-        <div class="card">
-            <div class="text-color-secondary text-sm mb-2">Admission</div>
-            <div class="text-3xl font-semibold">{{ totalCandidates() }}</div>
-            <div class="text-color-secondary mt-2">Candidatures enregistrées</div>
-        </div>
+        <app-dashboard-stat-card [stat]="stat()" />
     `
 })
 export class CandidateStatsWidget implements OnInit {
     private readonly candidateService = inject(CandidateService);
-    readonly totalCandidates = signal(0);
+
+    readonly totalCandidates = signal<number | string>(0);
+    readonly loading = signal(true);
+
+    readonly stat = computed<DashboardStat>(() => ({
+        label: 'Candidatures',
+        value: this.totalCandidates(),
+        loading: this.loading(),
+        icon: 'pi pi-file-edit',
+        iconContainerClass: 'bg-orange-100 dark:bg-orange-400/10',
+        iconClass: 'text-orange-500',
+        listRoute: '/admission/candidates'
+    }));
 
     ngOnInit(): void {
         this.candidateService.getAll({ page: 0, size: 1 }).subscribe({
-            next: (response) => this.totalCandidates.set(response.total_elements),
-            error: () => this.totalCandidates.set(0)
+            next: (response) => {
+                this.totalCandidates.set(response.total_elements);
+                this.loading.set(false);
+            },
+            error: () => {
+                this.totalCandidates.set('-');
+                this.loading.set(false);
+            }
         });
     }
 }

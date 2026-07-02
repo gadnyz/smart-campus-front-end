@@ -2,20 +2,32 @@
     display: block;
 }
 
-.candidate-table {
-    border-collapse: collapse;
+.list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
 }
 
-.candidate-table th,
-.candidate-table td {
-    padding: 0.875rem 0.75rem;
-    border-bottom: 1px solid var(--surface-border);
-    text-align: left;
-    vertical-align: middle;
-}
-
-.candidate-table th {
-    font-size: 0.875rem;
-    color: var(--text-color-secondary);
+.list-title {
+    margin: 0 0 0.25rem;
+    font-size: 1.25rem;
     font-weight: 600;
+}
+
+.actions-column {
+    width: 8rem;
+    text-align: right;
+}
+
+@media (max-width: 640px) {
+    .list-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .actions-column {
+        width: auto;
+    }
 }

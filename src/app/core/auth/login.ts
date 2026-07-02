@@ -107,7 +107,7 @@ export class Login implements AfterViewInit {
         }
 
         if (error.status === 403) {
-            this.errorMessage.set('Votre compte ne dispose pas des autorisations nécessaires pour accéder à la plateforme.');
+            this.errorMessage.set('Votre  compte ne dispose pas des autorisations nécessaires pour accéder à la plateforme.');
             return;
         }
 

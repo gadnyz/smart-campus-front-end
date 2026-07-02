@@ -1,75 +1,93 @@
 <p-toast />
 
-<app-content-subtopbar kicker="Admission" title="Candidatures" [actions]="actions()" />
+<app-content-subtopbar
+    kicker="Admission"
+    title="Candidatures"
+    [actions]="actions()"
+/>
 
-<div class="card">
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+<p-card>
+    <div class="list-header">
         <div>
-            <div class="font-semibold text-xl">Liste des candidats</div>
-            <div class="text-sm text-color-secondary">{{ totalElements() }} candidature(s)</div>
+            <h3 class="list-title">Liste des candidats</h3>
+            <span class="text-color-secondary">
+                {{ totalElements() }} candidature(s)
+            </span>
         </div>
 
-        <select class="p-inputtext p-component" [value]="statusFilter() ?? ''" (change)="onStatusChange($event)">
-            @for (option of statusOptions; track option.value) {
-            <option [value]="option.value">{{ option.label }}</option>
-            }
-        </select>
+        <p-select
+            [options]="statusOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Tous les statuts"
+            [showClear]="true"
+            [ngModel]="statusFilter()"
+            (ngModelChange)="onStatusChange($event)"
+        />
     </div>
 
-    <div class="overflow-x-auto">
-        <table class="w-full candidate-table">
-            <thead>
-                <tr>
-                    <th>Candidat</th>
-                    <th>Email</th>
-                    <th>Téléphone</th>
-                    <th>Statut</th>
-                    <th>Soumise le</th>
-                    <th class="text-right">Actions</th>
-                </tr>
-            </thead>
+    <p-table
+        [value]="candidates()"
+        [loading]="loading()"
+        dataKey="id"
+        [rowHover]="true"
+        responsiveLayout="scroll"
+        [tableStyle]="{ 'min-width': '48rem' }"
+    >
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Candidat</th>
+                <th>Statut</th>
+                <th class="actions-column">Actions</th>
+            </tr>
+        </ng-template>
 
-            <tbody>
-                @if (loading()) {
-                <tr>
-                    <td colspan="6" class="text-center py-6">Chargement...</td>
-                </tr>
-                } @else if (!candidates().length) {
-                <tr>
-                    <td colspan="6" class="text-center py-6 text-color-secondary">Aucune candidature trouvée.</td>
-                </tr>
-                } @else {
-                @for (candidate of candidates(); track candidate.id) {
-                <tr>
-                    <td>
-                        <div class="font-medium">{{ fullName(candidate) }}</div>
-                        <div class="text-sm text-color-secondary">{{ genderLabel(candidate) }}</div>
-                    </td>
-                    <td>{{ candidate.email }}</td>
-                    <td>{{ candidate.phone }}</td>
-                    <td>
-                        <p-tag [value]="statusLabel(candidate.status)" [severity]="statusSeverity(candidate.status)" />
-                    </td>
-                    <td>{{ candidate.submitted_at | date: 'dd/MM/yyyy HH:mm' }}</td>
-                    <td class="text-right">
-                        <a
-                            pButton
-                            size="small"
-                            label="Détails"
-                            icon="pi pi-eye"
-                            [routerLink]="['/admission/candidates', candidate.id]"
-                        ></a>
-                    </td>
-                </tr>
-                }
-                }
-            </tbody>
-        </table>
-    </div>
+        <ng-template pTemplate="body" let-candidate>
+            <tr>
+                <td>
+                    <div class="font-medium">
+                        {{ fullName(candidate) }}
+                    </div>
+                    <div class="text-sm text-color-secondary">
+                        {{ genderLabel(candidate) }}
+                    </div>
+                </td>
 
-    <div class="flex justify-end items-center gap-2 mt-4">
-        <button pButton type="button" label="Précédent" severity="secondary" [outlined]="true" [disabled]="page() === 0" (click)="previousPage()"></button>
-        <span class="text-sm text-color-secondary">Page {{ page() + 1 }} / {{ totalPages() || 1 }}</span>
-        <button pButton type="button" label="Suivant" severity="secondary" [outlined]="true" [disabled]="page() + 1 >= totalPages()" (click)="nextPage()"></button>
-    </div>
-</div>
+                <td>
+                    <p-tag
+                        [value]="statusLabel(candidate.status)"
+                        [severity]="statusSeverity(candidate.status)"
+                    />
+                </td>
+
+                <td class="actions-column">
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-eye"
+                        label="Détails"
+                        size="small"
+                        (click)="openCandidate(candidate)"
+                    ></button>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="5">
+                    Aucune candidature trouvée.
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <p-paginator
+        [first]="page() * size()"
+        [rows]="size()"
+        [totalRecords]="totalElements()"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [alwaysShow]="false"
+        (onPageChange)="onPageChange($event)"
+    />
+</p-card>

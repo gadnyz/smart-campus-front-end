@@ -5,20 +5,29 @@ import { UsersService } from '@/app/features/identity/users/services/user.servic
 import { User } from '@/app/features/identity/users/models/user.model';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { IdentityPermission } from '@/app/features/identity/permissions/permission.model';
+import { DashboardCard } from '@/app/shared/ui/dashboard/dashboard-card/dashboard-card';
 
 @Component({
     standalone: true,
     selector: 'app-repartition-users',
-    imports: [ChartModule],
+    imports: [ChartModule, DashboardCard],
     template: `
-        @if (canReadUsers()) {
-            <div class="card mb-8!">
-                <div class="font-semibold text-xl mb-4">Utilisateurs par profil</div>
-                <p-chart type="bar" [data]="chartData()" [options]="chartOptions()" class="h-100" />
-            </div>
+       @if (canReadUsers()) {
+    <app-dashboard-card>
+        <div class="font-semibold text-xl mb-4">
+            Utilisateurs par profil
+        </div>
+
+        <p-chart
+            type="bar"
+            [data]="chartData()"
+            [options]="chartOptions()"
+            class="block h-100"
+        />
+    </app-dashboard-card>
         }
     `
-})
+})      
 export class RepartitionUsers implements OnInit {
     private readonly usersService = inject(UsersService);
     private readonly permissionService = inject(PermissionService);
