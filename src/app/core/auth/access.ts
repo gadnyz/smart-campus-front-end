@@ -1,32 +1,40 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { RippleModule } from 'primeng/ripple';
-import { AppFloatingConfigurator } from '../../layout/component/app.floatingconfigurator';
 
 @Component({
     selector: 'app-access',
     standalone: true,
-    imports: [ButtonModule, RouterModule, RippleModule, AppFloatingConfigurator, ButtonModule],
-    template: ` <app-floating-configurator />
-        <div class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-screen overflow-hidden">
-            <div class="flex flex-col items-center justify-center">
-                <div style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, rgba(247, 149, 48, 0.4) 10%, rgba(247, 149, 48, 0) 30%)">
-                    <div class="w-full bg-surface-0 dark:bg-surface-900 py-20 px-8 sm:px-20 flex flex-col items-center" style="border-radius: 53px">
-                        <div class="gap-4 flex flex-col items-center">
-                            <div class="flex justify-center items-center border-2 border-orange-500 rounded-full" style="width: 3.2rem; height: 3.2rem">
-                                <i class="text-orange-500 pi pi-fw pi-lock text-2xl!"></i>
-                            </div>
-                            <h1 class="text-surface-900 dark:text-surface-0 font-bold text-4xl lg:text-5xl mb-2">Access Denied</h1>
-                            <span class="text-muted-color mb-8">You do not have the necessary permisions. Please contact admins.</span>
-                            <img src="https://primefaces.org/cdn/templates/sakai/auth/asset-access.svg" alt="Access denied" class="mb-8" width="80%" />
-                            <div class="col-span-12 mt-8 text-center">
-                                <p-button label="Go to Dashboard" routerLink="/" severity="warn" />
-                            </div>
-                        </div>
+    imports: [CommonModule, RouterModule, ButtonModule],
+    template: `
+        <div class="grid grid-cols-12">
+            <div class="col-span-12 xl:col-span-8 xl:col-start-3">
+                <div class="card flex flex-col items-center text-center gap-6 py-12 px-6">
+                    <div
+                        class="flex items-center justify-center rounded-full bg-orange-100 dark:bg-orange-400/10 text-orange-500"
+                        style="width: 4.5rem; height: 4.5rem"
+                    >
+                        <i class="pi pi-lock text-3xl"></i>
                     </div>
+
+                    <div>
+                        <div class="text-primary font-semibold mb-2">403</div>
+
+                        <h1 class="text-surface-900 dark:text-surface-0 font-semibold text-3xl mb-3">
+                            Accès refusé
+                        </h1>
+
+                        <p class="text-color-secondary max-w-xl mx-auto leading-relaxed">
+                            Vous ne disposez pas des permissions nécessaires pour accéder à cette page.
+                            Si vous pensez qu’il s’agit d’une erreur, contactez un administrateur.
+                        </p>
+                    </div>
+
                 </div>
             </div>
-        </div>`
+        </div>
+    `
 })
-export class Access {}
+export class Access {
+}

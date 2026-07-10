@@ -12,15 +12,19 @@ import { filter } from 'rxjs/operators';
         @if (root() && isVisible()) {
             <div class="layout-menuitem-root-text">{{ item().label }}</div>
         }
+
         @if ((!hasRouterLink() || hasChildren()) && isVisible()) {
             <a [attr.href]="item().url" (click)="itemClick($event)" [ngClass]="item().class" [attr.target]="item().target" tabindex="0" pRipple>
-                <i [ngClass]="item().icon" class="layout-menuitem-icon"></i>
+                @if (showIcon()) {
+                    <i [ngClass]="item().icon" class="layout-menuitem-icon"></i>
+                }
                 <span class="layout-menuitem-text">{{ item().label }}</span>
                 @if (hasChildren()) {
                     <i class="pi pi-fw pi-angle-down layout-submenu-toggler"></i>
                 }
             </a>
         }
+
         @if (hasRouterLink() && !hasChildren() && isVisible()) {
             <a
                 (click)="itemClick($event)"
@@ -39,13 +43,13 @@ import { filter } from 'rxjs/operators';
                 tabindex="0"
                 pRipple
             >
-                <i [ngClass]="item().icon" class="layout-menuitem-icon"></i>
-                <span class="layout-menuitem-text">{{ item().label }}</span>
-                @if (hasChildren()) {
-                    <i class="pi pi-fw pi-angle-down layout-submenu-toggler"></i>
+                @if (showIcon()) {
+                    <i [ngClass]="item().icon" class="layout-menuitem-icon"></i>
                 }
+                <span class="layout-menuitem-text">{{ item().label }}</span>
             </a>
         }
+
         @if (hasChildren() && isVisible() && (root() || isActive())) {
             <ul [animate.enter]="initialized() ? 'p-submenu-enter' : null" [animate.leave]="'p-submenu-leave'" [class.layout-root-submenulist]="root()">
                 @for (child of item().items; track child?.label) {
@@ -93,6 +97,10 @@ import { filter } from 'rxjs/operators';
     ]
 })
 export class AppMenuitem {
+    showIcon = computed(() => {
+        return !!this.item()?.icon && this.parentPath() === null;
+    });
+
     layoutService = inject(LayoutService);
 
     router = inject(Router);

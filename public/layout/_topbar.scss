@@ -2,200 +2,172 @@
 
 .layout-topbar {
     position: fixed;
-    height: 4rem;
-    z-index: 997;
-    left: 0;
     top: 0;
+    left: 0;
+    z-index: 997;
     width: 100%;
-    padding: 0 2rem;
-    background-color: var(--surface-card);
-    transition: left var(--layout-section-transition-duration);
+    height: 3rem;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    padding: 0 1.25rem;
+    background-color: var(--surface-card);
+    border-bottom: 1px solid var(--surface-border);
+    transition: left var(--layout-section-transition-duration);
+}
 
-    .layout-topbar-logo-container {
-        width: 20rem;
-        display: flex;
-        align-items: center;
+.layout-topbar-left,
+.layout-topbar-right {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.layout-topbar-left {
+    gap: 0.35rem;
+}
+
+.layout-topbar-right {
+    gap: 0.35rem;
+}
+
+.layout-topbar-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    min-width: 0;
+    color: var(--text-color);
+    border-radius: var(--content-border-radius);
+
+    img {
+        width: auto;
+        height: 2rem;
+        object-fit: contain;
+        flex: 0 0 auto;
     }
 
-    .layout-topbar-logo {
-        display: inline-flex;
-        align-items: center;
-        font-size: 1.5rem;
-        border-radius: var(--content-border-radius);
-        color: var(--text-color);
-        font-weight: 500;
-        gap: 0.5rem;
-
-        svg {
-            width: 3rem;
-        }
-
-        &:focus-visible {
-            @include focused();
-        }
+    span {
+        font-family: var(--font-brand);
+        font-size: 1rem;
+        font-weight: 450;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
     }
 
-    .layout-topbar-action {
-        display: inline-flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 50%;
-        width: 2.5rem;
-        height: 2.5rem;
-        color: var(--text-color);
-        transition: background-color var(--element-transition-duration);
-        cursor: pointer;
+    &:focus-visible {
+        @include focused();
+    }
+}
 
-        &:hover {
-            background-color: var(--surface-hover);
-        }
+.layout-menu-button,
+.layout-topbar-icon-button,
+.layout-topbar-avatar-button {
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 0;
+    padding: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition:
+        background-color var(--element-transition-duration),
+        color var(--element-transition-duration);
 
-        &:focus-visible {
-            @include focused();
-        }
-
-        i {
-            font-size: 1.25rem;
-        }
-
-        span {
-            font-size: 1rem;
-            display: none;
-        }
-
-        &.layout-topbar-action-highlight {
-            background-color: var(--primary-color);
-            color: var(--primary-contrast-color);
-        }
+    i {
+        font-size: 1.1rem;
+        line-height: 1;
     }
 
-    .layout-menu-button {
-        margin-right: 0.5rem;
+    &:hover {
+        background-color: var(--surface-hover);
     }
 
-    .layout-topbar-menu-button {
-        display: none;
+    &:focus-visible {
+        @include focused();
     }
+}
 
-    .layout-topbar-actions {
-        margin-left: auto;
-        display: flex;
-        gap: 1rem;
-    }
+.layout-menu-button {
+    margin-right: 0.15rem;
+}
 
-    .layout-topbar-menu-content {
-        display: flex;
-        gap: 1rem;
+.layout-topbar-notification {
+    i {
+        font-size: 1.1rem;
     }
+}
 
-    .layout-config-menu {
-        display: flex;
-        gap: 1rem;
+.layout-topbar-overlay-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    .p-overlaybadge-badge,
+    .p-badge {
+        // min-width: 1rem;
+        // height: 1rem;
+        padding: 0 0.25rem;
+        font-size: 0.20rem;
+        line-height: 1rem;
+        // border-radius: 999px;
+        // transform: translate(35%, -35%);
     }
+}
+
+.layout-topbar-avatar.p-avatar {
+    width: 1.9rem;
+    height: 1.9rem;
+    background: var(--primary-color-soft);
+    color: var(--primary-contrast-color);
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.layout-topbar-user-menu {
+    min-width: 14rem;
+}
+
+.layout-topbar-notification-menu {
+    min-width: 22rem;
+}
+
+.layout-topbar-notification-menu .p-menu-item-link {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    white-space: normal;
+    line-height: 1.35;
 }
 
 @media (max-width: 991px) {
     .layout-topbar {
-        padding: 0 2rem;
-
-        .layout-topbar-logo-container {
-            width: auto;
-        }
-
-        .layout-menu-button {
-            margin-left: 0;
-            margin-right: 0.5rem;
-        }
-
-        .layout-topbar-menu-button {
-            display: inline-flex;
-        }
-
-        .layout-topbar-menu {
-            position: absolute;
-            background-color: var(--surface-overlay);
-            transform-origin: top;
-            box-shadow:
-                0px 3px 5px rgba(0, 0, 0, 0.02),
-                0px 0px 2px rgba(0, 0, 0, 0.05),
-                0px 1px 4px rgba(0, 0, 0, 0.08);
-            border-radius: var(--content-border-radius);
-            padding: 1rem;
-            right: 2rem;
-            top: 4rem;
-            min-width: 15rem;
-            border: 1px solid var(--surface-border);
-
-            .layout-topbar-menu-content {
-                gap: 0.5rem;
-            }
-
-            .layout-topbar-action {
-                display: flex;
-                width: 100%;
-                height: auto;
-                justify-content: flex-start;
-                border-radius: var(--content-border-radius);
-                padding: 0.5rem 1rem;
-
-                i {
-                    font-size: 1rem;
-                    margin-right: 0.5rem;
-                }
-
-                span {
-                    font-weight: medium;
-                    display: block;
-                }
-            }
-        }
-
-        .layout-topbar-menu-content {
-            flex-direction: column;
-        }
-    }
-}
-
-.config-panel {
-    .config-panel-label {
-        font-size: 0.875rem;
-        color: var(--text-secondary-color);
-        font-weight: 600;
-        line-height: 1;
+        padding: 0 0.9rem;
     }
 
-    .config-panel-colors {
-        > div {
-            padding-top: 0.5rem;
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            justify-content: space-between;
-
-            button {
-                border: none;
-                width: 1.25rem;
-                height: 1.25rem;
-                border-radius: 50%;
-                padding: 0;
-                cursor: pointer;
-                outline-color: transparent;
-                outline-width: 2px;
-                outline-style: solid;
-                outline-offset: 1px;
-
-                &.active-color {
-                    outline-color: var(--primary-color);
-                }
-            }
-        }
+    .layout-topbar-logo span,
+    .layout-topbar-user-label,
+    .layout-topbar-user-chevron {
+        display: none;
     }
 
-    .config-panel-settings {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
+    .layout-topbar-left,
+    .layout-topbar-right {
+        gap: 0.25rem;
+    }
+
+    .layout-topbar-logo img {
+        height: 2rem;
+    }
+
+    .layout-menu-button,
+    .layout-topbar-icon-button,
+    .layout-topbar-avatar-button {
+        width: 2.25rem;
+        height: 2.25rem;
     }
 }

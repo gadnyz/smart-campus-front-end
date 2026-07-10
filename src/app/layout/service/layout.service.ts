@@ -1,4 +1,4 @@
-import { Injectable, effect, signal, computed } from '@angular/core';
+import { Injectable, computed, effect, signal } from '@angular/core';
 
 export interface LayoutConfig {
     preset: string;
@@ -21,13 +21,17 @@ interface LayoutState {
     providedIn: 'root'
 })
 export class LayoutService {
-    layoutConfig = signal<LayoutConfig>({
+    private readonly storageKey = 'smart-campus-layout-config';
+
+    private readonly defaultConfig: LayoutConfig = {
         preset: 'Aura',
-        primary: 'emerald',
-        surface: null,
+        primary: 'unh',
+        surface: 'slate',
         darkTheme: false,
         menuMode: 'static'
-    });
+    };
+
+    layoutConfig = signal<LayoutConfig>(this.loadConfig());
 
     layoutState = signal<LayoutState>({
         staticMenuDesktopInactive: false,
@@ -38,7 +42,7 @@ export class LayoutService {
         activePath: null
     });
 
-    theme = computed(() => (this.layoutConfig().darkTheme ? 'light' : 'dark'));
+    theme = computed(() => (this.layoutConfig().darkTheme ? 'dark' : 'light'));
 
     isSidebarActive = computed(() => this.layoutState().overlayMenuActive || this.layoutState().mobileMenuActive);
 
@@ -58,13 +62,82 @@ export class LayoutService {
         effect(() => {
             const config = this.layoutConfig();
 
-            if (!this.initialized || !config) {
+            this.saveConfig(config);
+
+            if (!this.initialized) {
                 this.initialized = true;
+                this.toggleDarkMode(config);
                 return;
             }
 
             this.handleDarkModeTransition(config);
+            this.saveConfig(config);
         });
+    }
+
+    setThemeMode(mode: 'light' | 'dark'): void {
+        this.layoutConfig.update((state) => ({
+            ...state,
+            darkTheme: mode === 'dark'
+        }));
+    }
+
+    setPreset(preset: string): void {
+        this.layoutConfig.update((state) => ({
+            ...state,
+            preset
+        }));
+    }
+
+    setPrimary(primary: string): void {
+        this.layoutConfig.update((state) => ({
+            ...state,
+            primary
+        }));
+    }
+
+    setSurface(surface: string | undefined | null): void {
+        this.layoutConfig.update((state) => ({
+            ...state,
+            surface
+        }));
+    }
+
+    setMenuMode(menuMode: string): void {
+        this.layoutConfig.update((state) => ({
+            ...state,
+            menuMode
+        }));
+    }
+
+    private loadConfig(): LayoutConfig {
+        if (typeof localStorage === 'undefined') {
+            return this.defaultConfig;
+        }
+
+        const storedConfig = localStorage.getItem(this.storageKey);
+
+        if (!storedConfig) {
+            return this.defaultConfig;
+        }
+
+        try {
+            return {
+                ...this.defaultConfig,
+                ...JSON.parse(storedConfig)
+            };
+        } catch {
+            localStorage.removeItem(this.storageKey);
+            return this.defaultConfig;
+        }
+    }
+
+    private saveConfig(config: LayoutConfig): void {
+        if (typeof localStorage === 'undefined') {
+            return;
+        }
+
+        localStorage.setItem(this.storageKey, JSON.stringify(config));
     }
 
     private handleDarkModeTransition(config: LayoutConfig): void {
@@ -84,39 +157,63 @@ export class LayoutService {
     }
 
     toggleDarkMode(config?: LayoutConfig): void {
-        const _config = config || this.layoutConfig();
-        if (_config.darkTheme) {
+        const currentConfig = config || this.layoutConfig();
+
+        if (currentConfig.darkTheme) {
             document.documentElement.classList.add('app-dark');
         } else {
             document.documentElement.classList.remove('app-dark');
         }
     }
 
-    onMenuToggle() {
+    onMenuToggle(): void {
         if (this.isOverlay()) {
-            this.layoutState.update((prev) => ({ ...prev, overlayMenuActive: !this.layoutState().overlayMenuActive }));
+            this.layoutState.update((prev) => ({
+                ...prev,
+                overlayMenuActive: !this.layoutState().overlayMenuActive
+            }));
         }
 
         if (this.isDesktop()) {
-            this.layoutState.update((prev) => ({ ...prev, staticMenuDesktopInactive: !this.layoutState().staticMenuDesktopInactive }));
+            this.layoutState.update((prev) => ({
+                ...prev,
+                staticMenuDesktopInactive: !this.layoutState().staticMenuDesktopInactive
+            }));
         } else {
-            this.layoutState.update((prev) => ({ ...prev, mobileMenuActive: !this.layoutState().mobileMenuActive }));
+            this.layoutState.update((prev) => ({
+                ...prev,
+                mobileMenuActive: !this.layoutState().mobileMenuActive
+            }));
         }
     }
 
-    showConfigSidebar() {
-        this.layoutState.update((prev) => ({ ...prev, configSidebarVisible: true }));
+    showConfigSidebar(): void {
+        this.layoutState.update((prev) => ({
+            ...prev,
+            configSidebarVisible: true
+        }));
     }
 
-    hideConfigSidebar() {
-        this.layoutState.update((prev) => ({ ...prev, configSidebarVisible: false }));
+    hideConfigSidebar(): void {
+        this.layoutState.update((prev) => ({
+            ...prev,
+            configSidebarVisible: false
+        }));
     }
 
-    isDesktop() {
+    isDesktop(): boolean {
         return window.innerWidth > 991;
     }
 
-    isMobile() {
+    isMobile(): boolean {
         return !this.isDesktop();
+    }
+
+    saveCurrentConfig(): void {
+        this.saveConfig(this.layoutConfig());
+    }
+
+    getDefaultConfig(): LayoutConfig {
+        return { ...this.defaultConfig };
     }
 }

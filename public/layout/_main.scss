@@ -1,13 +1,27 @@
+:root {
+    --layout-topbar-height: 3rem;
+    --layout-sidebar-width: 18rem;
+    --layout-content-gap: 0;
+    --layout-content-padding-inline: 0.5rem;
+}
+
+
 .layout-main-container {
     display: flex;
     flex-direction: column;
+    width: 100%;
+    min-width: 0;
     min-height: 100vh;
+    box-sizing: border-box;
     justify-content: space-between;
-    padding: 6rem 2rem 0 2rem;
-    transition: margin-left var(--layout-section-transition-duration);
+    padding: var(--layout-topbar-height) 0 0;
+    transition:
+        margin-left var(--layout-section-transition-duration),
+        width var(--layout-section-transition-duration);
 }
 
 .layout-main {
     flex: 1 1 auto;
-    padding-bottom: 2rem;
+    padding: 0.5rem;
+    min-width: 0;
 }

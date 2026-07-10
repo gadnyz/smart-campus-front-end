@@ -2,19 +2,21 @@
 
 .layout-sidebar {
     position: fixed;
-    width: 20rem;
-    height: calc(100vh - 8rem);
+    width: var(--layout-sidebar-width);
+    height: calc(100vh - var(--layout-topbar-height));
     z-index: 999;
     overflow-y: auto;
     user-select: none;
-    top: 6rem;
-    left: 2rem;
+    top: var(--layout-topbar-height);
+    left: 0;
     transition:
         transform var(--layout-section-transition-duration),
-        left var(--layout-section-transition-duration);
+        left var(--layout-section-transition-duration),
+        width var(--layout-section-transition-duration);
     background-color: var(--surface-overlay);
-    border-radius: var(--content-border-radius);
-    padding: 0.5rem 1.5rem;
+    border-radius: 0;
+    border-right: 1px solid var(--surface-border);
+    padding: 0.75rem 1rem 1rem 1rem;
 }
 
 .layout-menu {
@@ -24,11 +26,12 @@
 
     .layout-root-menuitem {
         > .layout-menuitem-root-text {
-            font-size: 0.857rem;
+            font-size: 0.72rem;
             text-transform: uppercase;
             font-weight: 700;
-            color: var(--text-color);
-            margin: 0.75rem 0;
+            letter-spacing: 0.06em;
+            color: var(--text-color-secondary);
+            margin: 1rem 0 0.5rem 0;
         }
 
         > a {
@@ -66,13 +69,16 @@
             outline: 0 none;
             color: var(--text-color);
             cursor: pointer;
-            padding: 0.75rem 1rem;
+            padding: 0.65rem 0.85rem;
             border-radius: var(--content-border-radius);
-            transition:
-                box-shadow var(--element-transition-duration);
+            transition: box-shadow var(--element-transition-duration);
 
             .layout-menuitem-icon {
                 margin-right: 0.5rem;
+            }
+
+            .layout-menuitem-text {
+                font-size: 0.92rem;
             }
 
             .layout-submenu-toggler {
@@ -84,6 +90,7 @@
             &.active-route {
                 font-weight: 700;
                 color: var(--primary-color);
+                background-color: var(--surface-hover);
             }
 
             &:hover {
@@ -101,35 +108,17 @@
 
             li {
                 a {
-                    margin-left: 1rem;
+                    margin-left: 0.75rem;
                 }
 
                 li {
                     a {
-                        margin-left: 2rem;
-                    }
+                        margin-left: 1.75rem;
+                        padding-top: 0.55rem;
+                        padding-bottom: 0.55rem;
 
-                    li {
-                        a {
-                            margin-left: 2.5rem;
-                        }
-
-                        li {
-                            a {
-                                margin-left: 3rem;
-                            }
-
-                            li {
-                                a {
-                                    margin-left: 3.5rem;
-                                }
-
-                                li {
-                                    a {
-                                        margin-left: 4rem;
-                                    }
-                                }
-                            }
+                        .layout-menuitem-text {
+                            font-size: 0.88rem;
                         }
                     }
                 }

@@ -1,0 +1,21 @@
+<app-dashboard-card [interactive]="isClickable()" [ariaLabel]="'Ouvrir ' + stat().label" (activated)="open()">
+    <div class="dashboard-stat-content">
+        <div class="dashboard-stat-information">
+            <span class="dashboard-stat-label">
+                {{ stat().label }}
+            </span>
+
+            <strong class="dashboard-stat-value">
+                @if (stat().loading) {
+                <span class="text-muted-color">...</span>
+                } @else {
+                {{ stat().value }}
+                }
+            </strong>
+        </div>
+
+        <div class="dashboard-stat-icon" [ngClass]="stat().iconContainerClass">
+            <i [ngClass]="[stat().icon, stat().iconClass]"></i>
+        </div>
+    </div>
+</app-dashboard-card>

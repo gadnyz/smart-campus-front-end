@@ -1,15 +1,18 @@
-{   "name": "smart-campus",
+{
+  "name": "smart-campus",
   "version": "21.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --host localhost --port 4200 --proxy-config proxy.conf.json",
     "build": "ng build",
     "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "format": "prettier --write \"**/*.{js,mjs,ts,mts,d.ts,html}\" --cache",
     "lint": "ng lint  smart-campus",
     "test": "ng test",
-    "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage"
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadlessNoSandbox --code-coverage",
+    "seed:api": "node tools/seed-smart-campus.mjs",
+    "seed:api:check": "node tools/seed-smart-campus.mjs --check"
   },
   "private": true,
   "dependencies": {
@@ -23,6 +26,7 @@
     "@primeuix/themes": "^2.0.0",
     "@tailwindcss/postcss": "^4.1.11",
     "chart.js": "4.4.2",
+    "libphonenumber-js": "^1.13.7",
     "primeclt": "^0.1.5",
     "primeicons": "^7.0.0",
     "primeng": "^21.0.2",
@@ -55,5 +59,5 @@
     "tailwindcss": "^4.1.11",
     "typescript": "~5.9.3",
     "typescript-eslint": "8.56.1"
-    }
+  }
 }

@@ -51,14 +51,13 @@ declare type SurfacesType = {
                             [title]="primaryColor.name"
                             (click)="updateColors($event, 'primary', primaryColor)"
                             [ngClass]="{
-                                    'outline outline-primary': primaryColor.name === selectedPrimaryColor()
-                                }"
+                                'outline outline-primary': primaryColor.name === selectedPrimaryColor()
+                            }"
                             class="cursor-pointer w-5 h-5 rounded-full flex shrink-0 items-center justify-center outline-offset-1 shadow"
                             [style]="{
-                                    'background-color': primaryColor?.name === 'noir' ? 'var(--text-color)' : primaryColor?.palette?.['500']
-                                }"
-                        >
-                        </button>
+                                'background-color': primaryColor?.name === 'noir' ? 'var(--text-color)' : primaryColor?.palette?.['500']
+                            }"
+                        ></button>
                     }
                 </div>
             </div>
@@ -72,11 +71,11 @@ declare type SurfacesType = {
                             (click)="updateColors($event, 'surface', surface)"
                             class="cursor-pointer w-5 h-5 rounded-full flex shrink-0 items-center justify-center p-0 outline-offset-1"
                             [ngClass]="{
-                                    'outline outline-primary': selectedSurfaceColor() ? selectedSurfaceColor() === surface.name : layoutService.layoutConfig().darkTheme ? surface.name === 'zinc' : surface.name === 'slate'
-                                }"
+                                'outline outline-primary': selectedSurfaceColor() ? selectedSurfaceColor() === surface.name : layoutService.layoutConfig().darkTheme ? surface.name === 'zinc' : surface.name === 'slate'
+                            }"
                             [style]="{
-                                    'background-color': surface?.palette?.['500']
-                                }"
+                                'background-color': surface?.palette?.['500']
+                            }"
                         ></button>
                     }
                 </div>
@@ -273,7 +272,25 @@ export class AppConfigurator {
     primaryColors = computed<SurfacesType[]>(() => {
         const presetPalette = presets[this.layoutService.layoutConfig().preset as KeyOfType<typeof presets>].primitive;
         const colors = ['emerald', 'green', 'lime', 'orange', 'amber', 'yellow', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'];
-        const palettes: SurfacesType[] = [{ name: 'noir', palette: {} }];
+        const palettes: SurfacesType[] = [
+            { name: 'noir', palette: {} },
+            {
+                name: 'unh',
+                palette: {
+                    50: '#f4f9fb',
+                    100: '#c2dce3',
+                    200: '#acd0da',
+                    300: '#84b5c5',
+                    400: '#6aacc1',
+                    500: '#3b8aa7',
+                    600: '#337993',
+                    700: '#2b677d',
+                    800: '#225668',
+                    900: '#1a4452',
+                    950: '#102a33'
+                }
+            }
+        ];
 
         colors.forEach((color) => {
             palettes.push({

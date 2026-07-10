@@ -1,0 +1,1 @@
+export type { DashboardWidget, DashboardWidgetSize } from '@/app/core/modules/app-feature.model';

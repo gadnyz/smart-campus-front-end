@@ -1,0 +1,15 @@
+.login-footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--surface-border);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    color: var(--text-color-secondary);
+}
+
+.link :hover{
+    color: var(--primary-color);
+}
