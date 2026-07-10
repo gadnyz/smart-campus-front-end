@@ -1,9 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { AuthService } from '@/app/core/auth/services/auth.service';
-import { LogoutRequest } from '@/app/core/auth/models/auth.model';
+import { LogoutRequest, AuthenticatedUser } from '@/app/core/auth/models/auth.model';
 import { of, throwError } from 'rxjs';
 import { AppTopbar } from './app.topbar';
+import { signal } from '@angular/core';
 
 describe('AppTopbar logout', () => {
     let component: AppTopbar;
@@ -16,8 +17,24 @@ describe('AppTopbar logout', () => {
         refresh_token: 'refresh-token'
     };
 
+    const authenticatedUser: AuthenticatedUser = {
+        id: 'user-1',
+        username: 'Campus Admin',
+        email: 'admin@unh.edu',
+        profiles: ['ADMIN'],
+        enabled: true,
+        created_at: '2026-05-16T08:00:00.000Z',
+        updated_at: '2026-05-16T08:00:00.000Z',
+        last_connected_at: null,
+        avatar_url: null,
+        authorities: ['ROLE_ADMIN']
+    };
+
     beforeEach(async () => {
         authService = jasmine.createSpyObj<AuthService>('AuthService', ['getLogoutPayload', 'logoutRequest', 'clearSession']);
+        Object.defineProperty(authService, 'currentUser', {
+            value: signal<AuthenticatedUser | null>(authenticatedUser)
+        });
 
         await TestBed.configureTestingModule({
             imports: [AppTopbar],

@@ -1,8 +1,14 @@
-import { UserContextResponse } from '@/app/features/identity/users/models/user.model';
-
-export interface LoginRequest {
+export interface AuthenticatedUser {
+    id: string;
+    username: string;
     email: string;
-    password: string;
+    profiles: string[];
+    enabled: boolean;
+    created_at: string;
+    updated_at: string;
+    last_connected_at: string | null;
+    avatar_url: string | null;
+    authorities: string[];
 }
 
 export interface AuthResponse {
@@ -10,7 +16,12 @@ export interface AuthResponse {
     refresh_token: string;
     token_type: string;
     expire_in: number;
-    user: UserContextResponse;
+    user: AuthenticatedUser;
+}
+
+export interface LoginRequest {
+    email: string;
+    password: string;
 }
 
 export interface LogoutRequest {
@@ -24,13 +35,6 @@ export interface RefreshRequest {
 
 export interface ForgotPasswordRequest {
     email: string;
-}
-
-export interface ChangeOwnPasswordRequest {
-    old_password: string;
-    new_password: string;
-    confirm_password: string;
-    refresh_token: string;
 }
 
 export interface ResetPasswordRequest {

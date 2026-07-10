@@ -2,13 +2,13 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError, tap } from 'rxjs';
 import { environment } from '@/environments/environment';
-import { AuthResponse, ChangeOwnPasswordRequest, ForgotPasswordRequest, LoginRequest, LogoutRequest, RefreshRequest, ResetPasswordRequest } from '../models/auth.model';
-import { UserContextResponse } from '@/app/features/identity/users/models/user.model';
+import { AuthResponse, ForgotPasswordRequest, LoginRequest, LogoutRequest, RefreshRequest, ResetPasswordRequest } from '../models/auth.model';
+import { AuthenticatedUser } from '@/app/core/auth/models/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
     private readonly http = inject(HttpClient);
-    readonly currentUser = signal<UserContextResponse | null>(this.readCurrentUser());
+    readonly currentUser = signal<AuthenticatedUser | null>(this.readCurrentUser());
     private readonly accessTokenKey = 'access_token';
     private readonly refreshTokenKey = 'refresh_token';
     private readonly currentUserKey = 'current_user';
@@ -24,7 +24,7 @@ export class AuthService {
         this.currentUser.set(response.user);
     }
 
-    private readCurrentUser(): UserContextResponse | null {
+    private readCurrentUser(): AuthenticatedUser  | null {
         const storedUser = sessionStorage.getItem(this.currentUserKey);
 
         if (!storedUser) {
@@ -32,7 +32,7 @@ export class AuthService {
         }
 
         try {
-            return JSON.parse(storedUser) as UserContextResponse;
+            return JSON.parse(storedUser) as AuthenticatedUser ;
         } catch {
             sessionStorage.removeItem(this.currentUserKey);
             return null;
@@ -47,7 +47,7 @@ export class AuthService {
         return sessionStorage.getItem(this.refreshTokenKey);
     }
 
-    getCurrentUser(): UserContextResponse | null {
+    getCurrentUser(): AuthenticatedUser  | null {
         const storedUser = sessionStorage.getItem(this.currentUserKey);
 
         if (!storedUser) {
@@ -55,14 +55,14 @@ export class AuthService {
         }
 
         try {
-            return JSON.parse(storedUser) as UserContextResponse;
+            return JSON.parse(storedUser) as AuthenticatedUser ;
         } catch {
             sessionStorage.removeItem(this.currentUserKey);
             return null;
         }
     }
 
-    updateCurrentUser(user: UserContextResponse): void {
+    updateCurrentUser(user: AuthenticatedUser ): void {
         sessionStorage.setItem(this.currentUserKey, JSON.stringify(user));
         this.currentUser.set(user);
     }
@@ -127,12 +127,4 @@ export class AuthService {
             payload
         );
     }
-
-    changeCurrentUserPassword(payload: ChangeOwnPasswordRequest): Observable<void> {
-        return this.http.put<void>(
-            `${environment.apiBaseUrl}/api/v1/users/me/password`,
-            payload
-        );
-    }
-
 }

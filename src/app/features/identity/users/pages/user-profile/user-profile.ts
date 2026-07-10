@@ -17,6 +17,7 @@ import { ElementRef } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { PasswordModule } from 'primeng/password';
+import { getUserInitial, resolveAvatarUrl } from '@/app/shared/utils/avatar-url';
 
 @Component({
     selector: 'app-user-profile',
@@ -28,6 +29,7 @@ import { PasswordModule } from 'primeng/password';
 })
 export class UserProfile implements OnInit, OnDestroy {
     @ViewChild('avatarInput') avatarInput?: ElementRef<HTMLInputElement>;
+    readonly avatarLoadFailed = signal(false);
     private readonly messageService = inject(MessageService);
     private readonly location = inject(Location);
     private readonly router = inject(Router);
@@ -52,13 +54,29 @@ export class UserProfile implements OnInit, OnDestroy {
         email: ['', [Validators.required, Validators.email]]
     });
 
-    readonly avatarImageUrl = computed(() => this.avatarPreviewUrl() || this.user()?.avatar_url || '');
+    readonly avatarImageUrl = computed(() => {
+        const previewUrl = this.avatarPreviewUrl();
+
+        if (previewUrl) {
+            return previewUrl;
+        }
+
+        if (this.avatarLoadFailed()) {
+            return '';
+        }
+
+        return resolveAvatarUrl(this.user()?.avatar_url);
+    });
 
     readonly userInitial = computed(() => {
         const currentUser = this.user();
-        const source = currentUser?.username || currentUser?.email || '';
-        return source.charAt(0).toUpperCase();
+        return getUserInitial(currentUser?.username, currentUser?.email);
     });
+
+    onAvatarImageError(): void {
+        this.avatarLoadFailed.set(true);
+    }
+
 
     readonly actions = computed<SubtopbarAction[]>(() => [
         {
@@ -122,6 +140,7 @@ export class UserProfile implements OnInit, OnDestroy {
         this.usersService.getUserById(sessionUser.id).subscribe({
             next: (user) => {
                 this.setLoadedUser(user);
+                this.authService.updateCurrentUser(user);
                 this.loading.set(false);
             },
             error: (error: HttpErrorResponse) => {
@@ -157,7 +176,7 @@ export class UserProfile implements OnInit, OnDestroy {
 
         this.passwordSaving.set(true);
 
-        this.authService
+        this.usersService
             .changeCurrentUserPassword({
                 old_password: formValue.current_password,
                 new_password: formValue.new_password,
@@ -384,6 +403,7 @@ export class UserProfile implements OnInit, OnDestroy {
 
         this.revokeAvatarPreview();
         this.selectedAvatarFile.set(file);
+        this.avatarLoadFailed.set(false);
 
         const previewUrl = URL.createObjectURL(file);
         this.avatarPreviewObjectUrl = previewUrl;
@@ -413,6 +433,8 @@ export class UserProfile implements OnInit, OnDestroy {
     }
 
     private setLoadedUser(user: User): void {
+        this.avatarLoadFailed.set(false);
+
         this.user.set(user);
         this.form.reset({
             username: user.username,
@@ -457,6 +479,7 @@ export class UserProfile implements OnInit, OnDestroy {
     private clearAvatarSelection(): void {
         this.selectedAvatarFile.set(null);
         this.revokeAvatarPreview();
+        this.avatarLoadFailed.set(false);
 
         if (this.avatarInput?.nativeElement) {
             this.avatarInput.nativeElement.value = '';

@@ -114,6 +114,11 @@ La configuration permet un lancement simple en local, ainsi qu'une exécution co
 3. L'application est désormais accessible sur :
    - [http://localhost:8080](http://localhost:8080)
 
+4. Arrêter puis le supprimer le conteneur  :
+   ```sh
+   docker stop smart-campus-app
+   docker rm smart-campus-app
+   ```
 #### Option 3 : Développement avec Docker
 
 1. Lancez l'environnement de développement conteneurisé

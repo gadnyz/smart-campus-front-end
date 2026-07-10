@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { UserManagement } from './users/pages/user-management/user-management';
 import { UserCreate } from './users/pages/user-create/user-create';
-import { UserDetail } from './users/pages/user-detail/user-detail';
 import { UserProfile } from './users/pages/user-profile/user-profile';
 import { IdentityPlaceholder } from './pages/identity-placeholder/identity-placeholder';
 import { Preferences } from './users/pages/preferences/preferences';
@@ -14,7 +13,7 @@ export default [
         component: UserManagement,
         canActivate: [permissionGuard],
         data: {
-            permissions: [IdentityPermission.UserRead, IdentityPermission.UserManage],
+            permissions: [IdentityPermission.UserReadAll],
             mode: 'any'
         }
     },
@@ -23,29 +22,18 @@ export default [
         component: UserCreate,
         canActivate: [permissionGuard],
         data: {
-            permissions: [IdentityPermission.UserCreate, IdentityPermission.UserManage],
+            permissions: [IdentityPermission.UserCreateAll],
             mode: 'any'
         }
     },
-    {
-        path: 'users/:id',
-        component: UserDetail,
-        canActivate: [permissionGuard],
-        data: {
-            permissions: [
-                IdentityPermission.UserRead,
-                IdentityPermission.UserReadOwn
-            ],
-            mode: 'any'
-        }
-    },
+    
     {
         path: 'roles',
         component: IdentityPlaceholder,
         canActivate: [permissionGuard],
         data: {
             title: 'Rôles',
-            permissions: [IdentityPermission.RoleRead],
+            permissions: [IdentityPermission.RoleReadAll],
             mode: 'any'
         }
     },
@@ -55,7 +43,7 @@ export default [
         canActivate: [permissionGuard],
         data: {
             title: 'Privilèges',
-            permissions: [IdentityPermission.PrivilegeRead],
+            permissions: [IdentityPermission.PrivilegeReadAll],
             mode: 'any'
         }
     },

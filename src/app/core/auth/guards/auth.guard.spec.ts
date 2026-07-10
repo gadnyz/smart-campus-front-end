@@ -19,7 +19,7 @@ describe('authGuard', () => {
             id: 'user-1',
             username: 'Campus Admin',
             email: 'admin@unh.edu',
-            profile: 'ADMIN',
+            profiles: ['ADMIN'],
             enabled: true,
             created_at: '2026-05-16T08:00:00.000Z',
             updated_at: '2026-05-16T08:00:00.000Z',
