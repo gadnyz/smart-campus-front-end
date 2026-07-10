@@ -1,0 +1,75 @@
+<p-toast />
+
+<app-content-subtopbar kicker="Gestion des utilisateurs" title="Nouveau" [actions]="actions()" />
+
+<div class="grid grid-cols-12 gap-6">
+    <div class="col-span-12 xl:col-span-8">
+        <div class="card">
+            <div class="font-semibold text-xl mb-6">Créer un nouvel utilisateur</div>
+
+            <form [formGroup]="form" class="grid grid-cols-12 gap-4" (ngSubmit)="submit()">
+                <div class="col-span-12">
+                    <label for="username" class="block text-sm text-color-secondary mb-1">Nom d'utilisateur</label>
+
+                    <input
+                        pInputText
+                        id="username"
+                        formControlName="username"
+                        placeholder="Saisissez le nom d'utilisateur"
+                        class="w-full"
+                        [class.ng-invalid]="isInvalid('username')"
+                    />
+
+                    @if (isInvalid('username')) {
+                    <small class="text-red-500 block mt-1">
+                        Le nom d'utilisateur doit contenir 3 à 30 caractères, sans espace.
+                    </small>
+                    } @if (validationErrors()['username']) {
+                    <small class="text-red-500 block mt-1">{{ validationErrors()['username'] }}</small>
+                    }
+                </div>
+
+                <div class="col-span-12">
+                    <label for="email" class="block text-sm text-color-secondary mb-1">Email</label>
+
+                    <input
+                        pInputText
+                        id="email"
+                        type="email"
+                        formControlName="email"
+                        placeholder="Saisissez l'adresse email"
+                        class="w-full"
+                        [class.ng-invalid]="isInvalid('email')"
+                    />
+
+                    @if (isInvalid('email')) {
+                    <small class="text-red-500 block mt-1">Saisissez une adresse email valide.</small>
+                    } @if (validationErrors()['email']) {
+                    <small class="text-red-500 block mt-1">{{ validationErrors()['email'] }}</small>
+                    }
+                </div>
+
+                <div class="col-span-12">
+                    <label for="profile" class="block text-sm text-color-secondary mb-1">Profil métier</label>
+
+                    <p-select
+                        id="profile"
+                        formControlName="profile"
+                        [options]="profiles()"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Sélectionner le profil métier"
+                        class="w-full"
+                        [loading]="loadingProfiles()"
+                    />
+
+                    @if (isInvalid('profile')) {
+                    <small class="text-red-500 block mt-1">Le profil est obligatoire.</small>
+                    } @if (validationErrors()['profile']) {
+                    <small class="text-red-500 block mt-1">{{ validationErrors()['profile'] }}</small>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

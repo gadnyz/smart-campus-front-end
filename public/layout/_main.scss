@@ -1,0 +1,30 @@
+:root {
+    --layout-topbar-height: 3rem;
+    --layout-sidebar-width: 18rem;
+    --layout-content-gap: 0;
+    --layout-content-padding-inline: 0.5rem;
+    --layout-content-padding-left-collapsed: 2rem;
+    --layout-sidebar-collapsed-width: 4.5rem;
+}
+
+
+.layout-main-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    justify-content: space-between;
+    padding-top: var(--layout-topbar-height);
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    transition:
+        margin-left var(--layout-section-transition-duration),
+        width var(--layout-section-transition-duration),
+        padding-left var(--layout-section-transition-duration);
+}
+
+.layout-main {
+    flex: 1 1 auto;
+    padding: 0.5rem;
+    min-width: 0;
+}

@@ -29,8 +29,8 @@
               }
             ],
             "styles": [
-              "src/assets/styles.scss",
-              "src/assets/tailwind.css"
+              "public/styles.scss",
+              "public/tailwind.css"
             ],
             "scripts": []
           },
@@ -91,11 +91,13 @@
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              "src/favicon.ico",
-              "src/assets"
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
             ],
             "styles": [
-              "src/assets/styles.scss"
+              "public/styles.scss"
             ],
             "scripts": []
           }

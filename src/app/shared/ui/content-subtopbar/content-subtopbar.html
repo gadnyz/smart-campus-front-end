@@ -1,0 +1,15 @@
+<div class="content-subtopbar">
+    <div class="content-subtopbar-left">
+        <span class="content-subtopbar-kicker">{{ kicker() }}</span>
+        <h2 class="content-subtopbar-title">{{ title() }}</h2>
+    </div>
+
+    <div class="content-subtopbar-right">
+        @for (action of visibleActions(); track action.label) {
+        <button pButton type="button" [label]="action.label" [icon]="action.icon ?? ''"
+            [severity]="action.severity || 'secondary'" [outlined]="action.outlined ?? true"
+            [text]="action.text ?? false" [routerLink]="action.routerLink ?? null" (click)="action.command?.()"
+            [disabled]="action.disabled ?? false" [loading]="action.loading ?? false" size="small"></button>
+        }
+    </div>
+</div>

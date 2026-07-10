@@ -1,0 +1,28 @@
+.stat-card {
+    padding: 1rem 1.25rem;
+    cursor: context-menu;
+    transition:
+        border-color var(--element-transition-duration),
+        background-color var(--element-transition-duration);
+}
+
+// .stat-card:hover {
+//     background: var(--surface-hover);
+// }
+
+.stat-card-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.stat-card-label {
+    margin-bottom: 0.35rem;
+}
+
+.stat-card-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: 0 0 auto;
+}

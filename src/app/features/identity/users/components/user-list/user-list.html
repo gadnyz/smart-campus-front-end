@@ -1,0 +1,90 @@
+<p-toast />
+<p-confirmdialog [style]="{ width: '450px' }" />
+
+<div class="card">
+    <p-table #dt [value]="users()" [loading]="loading()" [paginator]="true" [rows]="10"
+        [rowsPerPageOptions]="[10, 20, 50]" [globalFilterFields]="['username', 'email', 'profile', 'last_connected_at']"
+        [rowHover]="true" dataKey="id" responsiveLayout="scroll"
+        currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} utilisateurs"
+        [showCurrentPageReport]="true" [tableStyle]="{ 'min-width': '70rem' }">
+        <ng-template pTemplate="caption">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <div class="font-semibold text-xl">Liste des utilisateurs</div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <p-iconfield>
+                        <p-inputicon styleClass="pi pi-search" />
+                        <input pInputText type="text" placeholder="Rechercher..."
+                            (input)="onGlobalFilter(dt, $event)" />
+                    </p-iconfield>
+                </div>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="username" style="min-width: 14rem">
+                    Nom d'utilisateur
+                    <p-sortIcon field="username"></p-sortIcon>
+                </th>
+
+                <th pSortableColumn="email" style="min-width: 16rem">
+                    Email
+                    <p-sortIcon field="email"></p-sortIcon>
+                </th>
+
+                <th pSortableColumn="profile" style="min-width: 12rem">
+                    Profil
+                    <p-sortIcon field="profile"></p-sortIcon>
+                </th>
+
+                <th pSortableColumn="last_connected_at" style="min-width: 12rem">
+                    Dernière connexion
+                    <p-sortIcon field="last_connected_at"></p-sortIcon>
+                </th>
+
+                <th style="width: 8rem">Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-user>
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.profile }}</td>
+                <td>
+                    @if (user.last_connected_at) {
+                    <span>{{ user.last_connected_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+                    } @else {
+                    <span class="text-color-secondary">Jamais</span>
+                    }
+                </td>
+                <td>
+                    <div class="flex items-center gap-2">
+                        <!-- <button
+                            pButton
+                            type="button"
+                            icon="pi pi-pencil"
+                            rounded
+                            outlined
+                            severity="secondary"
+                            [routerLink]="['/identity/users', user.id]"
+                        ></button> -->
+                        @if (canDeleteUsers()) {
+                        <button pButton type="button" icon="pi pi-trash" rounded outlined severity="danger"
+                            (click)="confirmDelete(user)"></button>
+                        }
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="5">Aucun utilisateur trouvé.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
