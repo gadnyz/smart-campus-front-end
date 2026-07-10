@@ -1,0 +1,93 @@
+<p-toast />
+
+<app-content-subtopbar
+    kicker="Admission"
+    title="Candidatures"
+    [actions]="actions()"
+/>
+
+<p-card>
+    <div class="list-header">
+        <div>
+            <h3 class="list-title">Liste des candidats</h3>
+            <span class="text-color-secondary">
+                {{ totalElements() }} candidature(s)
+            </span>
+        </div>
+
+        <p-select
+            [options]="statusOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Tous les statuts"
+            [showClear]="true"
+            [ngModel]="statusFilter()"
+            (ngModelChange)="onStatusChange($event)"
+        />
+    </div>
+
+    <p-table
+        [value]="candidates()"
+        [loading]="loading()"
+        dataKey="id"
+        [rowHover]="true"
+        responsiveLayout="scroll"
+        [tableStyle]="{ 'min-width': '48rem' }"
+    >
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Candidat</th>
+                <th>Statut</th>
+                <th class="actions-column">Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-candidate>
+            <tr>
+                <td>
+                    <div class="font-medium">
+                        {{ fullName(candidate) }}
+                    </div>
+                    <div class="text-sm text-color-secondary">
+                        {{ genderLabel(candidate) }}
+                    </div>
+                </td>
+
+                <td>
+                    <p-tag
+                        [value]="statusLabel(candidate.status)"
+                        [severity]="statusSeverity(candidate.status)"
+                    />
+                </td>
+
+                <td class="actions-column">
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-eye"
+                        label="Détails"
+                        size="small"
+                        (click)="openCandidate(candidate)"
+                    ></button>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="5">
+                    Aucune candidature trouvée.
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <p-paginator
+        [first]="page() * size()"
+        [rows]="size()"
+        [totalRecords]="totalElements()"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [alwaysShow]="false"
+        (onPageChange)="onPageChange($event)"
+    />
+</p-card>

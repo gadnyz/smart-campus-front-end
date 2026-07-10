@@ -1,0 +1,5 @@
+<section class="dashboard-card" [class.dashboard-card--interactive]="interactive()"
+    [attr.role]="interactive() ? 'link' : null" [attr.tabindex]="interactive() ? 0 : null"
+    [attr.aria-label]="ariaLabel() || null" (click)="emitActivation()" (keydown)="onKeydown($event)">
+    <ng-content />
+</section>

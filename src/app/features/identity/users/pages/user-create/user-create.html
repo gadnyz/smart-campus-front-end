@@ -50,23 +50,27 @@
                 </div>
 
                 <div class="col-span-12">
-                    <label for="profile" class="block text-sm text-color-secondary mb-1">Profil métier</label>
+                    <label for="profiles" class="block text-sm text-color-secondary mb-1">Profils métier</label>
 
-                    <p-select
-                        id="profile"
-                        formControlName="profile"
+                    <p-multiselect
+                        id="profiles"
+                        formControlName="profiles"
                         [options]="profiles()"
                         optionLabel="label"
                         optionValue="value"
-                        placeholder="Sélectionner le profil métier"
+                        placeholder="Sélectionner un ou plusieurs profils métier"
+                        display="chip"
                         class="w-full"
+                        [filter]="true"
                         [loading]="loadingProfiles()"
                     />
 
-                    @if (isInvalid('profile')) {
-                    <small class="text-red-500 block mt-1">Le profil est obligatoire.</small>
-                    } @if (validationErrors()['profile']) {
-                    <small class="text-red-500 block mt-1">{{ validationErrors()['profile'] }}</small>
+                    @if (isInvalid('profiles')) {
+                    <small class="text-red-500 block mt-1">Sélectionnez au moins un profil.</small>
+                    } @if (validationErrors()['profiles']) {
+                    <small class="text-red-500 block mt-1">{{ validationErrors()['profiles'] }}</small>
+                    } @if (validationErrors()['profile_ids']) {
+                    <small class="text-red-500 block mt-1">{{ validationErrors()['profile_ids'] }}</small>
                     }
                 </div>
             </form>

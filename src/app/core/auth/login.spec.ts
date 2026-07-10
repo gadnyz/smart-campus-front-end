@@ -22,7 +22,7 @@ describe('Login', () => {
             id: 'user-1',
             username: 'Campus Admin',
             email: 'admin@unh.edu',
-            profile: 'ADMIN',
+            profiles: ['ADMIN'],
             enabled: true,
             created_at: '2026-05-16T08:00:00.000Z',
             updated_at: '2026-05-16T08:00:00.000Z',
@@ -133,7 +133,7 @@ describe('Login', () => {
         expect(authService.storeSession).not.toHaveBeenCalled();
         expect(router.navigate).not.toHaveBeenCalled();
         expect(component.loading()).toBeFalse();
-        expect(component.errorMessage()).toBe('Email ou mot de passe incorrect. Veuillez réessayer');
+        expect(component.errorMessage()).toBe('Email ou mot de passe incorrect. Veuillez réessayer.');
     });
 
     it('should not call login when email is missing', () => {
@@ -226,7 +226,7 @@ describe('Login', () => {
         component.submit(createForm(true));
 
         expect(component.loading()).toBeFalse();
-        expect(component.errorMessage()).toBe('Accès refusé.');
+        expect(component.errorMessage()).toBe('Votre compte ne dispose pas des autorisations nécessaires pour accéder à la plateforme.');
     });
 
     it('should surface server error default fallback (status 500 without detail)', () => {
@@ -245,7 +245,7 @@ describe('Login', () => {
         component.submit(createForm(true));
 
         expect(component.loading()).toBeFalse();
-        expect(component.errorMessage()).toBe('Une erreur serveur est survenue. Réessaie plus tard.');
+        expect(component.errorMessage()).toBe('Une erreur est survenue lors de la connexion. Veuillez réessayer plus tard.');
     });
 
     it('should surface fallback error message for unhandled status codes (e.g. 404)', () => {
@@ -265,6 +265,6 @@ describe('Login', () => {
         component.submit(createForm(true));
 
         expect(component.loading()).toBeFalse();
-        expect(component.errorMessage()).toBe('Une erreur est survenue lors de la connexion. Veuillez réessayer plus tard.');
+        expect(component.errorMessage()).toBe('Connexion impossible pour le moment. Veuillez réessayer plus tard.');
     });
 });

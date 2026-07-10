@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClient, HttpErrorResponse, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Router, provideRouter } from '@angular/router';
 import { of, throwError, Subject } from 'rxjs';
@@ -22,7 +22,7 @@ describe('authInterceptor', () => {
             id: 'user-1',
             username: 'Campus Admin',
             email: 'admin@unh.edu',
-            profile: 'ADMIN',
+            profiles: ['ADMIN'],
             enabled: true,
             created_at: '2026-05-16T08:00:00.000Z',
             updated_at: '2026-05-16T08:00:00.000Z',

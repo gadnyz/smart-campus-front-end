@@ -4,7 +4,7 @@ export interface User {
     id: string;
     username: string;
     email: string;
-    profile: UserProfile;
+    profiles: string[];
     enabled: boolean;
     created_at: string;
     updated_at: string;
@@ -16,18 +16,17 @@ export interface User {
 export interface RegisterRequest {
     username: string;
     email: string;
-    profile: UserProfile;
+    profiles: string[];
+    faculty_id: null;
 }
 
 export interface RegisterResponse {
     id: string;
     username: string;
     email: string;
-    profile: UserProfile;
+    profiles: string[];
     created_at: string;
 }
-
-export type UserContextResponse = User;
 
 export interface UpdateUserRequest {
     username: string;

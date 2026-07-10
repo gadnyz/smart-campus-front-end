@@ -7,7 +7,7 @@ import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { FluidModule } from 'primeng/fluid';
 import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { ToastModule } from 'primeng/toast';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { RegisterRequest } from '../../models/user.model';
@@ -16,7 +16,7 @@ import { UsersService } from '../../services/user.service';
 @Component({
     selector: 'app-user-create',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, FluidModule, InputTextModule, SelectModule, ButtonModule, ToastModule, ContentSubtopbar],
+    imports: [CommonModule, ReactiveFormsModule, FluidModule, InputTextModule, MultiSelectModule, ButtonModule, ToastModule, ContentSubtopbar],
     templateUrl: './user-create.html',
     styleUrl: './user-create.scss',
     providers: [MessageService]
@@ -37,7 +37,7 @@ export class UserCreate implements OnInit {
     readonly form = this.fb.nonNullable.group({
         username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
         email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]],
-        profile: ['', Validators.required]
+        profiles: [[] as string[], Validators.required]
     });
 
     readonly actions = computed<SubtopbarAction[]>(() => [
@@ -72,7 +72,7 @@ export class UserCreate implements OnInit {
                 this.profiles.set(
                     response.content.map((profile) => ({
                         label: profile.name,
-                        value: profile.name
+                        value: profile.id
                     }))
                 );
                 this.loadingProfiles.set(false);
@@ -95,7 +95,7 @@ export class UserCreate implements OnInit {
         });
     }
 
-    isInvalid(controlName: 'username' | 'email' | 'profile'): boolean {
+    isInvalid(controlName: 'username' | 'email' | 'profiles'): boolean {
         const control = this.form.controls[controlName];
         return control.invalid && (control.dirty || control.touched);
     }
@@ -109,21 +109,22 @@ export class UserCreate implements OnInit {
             return;
         }
 
-        const payload: RegisterRequest = this.form.getRawValue();
+        const raw = this.form.getRawValue();
+
+        const payload: RegisterRequest = {
+            username: raw.username,
+            email: raw.email,
+            profiles: raw.profiles,
+            faculty_id: null
+        };
 
         this.submitting.set(true);
 
         this.usersService.createUser(payload).subscribe({
             next: (response) => {
                 this.showSuccess(`Utilisateur ${response.username} créé avec succès.`);
-
-                this.form.reset({
-                    username: '',
-                    email: '',
-                    profile: ''
-                });
-
                 this.submitting.set(false);
+                void this.router.navigate(['/identity/users']);
             },
             error: (error: HttpErrorResponse) => {
                 this.submitting.set(false);

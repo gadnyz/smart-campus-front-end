@@ -8,7 +8,7 @@ import { dashboardWidgets } from './dashboard.widgets';
     standalone: true,
     imports: [CommonModule, NgComponentOutlet],
     template: `
-        <div class="grid grid-cols-12 gap-8">
+        <div class="grid grid-cols-12 gap-2">
             @for (widget of visibleWidgets(); track widget.key) {
                 <div [class]="getWidgetClass(widget.size)">
                     <ng-container *ngComponentOutlet="widget.component" />

@@ -9,6 +9,7 @@ import { PasswordModule } from 'primeng/password';
 import { ToastModule } from 'primeng/toast';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { AuthService } from '@/app/core/auth/services/auth.service';
+import { UsersService } from '@/app/features/identity/users/services/user.service';
 
 @Component({
     selector: 'app-user-password',
@@ -21,6 +22,7 @@ export class UserPassword {
     private readonly location = inject(Location);
     private readonly fb = inject(FormBuilder);
     private readonly authService = inject(AuthService);
+    private readonly usersService = inject(UsersService);
     private readonly messageService = inject(MessageService);
 
     readonly saving = signal(false);
@@ -85,7 +87,7 @@ export class UserPassword {
 
         this.saving.set(true);
 
-        this.authService
+        this.usersService
             .changeCurrentUserPassword(payload)
             .pipe(finalize(() => this.saving.set(false)))
             .subscribe({

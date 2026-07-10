@@ -1,7 +1,4 @@
-import { identityDashboardWidgets } from '@/app/features/identity/pages/Dashboard/dashboard.widgets';
-import { DashboardWidget } from './models/widget.model';
+import { appDashboardWidgets } from '@/app/core/modules/app-feature.registry';
+import { DashboardWidget } from '@/app/core/modules/app-feature.model';
 
-
-export const dashboardWidgets: DashboardWidget[] = [
-    ...identityDashboardWidgets
-];
+export const dashboardWidgets: DashboardWidget[] = appDashboardWidgets;
