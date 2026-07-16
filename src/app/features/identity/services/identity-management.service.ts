@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { environment } from '@/environments/environment';
 import {
     AddPrivilegesRequest,
@@ -46,6 +47,25 @@ export class IdentityManagementService {
         return this.http.get<PagedResponse<PrivilegeResponse>>(`${this.baseUrl}/privileges`, {
             params: this.buildPageableParams(query)
         });
+    }
+
+    /** Loads every privilege page (avoids backend size limits on a single request). */
+    getAllPrivileges(pageSize = 100): Observable<PrivilegeResponse[]> {
+        const fetchPage = (page: number, acc: PrivilegeResponse[]): Observable<PrivilegeResponse[]> =>
+            this.getPrivileges({ page, size: pageSize, sort: ['name,asc'] }).pipe(
+                switchMap((response) => {
+                    const next = [...acc, ...(response.content ?? [])];
+                    const totalPages = Math.max(response.total_pages ?? 1, 1);
+
+                    if (page + 1 >= totalPages) {
+                        return of(next);
+                    }
+
+                    return fetchPage(page + 1, next);
+                })
+            );
+
+        return fetchPage(0, []);
     }
 
     getPrivilegeById(privilegeId: string): Observable<PrivilegeResponse> {

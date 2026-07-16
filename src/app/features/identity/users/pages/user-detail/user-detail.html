@@ -1,0 +1,254 @@
+<p-toast />
+<p-confirmdialog [style]="{ width: '450px' }" />
+
+<app-content-subtopbar
+    kicker="Gestion des utilisateurs"
+    [title]="navigationState()?.label ? 'Détail ' + navigationState()!.label : 'Détail'"
+    [actions]="actions()"
+/>
+
+@if (loading()) {
+<div class="card">Chargement...</div>
+} @else if (user(); as currentUser) {
+<div class="grid grid-cols-12 gap-6">
+    <div class="col-span-12 xl:col-span-8">
+        <div class="card">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <div>
+                    <div class="font-semibold text-xl">{{ currentUser.username }}</div>
+                    <div class="text-color-secondary">{{ currentUser.email }}</div>
+                </div>
+                <p-tag [value]="statusLabel(currentUser)" [severity]="statusSeverity(currentUser)" />
+            </div>
+
+            <form [formGroup]="form" class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 md:col-span-6">
+                    <label for="username" class="block text-sm text-color-secondary mb-1">Nom d'utilisateur</label>
+                    <input pInputText id="username" formControlName="username" class="w-full" [readonly]="!editing()" />
+
+                    @if (isInvalid('username')) {
+                    <small class="text-red-500 block mt-1">
+                        Le nom d'utilisateur doit contenir 3 à 30 caractères et commencer par une lettre.
+                    </small>
+                    } @if (validationErrors()['username']) {
+                    <small class="text-red-500 block mt-1">{{ validationErrors()['username'] }}</small>
+                    }
+                </div>
+
+                <div class="col-span-12 md:col-span-6">
+                    <label for="email" class="block text-sm text-color-secondary mb-1">Email</label>
+                    <input pInputText id="email" formControlName="email" class="w-full" [readonly]="!editing()" />
+
+                    @if (isInvalid('email')) {
+                    <small class="text-red-500 block mt-1">Saisissez une adresse email valide.</small>
+                    } @if (validationErrors()['email']) {
+                    <small class="text-red-500 block mt-1">{{ validationErrors()['email'] }}</small>
+                    }
+                </div>
+            </form>
+
+            @if (editing()) {
+            <div class="flex justify-end gap-2 mt-6">
+                <button pButton type="button" label="Enregistrer" icon="pi pi-save" [loading]="saving()" (click)="save()"></button>
+            </div>
+            }
+
+            @if (canUpdate()) {
+            <div class="flex flex-wrap gap-2 mt-6 pt-6 border-t border-surface">
+                @if (currentUser.enabled) {
+                <button
+                    pButton
+                    type="button"
+                    label="Désactiver"
+                    icon="pi pi-ban"
+                    severity="warn"
+                    outlined
+                    [loading]="togglingStatus()"
+                    [disabled]="togglingStatus()"
+                    (click)="disableUser()"
+                ></button>
+                } @else {
+                <button
+                    pButton
+                    type="button"
+                    label="Activer"
+                    icon="pi pi-check"
+                    severity="success"
+                    outlined
+                    [loading]="togglingStatus()"
+                    [disabled]="togglingStatus()"
+                    (click)="enableUser()"
+                ></button>
+                }
+
+                @if (canDelete()) {
+                <button
+                    pButton
+                    type="button"
+                    label="Supprimer"
+                    icon="pi pi-trash"
+                    severity="danger"
+                    outlined
+                    (click)="confirmDelete()"
+                ></button>
+                }
+            </div>
+            }
+        </div>
+
+        <div class="card mt-6">
+            <div class="font-semibold text-lg mb-4">Profils métier</div>
+
+            @if (currentUser.profiles.length) {
+            <div class="flex flex-wrap gap-2 mb-4">
+                @for (profile of currentUser.profiles; track profile) {
+                <div class="flex items-center gap-1">
+                    <p-tag [value]="profile" severity="info" />
+                    @if (canUpdate()) {
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-times"
+                        rounded
+                        text
+                        severity="danger"
+                        [attr.aria-label]="'Retirer ' + profile"
+                        [loading]="removingProfileName() === profile"
+                        [disabled]="removingProfileName() === profile"
+                        (click)="removeProfile(profile)"
+                    ></button>
+                    }
+                </div>
+                }
+            </div>
+            } @else {
+            <p class="text-color-secondary m-0 mb-4">Aucun profil assigné.</p>
+            }
+
+            @if (canUpdate() && assignableProfiles().length) {
+            <div class="flex flex-col md:flex-row gap-3 md:items-end">
+                <div class="flex-1">
+                    <label for="profileAssign" class="block text-sm text-color-secondary mb-1">Assigner un profil</label>
+                    <p-select
+                        inputId="profileAssign"
+                        [options]="assignableProfiles()"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Sélectionner un profil"
+                        appendTo="body"
+                        class="w-full"
+                        [ngModel]="selectedProfileId()"
+                        (ngModelChange)="selectedProfileId.set($event)"
+                    />
+                </div>
+                <button
+                    pButton
+                    type="button"
+                    label="Assigner"
+                    icon="pi pi-plus"
+                    [loading]="assigningProfile()"
+                    [disabled]="assigningProfile() || !selectedProfileId()"
+                    (click)="assignProfile()"
+                ></button>
+            </div>
+            }
+        </div>
+
+        @if (canManagePrivileges()) {
+        <div class="card mt-6">
+            <div class="font-semibold text-lg mb-4">Accorder un privilège</div>
+            <div class="flex flex-col gap-3">
+                <p-multiselect
+                    inputId="privilegeGrant"
+                    [options]="grantablePrivileges()"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Sélectionner des privilèges"
+                    display="chip"
+                    appendTo="body"
+                    class="w-full"
+                    [filter]="true"
+                    [loading]="loadingPrivileges()"
+                    [ngModel]="selectedPrivilegeIds()"
+                    (ngModelChange)="selectedPrivilegeIds.set($event)"
+                />
+                @if (!loadingPrivileges() && !allPrivileges().length) {
+                <small class="text-red-500">
+                    Catalogue de privilèges indisponible (permission identity:privilege:read:all requise).
+                </small>
+                }
+                <div class="flex justify-end">
+                    <button
+                        pButton
+                        type="button"
+                        label="Accorder"
+                        icon="pi pi-check"
+                        [loading]="grantingPrivilege()"
+                        [disabled]="grantingPrivilege() || !selectedPrivilegeIds().length"
+                        (click)="grantPrivileges()"
+                    ></button>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+
+    <div class="col-span-12 xl:col-span-4">
+        <div class="card">
+            <div class="font-semibold text-lg mb-4">Autorisations</div>
+
+            @if (currentUser.authorities.length) {
+            <div class="flex flex-col gap-2">
+                @for (authority of currentUser.authorities; track authority) {
+                <div class="flex items-start justify-between gap-2">
+                    <p-tag [value]="authority" severity="secondary" class="whitespace-normal break-all" />
+                    @if (canManagePrivileges() && privilegeIdFor(authority)) {
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-times"
+                        rounded
+                        text
+                        severity="danger"
+                        [attr.aria-label]="'Révoquer ' + authority"
+                        [loading]="revokingPrivilegeName() === authority"
+                        [disabled]="revokingPrivilegeName() === authority"
+                        (click)="confirmRevokePrivilege(authority)"
+                    ></button>
+                    }
+                </div>
+                }
+            </div>
+            } @else {
+            <span class="text-color-secondary">Aucune autorisation.</span>
+            }
+        </div>
+
+        <div class="card mt-6">
+            <div class="font-semibold text-lg mb-4">Informations</div>
+            <dl class="m-0 grid grid-cols-1 gap-3 text-sm">
+                <div>
+                    <dt class="text-color-secondary">Créé le</dt>
+                    <dd class="m-0 mt-1">{{ currentUser.created_at | date: 'dd/MM/yyyy HH:mm' }}</dd>
+                </div>
+                <div>
+                    <dt class="text-color-secondary">Modifié le</dt>
+                    <dd class="m-0 mt-1">{{ currentUser.updated_at | date: 'dd/MM/yyyy HH:mm' }}</dd>
+                </div>
+                <div>
+                    <dt class="text-color-secondary">Dernière connexion</dt>
+                    <dd class="m-0 mt-1">
+                        @if (currentUser.last_connected_at) {
+                        {{ currentUser.last_connected_at | date: 'dd/MM/yyyy HH:mm' }}
+                        } @else {
+                        <span class="text-color-secondary">Jamais</span>
+                        }
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+</div>
+} @else {
+<div class="card">Utilisateur introuvable.</div>
+}

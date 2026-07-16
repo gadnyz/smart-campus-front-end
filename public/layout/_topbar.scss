@@ -129,6 +129,14 @@
     letter-spacing: 0.02em;
 }
 
+.layout-topbar-avatar-image {
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+}
+
 .layout-topbar-user-menu {
     min-width: 14rem;
 }

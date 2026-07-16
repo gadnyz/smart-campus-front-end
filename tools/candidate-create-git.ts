@@ -1,21 +1,22 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, AbstractControl, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { FluidModule } from 'primeng/fluid';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
-import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
-import { CandidateDocumentType, CandidateGender, CandidateResponse, CandidatureType, ConfirmDocumentResponse, MaritalStatus, SubmitCandidatureRequest } from '../../models/candidate.model';
+import { forkJoin, map, of, switchMap } from 'rxjs';
+import { CandidateDocumentType, CandidateGender, CandidateResponse, CandidatureType, MaritalStatus, SubmitCandidatureRequest } from '../../models/candidate.model';
 import { CandidateService } from '../../services/candidate.service';
 import { AdmissionAcademicReferenceService } from '../../services/admission-academic-reference.service';
 import { AuthFooter } from '@/app/core/auth/auth-footer/auth-footer';
 import { appBrand } from '@/app/core/config/app-brand';
-import { ProgramReference } from '@/app/features/academic/academic.public-api';
+import { AcademicReference, LevelReference, ProgramReference } from '@/app/features/academic/academic.public-api';
 import { DatePicker } from 'primeng/datepicker';
 import { InputNumber } from 'primeng/inputnumber';
 import { Divider } from 'primeng/divider';
@@ -41,7 +42,6 @@ type SelectOption<T = string> = {
 type CandidateDocumentDraft = {
     type: CandidateDocumentType;
     label: string;
-    required: boolean;
     file: File | null;
 };
 
@@ -64,14 +64,15 @@ type ProgramOption = SelectOption & {
         CommonModule,
         StepperModule,
         ReactiveFormsModule,
+        FluidModule,
         InputTextModule,
         SelectModule,
         ButtonModule,
         ToastModule,
         AuthFooter,
-        DatePicker,
-        InputNumber,
-        Divider
+        DatePicker,   // <-- Ajout├®
+        InputNumber,  // <-- Ajout├®
+        Divider       // <-- Ajout├®
     ],
     templateUrl: './candidate-create.html',
     styleUrl: './candidate-create.scss',
@@ -79,32 +80,22 @@ type ProgramOption = SelectOption & {
 })
 export class CandidateCreate implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
-    private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
     private readonly fb = inject(FormBuilder);
     private readonly messageService = inject(MessageService);
     private readonly candidateService = inject(CandidateService);
     private readonly academicReferenceService = inject(AdmissionAcademicReferenceService);
-
-    private readonly MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
-    private readonly ALLOWED_MIME_TYPES = new Set([
-        'application/pdf',
-        'image/jpeg',
-        'image/png',
-        'image/webp'
-    ]);
-    private readonly ALLOWED_EXTENSIONS = new Set(['.pdf', '.jpg', '.jpeg', '.png', '.webp']);
-
     readonly documentUploads = signal<CandidateDocumentDraft[]>(this.initialDocumentUploads());
-    readonly documentFieldErrors = signal<Partial<Record<CandidateDocumentType, string>>>({});
     readonly submitting = signal(false);
     readonly loadingFaculties = signal(false);
     readonly loadingPrograms = signal(false);
+    readonly loadingLevels = signal(false);
     readonly validationErrors = signal<Record<string, string>>({});
-    readonly documentsUploadWarning = signal(false);
 
     readonly faculties = signal<SelectOption[]>([]);
     readonly programs = signal<ProgramOption[]>([]);
     readonly levels = signal<SelectOption[]>([]);
+    readonly allLevels = signal<SelectOption[]>([]);
     readonly programMessage = signal('');
     readonly levelMessage = signal('');
     readonly publicMode = signal(true);
@@ -113,27 +104,24 @@ export class CandidateCreate implements OnInit {
 
     readonly brand = appBrand;
 
-    /** Libellé FR de la RDC (indicatif CD), aligné sur countryOptions. */
-    readonly defaultCountryName =
-        new Intl.DisplayNames(['fr'], { type: 'region' }).of('CD') ?? 'Congo (RDC)';
-
     readonly genderOptions: SelectOption<CandidateGender>[] = [
         { label: 'Masculin', value: 'MALE' },
-        { label: 'Féminin', value: 'FEMALE' },
+        { label: 'F├®minin', value: 'FEMALE' },
         { label: 'Autre', value: 'OTHER' }
     ];
 
     readonly maritalStatusOptions: SelectOption<MaritalStatus>[] = [
-        { label: 'Célibataire', value: 'SINGLE' },
-        { label: 'Marié(e)', value: 'MARRIED' },
-        { label: 'Divorcé(e)', value: 'DIVORCED' },
+        { label: 'C├®libataire', value: 'SINGLE' },
+        { label: 'Mari├®(e)', value: 'MARRIED' },
+        { label: 'Divorc├®(e)', value: 'DIVORCED' },
         { label: 'Veuf / Veuve', value: 'WIDOWED' },
         { label: 'Autre', value: 'OTHER' }
     ];
 
+
     readonly candidatureTypeOptions: SelectOption<CandidatureType>[] = [
         { label: 'Nouvelle inscription', value: 'NEW' },
-        { label: 'Inscription spéciale', value: 'SPECIAL' }
+        { label: 'Inscription sp├®ciale', value: 'SPECIAL' }
     ];
 
     readonly form = this.fb.nonNullable.group({
@@ -148,7 +136,7 @@ export class CandidateCreate implements OnInit {
         birth_date: ['', Validators.required],
         birth_place: ['', Validators.required],
         marital_status: ['SINGLE' as MaritalStatus, Validators.required],
-        nationality: [this.defaultCountryName, Validators.required],
+        nationality: ['', Validators.required],
         email: ['', [Validators.required, Validators.email]],
         phone_country: ['CD' as CountryCode, Validators.required],
         phone: ['', [
@@ -162,7 +150,7 @@ export class CandidateCreate implements OnInit {
         commune: ['', Validators.required],
 
         tutor_full_name: ['', Validators.required],
-        tutor_email: ['', this.optionalEmailValidator()],
+        tutor_email: [''],
         tutor_phone_country: ['CD' as CountryCode, Validators.required],
         tutor_phone: ['', [
             Validators.required,
@@ -171,7 +159,7 @@ export class CandidateCreate implements OnInit {
         tutor_profession: [''],
 
         emergency_full_name: [''],
-        emergency_email: ['', this.optionalEmailValidator()],
+        emergency_email: [''],
         emergency_phone_country: ['CD' as CountryCode],
         emergency_phone: ['', [
             this.phoneValidator('emergency_phone_country')
@@ -180,26 +168,19 @@ export class CandidateCreate implements OnInit {
 
         school_name: ['', Validators.required],
         option: ['', Validators.required],
-        percentage: this.fb.control<number | null>(null, [
-            Validators.required,
-            Validators.min(0),
-            Validators.max(100)
-        ]),
+        percentage: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
         graduation_year: [new Date().getFullYear(), [Validators.required, Validators.min(1900)]],
-        study_country: [this.defaultCountryName, Validators.required],
+        study_country: ['', Validators.required],
         study_city: ['', Validators.required],
 
         candidature_type: ['NEW' as CandidatureType, Validators.required]
     });
 
-    ngOnInit(): void {
-        const routePublicMode = this.route.snapshot.data['publicMode'];
-        this.publicMode.set(routePublicMode !== false);
 
+
+    ngOnInit(): void {
         this.loadFaculties();
-        this.bindPhoneCountry('phone_country', 'phone');
-        this.bindPhoneCountry('tutor_phone_country', 'tutor_phone');
-        this.bindPhoneCountry('emergency_phone_country', 'emergency_phone');
+        this.loadLevels();
 
         this.form.controls.faculty_id.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((facultyId) => {
             this.programs.set([]);
@@ -227,8 +208,9 @@ export class CandidateCreate implements OnInit {
             .subscribe((levelId) => {
                 this.updateCandidatureType(levelId);
             });
-    }
 
+
+    }
     isInvalid(controlName: string): boolean {
         const control = this.form.get(controlName);
         return !!control && control.invalid && (control.dirty || control.touched);
@@ -238,100 +220,54 @@ export class CandidateCreate implements OnInit {
         return this.validationErrors()[field] ?? '';
     }
 
-    documentFieldError(type: CandidateDocumentType): string {
-        return this.documentFieldErrors()[type] ?? '';
-    }
-
-    fileIcon(file: File): string {
-        const extension = this.fileExtension(file.name).toLowerCase();
-
-        if (extension === '.pdf' || file.type === 'application/pdf') {
-            return 'pi-file-pdf';
-        }
-
-        return 'pi-image';
-    }
-
-    areRequiredDocumentsAttached(): boolean {
-        return this.documentUploads()
-            .filter((document) => document.required)
-            .every((document) => !!document.file);
-    }
-
     submit(): void {
         this.validationErrors.set({});
-        this.documentsUploadWarning.set(false);
 
         if (this.form.invalid) {
             this.form.markAllAsTouched();
-            this.showWarning('Veuillez compléter correctement les champs obligatoires.');
-            return;
-        }
-
-        if (!this.areRequiredDocumentsAttached()) {
-            this.markMissingDocumentErrors();
-            this.showWarning('Veuillez joindre tous les documents obligatoires.');
+            this.showWarning('Veuillez compl├®ter correctement les champs obligatoires.');
             return;
         }
 
         this.submitting.set(true);
 
-        this.candidateService.submit(this.buildPayload(), { publicRequest: this.publicMode() }).pipe(
-            switchMap((candidate) =>
-                this.uploadSelectedDocuments(candidate.id).pipe(
-                    map((results) => ({
-                        candidate,
-                        uploadFailures: results.some((result) => result === null)
-                    }))
-                )
-            )
+        this.candidateService.submit(this.buildPayload(), { publicRequest: true }).pipe(
+            switchMap((candidate) => this.uploadSelectedDocuments(candidate.id).pipe(map(() => candidate)))
         ).subscribe({
-            next: ({ candidate, uploadFailures }) => {
+            next: (candidate) => {
                 this.submitting.set(false);
                 this.submittedCandidate.set(candidate);
-
-                if (uploadFailures) {
-                    this.documentsUploadWarning.set(true);
-                    this.showWarning(
-                        'Votre candidature a été enregistrée, mais certains documents n’ont pas pu être téléversés. Vous pouvez réessayer ci-dessous.',
-                        8000
-                    );
-                }
             },
             error: (error: HttpErrorResponse) => {
                 this.submitting.set(false);
 
                 if (error.status === 400 && error.error?.invalid_fields) {
                     this.validationErrors.set(error.error.invalid_fields);
-                    this.showError(this.toPublicErrorMessage(error));
+                    this.showError(error.error?.detail ?? 'La requ├¬te contient des champs non valides.');
                     return;
                 }
 
                 if (error.status === 401) {
-                    this.showError(
-                        this.publicMode()
-                            ? 'La soumission n’a pas pu aboutir. Veuillez réessayer dans quelques instants.'
-                            : 'Session expirée ou non authentifiée.'
-                    );
+                    this.showError('Session expir├®e ou non authentifi├®e.');
                     return;
                 }
 
                 if (error.status === 403) {
-                    this.showError('Vous n’êtes pas autorisé à déposer une candidature.');
+                    this.showError('Tu nÔÇÖas pas les privil├¿ges n├®cessaires pour cr├®er une candidature.');
                     return;
                 }
 
                 if (error.status === 404) {
-                    this.showError(error.error?.detail ?? 'Une référence académique est introuvable.');
+                    this.showError(error.error?.detail ?? 'Une r├®f├®rence acad├®mique est introuvable.');
                     return;
                 }
 
                 if (error.status === 409) {
-                    this.showError(this.toPublicConflictMessage(error));
+                    this.showError(error.error?.detail ?? 'Une candidature similaire existe d├®j├á.');
                     return;
                 }
 
-                this.showError(this.toPublicErrorMessage(error));
+                this.showError(error.error?.detail ?? 'Une erreur est survenue lors de la cr├®ation de la candidature.');
             }
         });
     }
@@ -346,7 +282,7 @@ export class CandidateCreate implements OnInit {
             },
             error: () => {
                 this.loadingFaculties.set(false);
-                this.showError('Impossible de charger les facultés.');
+                this.showError('Impossible de charger les facult├®s.');
             }
         });
     }
@@ -362,7 +298,7 @@ export class CandidateCreate implements OnInit {
                 this.loadingPrograms.set(false);
 
                 if (!options.length) {
-                    this.programMessage.set('Aucun programme n’est rattaché à cette faculté.');
+                    this.programMessage.set('Aucun programme nÔÇÖest rattach├® ├á cette facult├®.');
                     this.form.controls.program_id.disable();
                     return;
                 }
@@ -372,18 +308,31 @@ export class CandidateCreate implements OnInit {
             },
             error: () => {
                 this.loadingPrograms.set(false);
-                this.programMessage.set('Impossible de charger les programmes de cette faculté.');
+                this.programMessage.set('Impossible de charger les programmes de cette facult├®.');
             }
         });
     }
 
+    private loadLevels(): void {
+        this.loadingLevels.set(true);
+
+        this.academicReferenceService.getLevelReferences(this.publicMode()).subscribe({
+            next: (levels) => {
+                this.allLevels.set(levels.map((level) => this.toOption(level)));
+                this.loadingLevels.set(false);
+                this.applyLevelRules();
+            },
+            error: () => {
+                this.loadingLevels.set(false);
+                this.showError('Impossible de charger les niveaux.');
+            }
+        });
+    }
+
+
     canContinueStep(step: number): boolean {
         if (step === 2) {
             return this.isStepValid(2) && !this.loadingPrograms() && !this.programMessage() && !this.levelMessage();
-        }
-
-        if (step === 4) {
-            return this.areRequiredDocumentsAttached();
         }
 
         return this.isStepValid(step);
@@ -402,7 +351,7 @@ export class CandidateCreate implements OnInit {
         }
 
         if (!program.levels.length) {
-            this.levelMessage.set('Aucun niveau n’est rattaché à ce programme.');
+            this.levelMessage.set('Aucun niveau nÔÇÖest rattach├® ├á ce programme.');
             return;
         }
 
@@ -448,9 +397,35 @@ export class CandidateCreate implements OnInit {
             || normalized.includes('preparatoire');
     }
 
+    candidatureTypeLabel(): string {
+        if (!this.form.controls.level_id.value) {
+            return '';
+        }
+
+        const type = this.form.controls.candidature_type.value;
+
+        return this.candidatureTypeOptions.find(
+            (option) => option.value === type
+        )?.label ?? '';
+    }
+
+
     private selectedProgram(): ProgramOption | null {
         const programId = this.form.controls.program_id.value;
         return this.programs().find((program) => program.value === programId) ?? null;
+    }
+
+    private selectedFaculty(): SelectOption | null {
+        const facultyId = this.form.controls.faculty_id.value;
+        return this.faculties().find((faculty) => faculty.value === facultyId) ?? null;
+    }
+
+    private isStOrArchitectureSelection(): boolean {
+        const raw = `${this.selectedFaculty()?.label ?? ''} ${this.selectedProgram()?.label ?? ''}`;
+        const normalized = this.normalize(raw);
+        const upper = raw.toUpperCase();
+
+        return /\bST\b/.test(upper) || (normalized.includes('science') && normalized.includes('technolog')) || normalized.includes('architecture');
     }
 
     private isL1(level: SelectOption): boolean {
@@ -458,6 +433,13 @@ export class CandidateCreate implements OnInit {
         const upper = level.label.toUpperCase();
 
         return /\bL1\b/.test(upper) || normalized.includes('licence 1');
+    }
+
+    private isL2(level: SelectOption): boolean {
+        const normalized = this.normalize(level.label);
+        const upper = level.label.toUpperCase();
+
+        return /\bL2\b/.test(upper) || normalized.includes('licence 2');
     }
 
     private isMaster1(level: SelectOption): boolean {
@@ -485,6 +467,13 @@ export class CandidateCreate implements OnInit {
         };
     }
 
+    private toOption(item: AcademicReference | LevelReference): SelectOption {
+        return {
+            label: item.code ? `${item.code} - ${item.name}` : item.name,
+            value: item.id
+        };
+    }
+
     private normalize(value: string): string {
         return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     }
@@ -499,7 +488,7 @@ export class CandidateCreate implements OnInit {
             last_name: raw.last_name.trim(),
             middle_name: raw.middle_name.trim(),
             gender: raw.gender,
-            birth_date: this.formatDate(raw.birth_date),
+            birth_date: this.formatDate(raw.birth_date), // <-- Modifi├® pour assurer la compatibilit├® API
             birth_place: raw.birth_place.trim(),
             marital_status: raw.marital_status,
             nationality: raw.nationality.trim(),
@@ -543,35 +532,17 @@ export class CandidateCreate implements OnInit {
         };
     }
 
-    private showError(detail: string, life = 6000): void {
-        this.messageService.add({ severity: 'error', summary: 'Erreur', detail, life });
+    private showSuccess(detail: string): void {
+        this.messageService.add({ severity: 'success', summary: 'Succ├¿s', detail, life: 3000 });
     }
 
-    private showWarning(detail: string, life = 4500): void {
-        this.messageService.add({ severity: 'warn', summary: 'Attention', detail, life });
+    private showError(detail: string): void {
+        this.messageService.add({ severity: 'error', summary: 'Erreur', detail, life: 3000 });
     }
 
-    private toPublicConflictMessage(error: HttpErrorResponse): string {
-        const detail = this.extractApiDetail(error);
-        if (detail && /email|utilisateur|compte|candidature/i.test(detail)) {
-            return 'Une candidature existe déjà avec cet e-mail. Utilisez une autre adresse ou contactez le service des admissions.';
-        }
-        return detail ?? 'Une candidature similaire existe déjà.';
+    private showWarning(detail: string): void {
+        this.messageService.add({ severity: 'warn', summary: 'Attention', detail, life: 3000 });
     }
-
-    private toPublicErrorMessage(error: HttpErrorResponse): string {
-        const detail = this.extractApiDetail(error);
-        if (detail && /utilisateur avec cette adresse email existe|email existe déjà/i.test(detail)) {
-            return 'Une candidature existe déjà avec cet e-mail. Utilisez une autre adresse ou contactez le service des admissions.';
-        }
-        return detail ?? 'Une erreur est survenue lors de la création de la candidature.';
-    }
-
-    private extractApiDetail(error: HttpErrorResponse): string | null {
-        const detail = error.error?.detail;
-        return typeof detail === 'string' && detail.trim() ? detail.trim() : null;
-    }
-
     private readonly stepFields: Record<number, string[]> = {
         1: [
             'first_name', 'last_name', 'gender', 'birth_date', 'birth_place',
@@ -588,10 +559,6 @@ export class CandidateCreate implements OnInit {
     };
 
     isStepValid(step: number): boolean {
-        if (step === 4) {
-            return this.areRequiredDocumentsAttached();
-        }
-
         return (this.stepFields[step] ?? []).every((field) => this.form.get(field)?.valid);
     }
 
@@ -612,160 +579,55 @@ export class CandidateCreate implements OnInit {
 
         fields.forEach((field) => this.form.get(field)?.markAsTouched());
 
-        if (step === 4 && !this.areRequiredDocumentsAttached()) {
-            this.markMissingDocumentErrors();
-            this.showWarning('Veuillez joindre tous les documents obligatoires.');
-            return false;
-        }
-
         if (!this.isStepValid(step)) {
-            this.showWarning('Veuillez compléter correctement cette étape.');
+            this.showWarning('Veuillez compl├®ter correctement cette ├®tape.');
             return false;
         }
 
         return true;
     }
 
-
-    retryDocumentUploads(): void {
-        const candidate = this.submittedCandidate();
-        if (!candidate || this.submitting()) {
-            return;
-        }
-
-        this.submitting.set(true);
-        this.uploadSelectedDocuments(candidate.id).subscribe({
-            next: (results) => {
-                this.submitting.set(false);
-                const failed = results.some((result) => result === null);
-                this.documentsUploadWarning.set(failed);
-
-                if (failed) {
-                    this.showWarning(
-                        'Certains documents n’ont toujours pas pu être joints. Réessayez ou contactez les admissions.',
-                        8000
-                    );
-                    return;
-                }
-
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Documents joints',
-                    detail: 'Tous les documents ont été téléversés avec succès.',
-                    life: 6000
-                });
-            },
-            error: () => {
-                this.submitting.set(false);
-                this.showWarning(
-                    'La reprise des documents a échoué. Réessayez dans quelques instants.',
-                    8000
-                );
-            }
-        });
-    }
-
     startAnotherApplication(): void {
         this.submittedCandidate.set(null);
-        this.documentsUploadWarning.set(false);
-        this.validationErrors.set({});
-        this.documentFieldErrors.set({});
-        this.programMessage.set('');
-        this.levelMessage.set('');
-        this.programs.set([]);
-        this.levels.set([]);
         this.activeStep.set(1);
-
         this.form.reset({
-            faculty_id: '',
-            program_id: '',
-            level_id: '',
-            first_name: '',
-            last_name: '',
-            middle_name: '',
             gender: 'MALE',
-            birth_date: '',
-            birth_place: '',
             marital_status: 'SINGLE',
-            nationality: this.defaultCountryName,
-            email: '',
-            phone_country: 'CD',
-            phone: '',
-            province: '',
-            territory: '',
-            sector: '',
-            commune: '',
-            tutor_full_name: '',
-            tutor_email: '',
-            tutor_phone_country: 'CD',
-            tutor_phone: '',
-            tutor_profession: '',
-            emergency_full_name: '',
-            emergency_email: '',
-            emergency_phone_country: 'CD',
-            emergency_phone: '',
-            emergency_relationship: '',
-            school_name: '',
-            option: '',
-            percentage: null,
+            percentage: 0,
             graduation_year: new Date().getFullYear(),
-            study_country: this.defaultCountryName,
-            study_city: '',
-            candidature_type: 'NEW'
+            candidature_type: 'NEW',
+            phone_country: 'CD',
+            tutor_phone_country: 'CD',
+            emergency_phone_country: 'CD'
         });
-
-        this.form.controls.program_id.disable();
-        this.form.controls.level_id.disable();
         this.documentUploads.set(this.initialDocumentUploads());
+
     }
 
     onDocumentSelected(event: Event, type: CandidateDocumentType): void {
         const input = event.target as HTMLInputElement;
         const file = input.files?.[0] ?? null;
 
-        input.value = '';
-
-        if (!file) {
-            return;
-        }
-
-        const rejection = this.validateDocumentFile(file);
-
-        if (rejection) {
-            this.showWarning(rejection);
-            return;
-        }
-
         this.documentUploads.update((documents) =>
             documents.map((document) => (document.type === type ? { ...document, file } : document))
         );
 
-        this.documentFieldErrors.update((errors) => {
-            const next = { ...errors };
-            delete next[type];
-            return next;
-        });
+        input.value = '';
     }
 
     removeDocument(type: CandidateDocumentType): void {
         this.documentUploads.update((documents) =>
             documents.map((document) => (document.type === type ? { ...document, file: null } : document))
         );
-
-        this.documentFieldErrors.update((errors) => {
-            const next = { ...errors };
-            delete next[type];
-            return next;
-        });
     }
 
     private initialDocumentUploads(): CandidateDocumentDraft[] {
         return [
-            { type: 'ID_CARD', label: 'Pièce d’identité', required: true, file: null },
-            { type: 'DIPLOMA', label: 'Diplôme', required: true, file: null },
-            { type: 'TRANSCRIPT', label: 'Relevé de notes', required: true, file: null },
-            { type: 'PAYMENT_SLIP', label: 'Preuve de paiement', required: true, file: null },
-            { type: 'PHOTO', label: 'Photo', required: true, file: null }
+            { type: 'ID_CARD', label: 'Pi├¿ce dÔÇÖidentit├®', file: null },
+            { type: 'DIPLOMA', label: 'Dipl├┤me', file: null },
+            { type: 'TRANSCRIPT', label: 'Relev├® de notes', file: null },
+            { type: 'PAYMENT_SLIP', label: 'Preuve de paiement', file: null },
+            { type: 'PHOTO', label: 'Photo', file: null }
         ];
     }
 
@@ -773,7 +635,7 @@ export class CandidateCreate implements OnInit {
         const documents = this.documentUploads().filter((document) => document.file);
 
         if (!documents.length) {
-            return of([] as (ConfirmDocumentResponse | null)[]);
+            return of([]);
         }
 
         return forkJoin(
@@ -781,89 +643,33 @@ export class CandidateCreate implements OnInit {
                 const file = document.file as File;
                 const extension = this.fileExtension(file.name);
 
-                return this.uploadDocumentWithUrlRefresh(
-                    candidateId,
-                    document.type,
-                    file,
-                    extension
-                ).pipe(catchError(() => of(null)));
-            })
-        );
-    }
-
-    /** Demande un upload-url, upload, confirm — renouvelle l’URL une fois si elle a expiré. */
-    private uploadDocumentWithUrlRefresh(
-        candidateId: string,
-        type: CandidateDocumentType,
-        file: File,
-        extension: string
-    ): Observable<ConfirmDocumentResponse | null> {
-        const runOnce = (): Observable<ConfirmDocumentResponse> =>
-            this.candidateService.requestDocumentUploadUrl(
-                candidateId,
-                type,
-                extension,
-                { publicRequest: this.publicMode() }
-            ).pipe(
-                switchMap((upload) =>
-                    this.candidateService.uploadDocument(upload.upload_url, file).pipe(
-                        switchMap(() =>
-                            this.candidateService.confirmDocumentUpload(
-                                candidateId,
-                                { object_path: upload.object_path, type },
-                                { publicRequest: this.publicMode() }
+                return this.candidateService.requestDocumentUploadUrl(candidateId, document.type, extension, { publicRequest: true }).pipe(
+                    switchMap((upload) =>
+                        this.candidateService.uploadDocument(upload.upload_url, file).pipe(
+                            switchMap(() =>
+                                this.candidateService.confirmDocumentUpload(
+                                    candidateId,
+                                    { object_path: upload.object_path, type: document.type },
+                                    { publicRequest: true }
+                                )
                             )
                         )
                     )
-                )
-            );
-
-        return runOnce().pipe(
-            catchError((error: unknown) => {
-                const status =
-                    error instanceof HttpErrorResponse ? error.status : 0;
-                const expired =
-                    status === 403 || status === 401 || status === 0;
-
-                if (!expired) {
-                    return of(null);
-                }
-
-                return runOnce().pipe(catchError(() => of(null)));
+                );
             })
         );
-    }
-
-    private validateDocumentFile(file: File): string | null {
-        if (file.size > this.MAX_FILE_SIZE_BYTES) {
-            return 'Le fichier ne doit pas dépasser 5 Mo.';
-        }
-
-        const extension = this.fileExtension(file.name).toLowerCase();
-        const mimeAllowed = this.ALLOWED_MIME_TYPES.has(file.type);
-        const extensionAllowed = this.ALLOWED_EXTENSIONS.has(extension);
-
-        if (!mimeAllowed && !extensionAllowed) {
-            return 'Format non accepté. Utilisez PDF, JPEG, PNG ou WebP.';
-        }
-
-        return null;
-    }
-
-    private markMissingDocumentErrors(): void {
-        const errors: Partial<Record<CandidateDocumentType, string>> = {};
-
-        for (const document of this.documentUploads()) {
-            if (document.required && !document.file) {
-                errors[document.type] = 'Ce document est obligatoire.';
-            }
-        }
-
-        this.documentFieldErrors.set(errors);
     }
 
     private fileExtension(fileName: string): string {
         return fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')) : '';
+    }
+
+    displayValue(value: unknown): string {
+        return value === null || value === undefined || value === '' ? '-' : String(value);
+    }
+
+    optionLabel(options: SelectOption[], value: string): string {
+        return options.find((option) => option.value === value)?.label ?? this.displayValue(value);
     }
 
     private formatDate(date: unknown): string {
@@ -873,20 +679,7 @@ export class CandidateCreate implements OnInit {
             const dd = String(date.getDate()).padStart(2, '0');
             return `${yyyy}-${mm}-${dd}`;
         }
-
-        return String(date ?? '');
-    }
-
-    private optionalEmailValidator(): ValidatorFn {
-        return (control: AbstractControl): ValidationErrors | null => {
-            const value = String(control.value ?? '').trim();
-
-            if (!value) {
-                return null;
-            }
-
-            return Validators.email(control);
-        };
+        return typeof date === 'string' ? date : '';
     }
 
     private readonly countryNames = new Intl.DisplayNames(['fr'], {
@@ -902,7 +695,6 @@ export class CandidateCreate implements OnInit {
         .sort((first, second) =>
             first.name.localeCompare(second.name, 'fr')
         );
-
     private phoneValidator(countryControlName: string): ValidatorFn {
         return (control: AbstractControl): ValidationErrors | null => {
             const value = String(control.value ?? '').trim();
@@ -963,4 +755,5 @@ export class CandidateCreate implements OnInit {
                 });
             });
     }
+
 }

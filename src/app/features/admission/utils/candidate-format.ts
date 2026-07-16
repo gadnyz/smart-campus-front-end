@@ -1,4 +1,3 @@
-// import { formatDate } from '@angular/common';
 import { CandidateDocumentType, CandidateGender, CandidatureStatus, CandidatureType, MaritalStatus } from '../models/candidate.model';
 
 export type CandidateStatusSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary';

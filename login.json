@@ -1,0 +1,1 @@
+{"detail":"The request body is missing or incorrectly formatted.","instance":"/api/v1/auth/login","status":400,"title":"The request is invalid"}

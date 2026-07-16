@@ -9,8 +9,8 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
-import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
-import { CandidateDocumentType, CandidateGender, CandidateResponse, CandidatureType, ConfirmDocumentResponse, MaritalStatus, SubmitCandidatureRequest } from '../../models/candidate.model';
+import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
+import { CandidateDocumentType, CandidateGender, CandidateResponse, CandidatureType, MaritalStatus, SubmitCandidatureRequest } from '../../models/candidate.model';
 import { CandidateService } from '../../services/candidate.service';
 import { AdmissionAcademicReferenceService } from '../../services/admission-academic-reference.service';
 import { AuthFooter } from '@/app/core/auth/auth-footer/auth-footer';
@@ -113,27 +113,23 @@ export class CandidateCreate implements OnInit {
 
     readonly brand = appBrand;
 
-    /** Libellé FR de la RDC (indicatif CD), aligné sur countryOptions. */
-    readonly defaultCountryName =
-        new Intl.DisplayNames(['fr'], { type: 'region' }).of('CD') ?? 'Congo (RDC)';
-
     readonly genderOptions: SelectOption<CandidateGender>[] = [
         { label: 'Masculin', value: 'MALE' },
-        { label: 'Féminin', value: 'FEMALE' },
+        { label: 'F�minin', value: 'FEMALE' },
         { label: 'Autre', value: 'OTHER' }
     ];
 
     readonly maritalStatusOptions: SelectOption<MaritalStatus>[] = [
-        { label: 'Célibataire', value: 'SINGLE' },
-        { label: 'Marié(e)', value: 'MARRIED' },
-        { label: 'Divorcé(e)', value: 'DIVORCED' },
+        { label: 'C�libataire', value: 'SINGLE' },
+        { label: 'Mari�(e)', value: 'MARRIED' },
+        { label: 'Divorc�(e)', value: 'DIVORCED' },
         { label: 'Veuf / Veuve', value: 'WIDOWED' },
         { label: 'Autre', value: 'OTHER' }
     ];
 
     readonly candidatureTypeOptions: SelectOption<CandidatureType>[] = [
         { label: 'Nouvelle inscription', value: 'NEW' },
-        { label: 'Inscription spéciale', value: 'SPECIAL' }
+        { label: 'Inscription sp�ciale', value: 'SPECIAL' }
     ];
 
     readonly form = this.fb.nonNullable.group({
@@ -148,9 +144,9 @@ export class CandidateCreate implements OnInit {
         birth_date: ['', Validators.required],
         birth_place: ['', Validators.required],
         marital_status: ['SINGLE' as MaritalStatus, Validators.required],
-        nationality: [this.defaultCountryName, Validators.required],
+        nationality: ['', Validators.required],
         email: ['', [Validators.required, Validators.email]],
-        phone_country: ['CD' as CountryCode, Validators.required],
+        phone_country: ['HT' as CountryCode, Validators.required],
         phone: ['', [
             Validators.required,
             this.phoneValidator('phone_country')
@@ -163,7 +159,7 @@ export class CandidateCreate implements OnInit {
 
         tutor_full_name: ['', Validators.required],
         tutor_email: ['', this.optionalEmailValidator()],
-        tutor_phone_country: ['CD' as CountryCode, Validators.required],
+        tutor_phone_country: ['HT' as CountryCode, Validators.required],
         tutor_phone: ['', [
             Validators.required,
             this.phoneValidator('tutor_phone_country')
@@ -172,7 +168,7 @@ export class CandidateCreate implements OnInit {
 
         emergency_full_name: [''],
         emergency_email: ['', this.optionalEmailValidator()],
-        emergency_phone_country: ['CD' as CountryCode],
+        emergency_phone_country: ['HT' as CountryCode],
         emergency_phone: ['', [
             this.phoneValidator('emergency_phone_country')
         ]],
@@ -186,7 +182,7 @@ export class CandidateCreate implements OnInit {
             Validators.max(100)
         ]),
         graduation_year: [new Date().getFullYear(), [Validators.required, Validators.min(1900)]],
-        study_country: [this.defaultCountryName, Validators.required],
+        study_country: ['', Validators.required],
         study_city: ['', Validators.required],
 
         candidature_type: ['NEW' as CandidatureType, Validators.required]
@@ -264,7 +260,7 @@ export class CandidateCreate implements OnInit {
 
         if (this.form.invalid) {
             this.form.markAllAsTouched();
-            this.showWarning('Veuillez compléter correctement les champs obligatoires.');
+            this.showWarning('Veuillez compl�ter correctement les champs obligatoires.');
             return;
         }
 
@@ -293,7 +289,7 @@ export class CandidateCreate implements OnInit {
                 if (uploadFailures) {
                     this.documentsUploadWarning.set(true);
                     this.showWarning(
-                        'Votre candidature a été enregistrée, mais certains documents n’ont pas pu être téléversés. Vous pouvez réessayer ci-dessous.',
+                        'Votre candidature a �t� enregistr�e, mais certains documents n ont pas pu �tre t�l�vers�s. Nos services vous recontacteront si n�cessaire.',
                         8000
                     );
                 }
@@ -303,35 +299,35 @@ export class CandidateCreate implements OnInit {
 
                 if (error.status === 400 && error.error?.invalid_fields) {
                     this.validationErrors.set(error.error.invalid_fields);
-                    this.showError(this.toPublicErrorMessage(error));
+                    this.showError(error.error?.detail ?? 'La requ�te contient des champs non valides.');
                     return;
                 }
 
                 if (error.status === 401) {
                     this.showError(
                         this.publicMode()
-                            ? 'La soumission n’a pas pu aboutir. Veuillez réessayer dans quelques instants.'
-                            : 'Session expirée ou non authentifiée.'
+                            ? 'La soumission n a pas pu aboutir. Veuillez r�essayer dans quelques instants.'
+                            : 'Session expir�e ou non authentifi�e.'
                     );
                     return;
                 }
 
                 if (error.status === 403) {
-                    this.showError('Vous n’êtes pas autorisé à déposer une candidature.');
+                    this.showError('Vous n �tes pas autoris� � d�poser une candidature.');
                     return;
                 }
 
                 if (error.status === 404) {
-                    this.showError(error.error?.detail ?? 'Une référence académique est introuvable.');
+                    this.showError(error.error?.detail ?? 'Une r�f�rence acad�mique est introuvable.');
                     return;
                 }
 
                 if (error.status === 409) {
-                    this.showError(this.toPublicConflictMessage(error));
+                    this.showError(error.error?.detail ?? 'Une candidature similaire existe d�j�.');
                     return;
                 }
 
-                this.showError(this.toPublicErrorMessage(error));
+                this.showError(error.error?.detail ?? 'Une erreur est survenue lors de la cr�ation de la candidature.');
             }
         });
     }
@@ -346,7 +342,7 @@ export class CandidateCreate implements OnInit {
             },
             error: () => {
                 this.loadingFaculties.set(false);
-                this.showError('Impossible de charger les facultés.');
+                this.showError('Impossible de charger les facult�s.');
             }
         });
     }
@@ -362,7 +358,7 @@ export class CandidateCreate implements OnInit {
                 this.loadingPrograms.set(false);
 
                 if (!options.length) {
-                    this.programMessage.set('Aucun programme n’est rattaché à cette faculté.');
+                    this.programMessage.set('Aucun programme n est rattach� � cette facult�.');
                     this.form.controls.program_id.disable();
                     return;
                 }
@@ -372,7 +368,7 @@ export class CandidateCreate implements OnInit {
             },
             error: () => {
                 this.loadingPrograms.set(false);
-                this.programMessage.set('Impossible de charger les programmes de cette faculté.');
+                this.programMessage.set('Impossible de charger les programmes de cette facult�.');
             }
         });
     }
@@ -402,7 +398,7 @@ export class CandidateCreate implements OnInit {
         }
 
         if (!program.levels.length) {
-            this.levelMessage.set('Aucun niveau n’est rattaché à ce programme.');
+            this.levelMessage.set('Aucun niveau n est rattach� � ce programme.');
             return;
         }
 
@@ -551,27 +547,6 @@ export class CandidateCreate implements OnInit {
         this.messageService.add({ severity: 'warn', summary: 'Attention', detail, life });
     }
 
-    private toPublicConflictMessage(error: HttpErrorResponse): string {
-        const detail = this.extractApiDetail(error);
-        if (detail && /email|utilisateur|compte|candidature/i.test(detail)) {
-            return 'Une candidature existe déjà avec cet e-mail. Utilisez une autre adresse ou contactez le service des admissions.';
-        }
-        return detail ?? 'Une candidature similaire existe déjà.';
-    }
-
-    private toPublicErrorMessage(error: HttpErrorResponse): string {
-        const detail = this.extractApiDetail(error);
-        if (detail && /utilisateur avec cette adresse email existe|email existe déjà/i.test(detail)) {
-            return 'Une candidature existe déjà avec cet e-mail. Utilisez une autre adresse ou contactez le service des admissions.';
-        }
-        return detail ?? 'Une erreur est survenue lors de la création de la candidature.';
-    }
-
-    private extractApiDetail(error: HttpErrorResponse): string | null {
-        const detail = error.error?.detail;
-        return typeof detail === 'string' && detail.trim() ? detail.trim() : null;
-    }
-
     private readonly stepFields: Record<number, string[]> = {
         1: [
             'first_name', 'last_name', 'gender', 'birth_date', 'birth_place',
@@ -619,50 +594,11 @@ export class CandidateCreate implements OnInit {
         }
 
         if (!this.isStepValid(step)) {
-            this.showWarning('Veuillez compléter correctement cette étape.');
+            this.showWarning('Veuillez compl�ter correctement cette �tape.');
             return false;
         }
 
         return true;
-    }
-
-
-    retryDocumentUploads(): void {
-        const candidate = this.submittedCandidate();
-        if (!candidate || this.submitting()) {
-            return;
-        }
-
-        this.submitting.set(true);
-        this.uploadSelectedDocuments(candidate.id).subscribe({
-            next: (results) => {
-                this.submitting.set(false);
-                const failed = results.some((result) => result === null);
-                this.documentsUploadWarning.set(failed);
-
-                if (failed) {
-                    this.showWarning(
-                        'Certains documents n’ont toujours pas pu être joints. Réessayez ou contactez les admissions.',
-                        8000
-                    );
-                    return;
-                }
-
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Documents joints',
-                    detail: 'Tous les documents ont été téléversés avec succès.',
-                    life: 6000
-                });
-            },
-            error: () => {
-                this.submitting.set(false);
-                this.showWarning(
-                    'La reprise des documents a échoué. Réessayez dans quelques instants.',
-                    8000
-                );
-            }
-        });
     }
 
     startAnotherApplication(): void {
@@ -687,9 +623,9 @@ export class CandidateCreate implements OnInit {
             birth_date: '',
             birth_place: '',
             marital_status: 'SINGLE',
-            nationality: this.defaultCountryName,
+            nationality: '',
             email: '',
-            phone_country: 'CD',
+            phone_country: 'HT',
             phone: '',
             province: '',
             territory: '',
@@ -697,19 +633,19 @@ export class CandidateCreate implements OnInit {
             commune: '',
             tutor_full_name: '',
             tutor_email: '',
-            tutor_phone_country: 'CD',
+            tutor_phone_country: 'HT',
             tutor_phone: '',
             tutor_profession: '',
             emergency_full_name: '',
             emergency_email: '',
-            emergency_phone_country: 'CD',
+            emergency_phone_country: 'HT',
             emergency_phone: '',
             emergency_relationship: '',
             school_name: '',
             option: '',
             percentage: null,
             graduation_year: new Date().getFullYear(),
-            study_country: this.defaultCountryName,
+            study_country: '',
             study_city: '',
             candidature_type: 'NEW'
         });
@@ -761,9 +697,9 @@ export class CandidateCreate implements OnInit {
 
     private initialDocumentUploads(): CandidateDocumentDraft[] {
         return [
-            { type: 'ID_CARD', label: 'Pièce d’identité', required: true, file: null },
-            { type: 'DIPLOMA', label: 'Diplôme', required: true, file: null },
-            { type: 'TRANSCRIPT', label: 'Relevé de notes', required: true, file: null },
+            { type: 'ID_CARD', label: 'Pi�ce d identit�', required: true, file: null },
+            { type: 'DIPLOMA', label: 'Dipl�me', required: true, file: null },
+            { type: 'TRANSCRIPT', label: 'Relev� de notes', required: true, file: null },
             { type: 'PAYMENT_SLIP', label: 'Preuve de paiement', required: true, file: null },
             { type: 'PHOTO', label: 'Photo', required: true, file: null }
         ];
@@ -773,7 +709,7 @@ export class CandidateCreate implements OnInit {
         const documents = this.documentUploads().filter((document) => document.file);
 
         if (!documents.length) {
-            return of([] as (ConfirmDocumentResponse | null)[]);
+            return of([]);
         }
 
         return forkJoin(
@@ -781,62 +717,32 @@ export class CandidateCreate implements OnInit {
                 const file = document.file as File;
                 const extension = this.fileExtension(file.name);
 
-                return this.uploadDocumentWithUrlRefresh(
+                return this.candidateService.requestDocumentUploadUrl(
                     candidateId,
                     document.type,
-                    file,
-                    extension
-                ).pipe(catchError(() => of(null)));
-            })
-        );
-    }
-
-    /** Demande un upload-url, upload, confirm — renouvelle l’URL une fois si elle a expiré. */
-    private uploadDocumentWithUrlRefresh(
-        candidateId: string,
-        type: CandidateDocumentType,
-        file: File,
-        extension: string
-    ): Observable<ConfirmDocumentResponse | null> {
-        const runOnce = (): Observable<ConfirmDocumentResponse> =>
-            this.candidateService.requestDocumentUploadUrl(
-                candidateId,
-                type,
-                extension,
-                { publicRequest: this.publicMode() }
-            ).pipe(
-                switchMap((upload) =>
-                    this.candidateService.uploadDocument(upload.upload_url, file).pipe(
-                        switchMap(() =>
-                            this.candidateService.confirmDocumentUpload(
-                                candidateId,
-                                { object_path: upload.object_path, type },
-                                { publicRequest: this.publicMode() }
+                    extension,
+                    { publicRequest: this.publicMode() }
+                ).pipe(
+                    switchMap((upload) =>
+                        this.candidateService.uploadDocument(upload.upload_url, file).pipe(
+                            switchMap(() =>
+                                this.candidateService.confirmDocumentUpload(
+                                    candidateId,
+                                    { object_path: upload.object_path, type: document.type },
+                                    { publicRequest: this.publicMode() }
+                                )
                             )
                         )
-                    )
-                )
-            );
-
-        return runOnce().pipe(
-            catchError((error: unknown) => {
-                const status =
-                    error instanceof HttpErrorResponse ? error.status : 0;
-                const expired =
-                    status === 403 || status === 401 || status === 0;
-
-                if (!expired) {
-                    return of(null);
-                }
-
-                return runOnce().pipe(catchError(() => of(null)));
+                    ),
+                    catchError(() => of(null))
+                );
             })
         );
     }
 
     private validateDocumentFile(file: File): string | null {
         if (file.size > this.MAX_FILE_SIZE_BYTES) {
-            return 'Le fichier ne doit pas dépasser 5 Mo.';
+            return 'Le fichier ne doit pas d�passer 5 Mo.';
         }
 
         const extension = this.fileExtension(file.name).toLowerCase();
@@ -844,7 +750,7 @@ export class CandidateCreate implements OnInit {
         const extensionAllowed = this.ALLOWED_EXTENSIONS.has(extension);
 
         if (!mimeAllowed && !extensionAllowed) {
-            return 'Format non accepté. Utilisez PDF, JPEG, PNG ou WebP.';
+            return 'Format non accept�. Utilisez PDF, JPEG, PNG ou WebP.';
         }
 
         return null;

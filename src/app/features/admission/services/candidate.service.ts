@@ -137,7 +137,10 @@ export class CandidateService {
         return this.http
             .post<void>(`${this.baseUrl}/${id}/validate`, {})
             .pipe(
-                switchMap(() => this.getById(id, true))
+                switchMap(() => this.getById(id, true)),
+                map((candidate) =>
+                    this.withStatus(candidate, 'VALIDATED')
+                )
             );
     }
 
@@ -145,7 +148,10 @@ export class CandidateService {
         return this.http
             .post<void>(`${this.baseUrl}/${id}/reject`, {})
             .pipe(
-                switchMap(() => this.getById(id, true))
+                switchMap(() => this.getById(id, true)),
+                map((candidate) =>
+                    this.withStatus(candidate, 'REJECTED')
+                )
             );
     }
 
@@ -227,6 +233,27 @@ export class CandidateService {
         );
     }
 
+    /**
+     * `document.file_url` stocke le chemin objet S3 (ex. students/.../file.pdf).
+     * POST /documents/confirm renvoie une URL présignée de lecture/téléchargement.
+     */
+    resolveDocumentViewUrl(
+        candidateId: string,
+        document: Pick<CandidateDocument, 'file_url' | 'document_type'>,
+        options: { publicRequest?: boolean } = {}
+    ): Observable<string> {
+        const objectPath = this.toDocumentObjectPath(document.file_url);
+
+        return this.confirmDocumentUpload(
+            candidateId,
+            {
+                object_path: objectPath,
+                type: document.document_type
+            },
+            options
+        ).pipe(map((response) => response.file_url));
+    }
+
     clearDetailCache(id?: string): void {
         if (id) {
             this.detailCache.delete(id);
@@ -234,6 +261,22 @@ export class CandidateService {
         }
 
         this.detailCache.clear();
+    }
+
+    private withStatus(
+        candidate: CandidateResponse,
+        status: CandidatureStatus
+    ): CandidateResponse {
+        const updated: CandidateResponse = {
+            ...candidate,
+            candidature: {
+                ...candidate.candidature,
+                status
+            }
+        };
+
+        this.detailCache.set(updated.id, updated);
+        return updated;
     }
 
     private httpContext(publicRequest?: boolean): HttpContext {
@@ -322,4 +365,23 @@ export class CandidateService {
             document_type: documentType
         };
     }
+    private toDocumentObjectPath(fileUrl: string): string {
+        const value = fileUrl.trim();
+
+        if (!value) {
+            return value;
+        }
+
+        try {
+            if (/^https?:\/\//i.test(value)) {
+                const pathname = new URL(value).pathname.replace(/^\/+/, '');
+                return pathname.replace(/^private-vaults\//, '');
+            }
+        } catch {
+            // ignore invalid absolute URLs
+        }
+
+        return value.replace(/^\/+/, '');
+    }
 }
+

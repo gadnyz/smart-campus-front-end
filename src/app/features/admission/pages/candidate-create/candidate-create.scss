@@ -1,8 +1,8 @@
 :host {
     display: block;
     min-height: 100vh;
-    color: #0f172a; // Slate-900
-    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-color, #0f172a);
+    font-family: var(--font-ui, 'SF Pro Display', sans-serif);
 }
 
 .phone-control {
@@ -24,7 +24,7 @@
 
 .country-option strong {
     flex-shrink: 0;
-    color: #475569;
+    color: var(--text-color-secondary, #475569);
 }
 
 @media (max-width: 540px) {
@@ -36,7 +36,7 @@
 .apply-shell {
     min-height: 100vh;
     padding: 2.5rem 1.25rem;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background: linear-gradient(135deg, #f8fafc 0%, var(--surface-ground, #f1f5f9) 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -49,7 +49,11 @@
     justify-content: center;
     margin-bottom: 2rem;
     width: 100%;
-    max-width: 900px;
+    max-width: 56rem;
+}
+
+.apply-header--success {
+    margin-bottom: 1.5rem;
 }
 
 .apply-logo {
@@ -60,9 +64,9 @@
 
 .apply-card {
     width: 100%;
-    max-width: 100vh;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    max-width: 56rem;
+    background: var(--surface-card, #ffffff);
+    border: 1px solid var(--surface-border, #e2e8f0);
     border-radius: 12px;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
     padding: 3rem;
@@ -73,38 +77,23 @@
     text-align: center;
     margin-bottom: 3rem;
 
-    .badge-tag {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        background: #c2dce3; // Conteneur Teal doux
-        color: #1a4452;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        border-radius: 9999px;
-        margin-bottom: 0.75rem;
-    }
-
     h1 {
-        font-size: 2.25rem;
-        font-weight: 800;
-        color: #0f172a;
+        font-family: var(--font-brand, 'SF Pro Display', sans-serif);
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-color, #0f172a);
         margin: 0;
         letter-spacing: -0.02em;
     }
 
     p {
-        color: #64748b;
+        color: var(--text-color-secondary, #64748b);
         font-size: 1rem;
         margin-top: 0.5rem;
         margin-bottom: 0;
     }
 }
 
-// ==========================================
-// CUSTOM STEPPER PRIMENG v21 STYLE (CORRIGÉ & BIEN ALIGNÉ)
-// ==========================================
 ::ng-deep .p-stepper {
     background: transparent;
 }
@@ -113,85 +102,79 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 3.5rem;
+    margin-bottom: 3rem;
     padding-bottom: 1.5rem;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--surface-border, #e2e8f0);
     position: relative;
-    gap: 1rem;
+    gap: 0.75rem;
 }
 
-// Surcharge et design des boutons d'étape natifs
 ::ng-deep .p-step {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     background: transparent;
     border: 0;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.75rem;
     cursor: default;
     overflow: visible !important;
-    
-    // Le chiffre natif du stepper
+
     .p-step-number {
-        width: 2.5rem;
-        height: 2.5rem;
+        width: 2.25rem;
+        height: 2.25rem;
         border-radius: 50%;
         border: 2px solid #cbd5e1;
         background: #ffffff;
         color: #64748b;
-        font-size: 1rem;
+        font-size: 0.95rem;
         font-weight: 700;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
         flex-shrink: 0;
         box-shadow: none;
     }
 
-    // Le titre textuel de l'étape
     .p-step-title {
         font-size: 0.875rem;
         font-weight: 600;
         color: #64748b;
         letter-spacing: 0.01em;
         white-space: nowrap;
-        transition: all 0.3s ease;
+        transition: color 0.2s ease;
     }
 }
 
-// Style de l'étape sélectionnée (HAUTE VISIBILITÉ)
 ::ng-deep .p-step-active {
-    transform: scale(1.08); // Effet zoom haut de gamme
-    
     .p-step-number {
-        border-color: #3b8aa7 !important;
-        background-color: #3b8aa7 !important; // Teal UNH
-        color: #ffffff !important;
-        font-weight: 800;
-        box-shadow: 0 0 0 5px rgba(59, 138, 167, 0.25) !important; // Halo lumineux
+        border-color: var(--primary-color, #3b8aa7) !important;
+        background-color: var(--primary-color, #3b8aa7) !important;
+        color: var(--primary-contrast-color, #ffffff) !important;
+        font-weight: 700;
+        box-shadow: 0 0 0 3px rgba(59, 138, 167, 0.2) !important;
     }
-    
+
     .p-step-title {
-        color: #1a4452 !important; // Teal foncé
-        font-weight: 800 !important;
+        color: var(--primary-color-active, #1a4452) !important;
+        font-weight: 700 !important;
     }
 }
 
-// Désactiver le pointeur pour le mode linéaire
 ::ng-deep .p-step.p-disabled {
     opacity: 0.6;
 }
 
-// Responsive Stepper : Masquer les titres sur mobile pour un alignement parfait
 @media (max-width: 640px) {
     ::ng-deep .stepper-header-custom.p-step-list {
         margin-bottom: 2rem;
         padding-bottom: 1rem;
     }
+
     ::ng-deep .p-step-title {
-        display: none !important; // Supprime le texte
+        display: none !important;
     }
+
     ::ng-deep .p-step {
         flex: 1;
         justify-content: center;
@@ -199,15 +182,14 @@
     }
 }
 
-// Animations de contenu
 .step-content-body {
-    animation: fadeIn 0.4s cubic-bezier(0.05, 0.74, 0.2, 0.99);
+    animation: fadeIn 0.35s ease;
 }
 
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(8px);
+        transform: translateY(6px);
     }
     to {
         opacity: 1;
@@ -218,7 +200,7 @@
 .step-section-title {
     font-size: 1.15rem;
     font-weight: 700;
-    color: #1a4452;
+    color: var(--primary-color-active, #1a4452);
     margin-top: 0;
     margin-bottom: 1.25rem;
     display: flex;
@@ -226,18 +208,17 @@
     gap: 0.65rem;
 
     i {
-        color: #3b8aa7;
+        color: var(--primary-color, #3b8aa7);
     }
 }
 
 .section-subtitle {
     font-size: 0.9rem;
-    color: #64748b;
+    color: var(--text-color-secondary, #64748b);
     margin-top: -0.75rem;
     margin-bottom: 1.5rem;
 }
 
-// Labels et Champs de saisie
 label {
     display: block;
     font-size: 0.85rem;
@@ -247,8 +228,26 @@ label {
 }
 
 .field-label-required::after {
-    content: " *";
-    color: #ef4444;
+    content: ' *';
+    color: var(--red-500, #ef4444);
+}
+
+.required-mark {
+    color: var(--red-500, #ef4444);
+}
+
+.field-error {
+    display: block;
+    margin-top: 0.35rem;
+    color: var(--red-500, #ef4444);
+    font-size: 0.8rem;
+}
+
+.field-hint {
+    display: block;
+    margin-top: 0.35rem;
+    color: var(--orange-500, #f59e0b);
+    font-size: 0.8rem;
 }
 
 input[pInputText] {
@@ -257,10 +256,10 @@ input[pInputText] {
     min-height: 46px;
     border: 1px solid #cbd5e1;
     border-radius: 6px;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
     &:focus {
-        border-color: #3b8aa7;
+        border-color: var(--primary-color, #3b8aa7);
         box-shadow: 0 0 0 3px rgba(59, 138, 167, 0.15);
     }
 }
@@ -269,14 +268,14 @@ input[pInputText] {
     min-height: 46px;
     border: 1px solid #cbd5e1;
     border-radius: 6px;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
     &:not(.p-disabled):hover {
         border-color: #94a3b8;
     }
 
     &.p-focus {
-        border-color: #3b8aa7;
+        border-color: var(--primary-color, #3b8aa7);
         box-shadow: 0 0 0 3px rgba(59, 138, 167, 0.15);
     }
 }
@@ -287,39 +286,49 @@ input[pInputText] {
     }
 }
 
-// ==========================================
-// ZONE D'UPLOAD DE DOCUMENTS (RESPONSIVE)
-// ==========================================
-.document-upload-card {
+.document-upload-row {
     display: flex;
-    align-items: center;
-    gap: 1.25rem;
-    border: 2px dashed #cbd5e1;
-    border-radius: 8px;
-    padding: 1.25rem;
-    background: #f8fafc;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    align-items: stretch;
+    gap: 0.35rem;
     position: relative;
 
-    &:hover {
-        border-color: #3b8aa7;
-        background: #f0f7f9;
-        
-        .upload-icon-container {
-            background: #c2dce3;
-            color: #1a4452;
-        }
+    &.has-error .document-upload-card {
+        border-color: var(--red-500, #ef4444);
+        background: #fef2f2;
     }
 
-    &.has-file {
-        border-color: #22c55e;
+    &.has-file .document-upload-card {
+        border-color: var(--green-500, #22c55e);
         border-style: solid;
         background: #f0fdf4;
 
         .upload-icon-container {
             background: #dcfce7;
             color: #15803d;
+        }
+    }
+}
+
+.document-upload-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex: 1;
+    min-width: 0;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 1.25rem;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+
+    &:hover {
+        border-color: var(--primary-color, #3b8aa7);
+        background: #f0f7f9;
+
+        .upload-icon-container {
+            background: var(--primary-color-pale, #c2dce3);
+            color: var(--primary-color-active, #1a4452);
         }
     }
 }
@@ -335,7 +344,7 @@ input[pInputText] {
     font-size: 1.25rem;
     color: #64748b;
     flex-shrink: 0;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .upload-text {
@@ -360,112 +369,26 @@ input[pInputText] {
 
 .delete-file-btn {
     flex-shrink: 0;
+    align-self: center;
 }
 
-// Media Query pour l'upload sur mobile
 @media (max-width: 640px) {
     .document-upload-card {
         flex-direction: column;
         align-items: stretch;
         text-align: center;
         padding: 1rem;
-        
+
         .upload-icon-container {
             margin: 0 auto;
         }
-        
-        .delete-file-btn {
-            align-self: center;
-            margin-top: 0.5rem;
-        }
+    }
+
+    .delete-file-btn {
+        align-self: center;
     }
 }
 
-// ==========================================
-// RÉCAPITULATIF (ÉTAPE 4) RESPONSIVE
-// ==========================================
-.review-sections-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-}
-
-@media (max-width: 768px) {
-    .review-sections-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.summary-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-
-    &.col-span-12 {
-        grid-column: span 12 / span 12;
-    }
-}
-
-.summary-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #1a4452;
-    margin-top: 0;
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.summary-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.review-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem;
-    font-size: 0.9rem;
-    border-bottom: 1px solid #f1f5f9;
-    padding-bottom: 0.5rem;
-
-    &:last-child {
-        border-bottom: 0;
-        padding-bottom: 0;
-    }
-
-    span {
-        color: #64748b;
-        font-weight: 500;
-    }
-
-    strong {
-        color: #0f172a;
-        text-align: right;
-        word-break: break-word;
-    }
-}
-
-// Rendre les lignes du récapitulatif empilées sur mobile pour éviter les débordements
-@media (max-width: 640px) {
-    .review-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.25rem;
-        
-        strong {
-            text-align: left;
-            word-break: break-all;
-        }
-    }
-}
-
-// Boutons d'actions
 .step-actions {
     display: flex;
     justify-content: flex-end;
@@ -494,19 +417,23 @@ input[pInputText] {
             width: 100%;
         }
     }
+
+    .apply-card {
+        padding: 1.5rem 1.25rem;
+    }
 }
 
-// Écran de succès
 .apply-success {
     width: 100%;
-    max-width: 680px;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    max-width: 42rem;
+    background: var(--surface-card, #ffffff);
+    border: 1px solid var(--surface-border, #e2e8f0);
     border-radius: 12px;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-    padding: 3.5rem 2.5rem;
+    padding: 3rem 2.5rem;
     text-align: center;
-    animation: fadeIn 0.5s ease-out;
+    animation: fadeIn 0.45s ease-out;
+    outline: none;
 }
 
 .success-icon {
@@ -520,62 +447,29 @@ input[pInputText] {
     color: #15803d;
     font-size: 2rem;
     margin-bottom: 1.5rem;
-    animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-@keyframes scaleIn {
-    from {
-        transform: scale(0.6);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
+.success-icon--warn {
+    background: #fef3c7;
+    color: #b45309;
 }
 
 .apply-success h1 {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #0f172a;
+    font-family: var(--font-brand, 'SF Pro Display', sans-serif);
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: var(--text-color, #0f172a);
     margin: 0 0 0.5rem;
 }
 
 .success-subtitle {
-    color: #64748b;
+    color: var(--text-color-secondary, #64748b);
     font-size: 1.05rem;
     margin-bottom: 2rem;
 }
 
-.success-reference {
-    background: #f0f7f9;
-    border: 1px solid #c2dce3;
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 2.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-
-    .ref-label {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-weight: 700;
-        color: #475569;
-    }
-
-    .ref-value {
-        font-size: 1.75rem;
-        font-weight: 800;
-        color: #3b8aa7;
-        font-family: monospace;
-    }
-}
-
 .success-card {
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--surface-border, #e2e8f0);
     border-radius: 8px;
     padding: 1.5rem;
     text-align: left;
@@ -584,7 +478,7 @@ input[pInputText] {
     .success-card-title {
         font-size: 0.95rem;
         font-weight: 700;
-        color: #1a4452;
+        color: var(--primary-color-active, #1a4452);
         margin-top: 0;
         margin-bottom: 1rem;
     }
@@ -615,7 +509,7 @@ input[pInputText] {
         strong {
             font-size: 0.9rem;
             color: #0f172a;
-            word-break: break-all;
+            word-break: break-word;
         }
     }
 }
@@ -646,9 +540,8 @@ input[pInputText] {
     }
 }
 
-// Pied de page
 .apply-footer {
     width: 100%;
-    max-width: 900px;
+    max-width: 56rem;
     margin-top: 1rem;
 }

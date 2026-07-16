@@ -56,14 +56,31 @@ const requiredSeedEndpoints = [
     ['post', '/api/v1/semesters'],
     ['get', '/api/v1/course-units/faculty/{facultyId}'],
     ['post', '/api/v1/course-units'],
+    ['get', '/api/v1/courses'],
+    ['post', '/api/v1/courses'],
     ['get', '/api/v1/professor-grades'],
     ['post', '/api/v1/professor-grades'],
+    ['get', '/api/v1/professors'],
+    ['post', '/api/v1/professors'],
+    ['post', '/api/v1/course-assignments'],
+    ['get', '/api/v1/rooms'],
+    ['post', '/api/v1/rooms'],
+    ['get', '/api/v1/timetables'],
+    ['post', '/api/v1/timetables'],
+    ['post', '/api/v1/timetable-entries'],
+    ['get', '/api/v1/privileges'],
+    ['post', '/api/v1/privileges'],
+    ['get', '/api/v1/roles'],
+    ['post', '/api/v1/roles'],
+    ['post', '/api/v1/roles/{roleId}/privileges'],
     ['get', '/api/v1/profiles'],
     ['post', '/api/v1/profiles'],
+    ['post', '/api/v1/profiles/{profileId}/roles'],
     ['get', '/api/v1/users'],
     ['post', '/api/v1/auth/register'],
     ['get', '/api/v1/candidates'],
-    ['post', '/api/v1/candidates']
+    ['post', '/api/v1/candidates'],
+    ['post', '/api/v1/candidates/{id}/validate']
 ];
 
 const commonLevelCodes = ['L1', 'L2', 'L3', 'M1', 'M2'];
@@ -304,8 +321,113 @@ const seedCatalog = {
         { code: 'CT', name: 'Chef de travaux' },
         { code: 'PROF', name: 'Professeur' }
     ],
-    profiles: ['PROFESSOR', 'STUDENT', 'ACADEMIC_SECRETARY'],
+    privileges: [
+        'identity:user:read:all',
+        'identity:user:create:all',
+        'identity:user:update:all',
+        'identity:user:delete:all',
+        'identity:user:read:own',
+        'identity:user:update:own',
+        'identity:profile:read:all',
+        'identity:profile:create:all',
+        'identity:profile:update:all',
+        'identity:profile:delete:all',
+        'identity:role:read:all',
+        'identity:role:create:all',
+        'identity:role:update:all',
+        'identity:role:delete:all',
+        'identity:privilege:read:all',
+        'identity:privilege:create:all',
+        'identity:privilege:update:all',
+        'identity:privilege:delete:all',
+        'identity:api:manage',
+        'admission:candidate:read:all',
+        'admission:candidate:create:all',
+        'admission:candidate:update:all',
+        'admission:candidate:delete:all',
+        'admission:candidate:read:own',
+        'admission:candidate:update:own'
+    ],
+    roles: [
+        {
+            name: 'IDENTITY_ADMIN',
+            privileges: [
+                'identity:user:read:all',
+                'identity:user:create:all',
+                'identity:user:update:all',
+                'identity:user:delete:all',
+                'identity:user:read:own',
+                'identity:user:update:own',
+                'identity:profile:read:all',
+                'identity:profile:create:all',
+                'identity:profile:update:all',
+                'identity:profile:delete:all',
+                'identity:role:read:all',
+                'identity:role:create:all',
+                'identity:role:update:all',
+                'identity:role:delete:all',
+                'identity:privilege:read:all',
+                'identity:privilege:create:all',
+                'identity:privilege:update:all',
+                'identity:privilege:delete:all',
+                'identity:api:manage'
+            ]
+        },
+        {
+            name: 'ADMISSION_OFFICER',
+            privileges: [
+                'admission:candidate:read:all',
+                'admission:candidate:create:all',
+                'admission:candidate:update:all',
+                'admission:candidate:delete:all',
+                'identity:user:read:own',
+                'identity:user:update:own'
+            ]
+        },
+        {
+            name: 'PROFESSOR',
+            privileges: [
+                'identity:user:read:own',
+                'identity:user:update:own',
+                'admission:candidate:read:all'
+            ]
+        },
+        {
+            name: 'STUDENT',
+            privileges: [
+                'identity:user:read:own',
+                'identity:user:update:own',
+                'admission:candidate:read:own',
+                'admission:candidate:update:own',
+                'admission:candidate:create:all'
+            ]
+        }
+    ],
+    profiles: [
+        {
+            name: 'ADMIN',
+            roles: ['IDENTITY_ADMIN', 'ADMISSION_OFFICER']
+        },
+        {
+            name: 'PROFESSOR',
+            roles: ['PROFESSOR']
+        },
+        {
+            name: 'STUDENT',
+            roles: ['STUDENT']
+        },
+        {
+            name: 'ACADEMIC_SECRETARY',
+            roles: ['ADMISSION_OFFICER', 'IDENTITY_ADMIN']
+        }
+    ],
     users: [
+        {
+            username: 'admin.staff',
+            email: 'admin.staff@smart-campus.org',
+            profiles: ['ADMIN'],
+            facultyCode: 'FST'
+        },
         {
             username: 'professor',
             email: 'professor@smart-campus.org',
@@ -324,6 +446,106 @@ const seedCatalog = {
             profiles: ['STUDENT'],
             facultyCode: 'FST'
         }
+    ],
+    professors: [
+        {
+            email: 'jean.mbuyi@smart-campus.org',
+            first_name: 'Jean',
+            last_name: 'Mbuyi',
+            middle_name: 'Kabongo',
+            gender: 'MALE',
+            birth_date: '1980-05-15',
+            birth_place: 'Kinshasa',
+            marital_status: 'MARRIED',
+            nationality: 'Congolaise',
+            phone: '+243840000001',
+            facultyCode: 'FST',
+            gradeCode: 'PROF'
+        },
+        {
+            email: 'claire.kalala@smart-campus.org',
+            first_name: 'Claire',
+            last_name: 'Kalala',
+            middle_name: 'Mwamba',
+            gender: 'FEMALE',
+            birth_date: '1988-09-22',
+            birth_place: 'Lubumbashi',
+            marital_status: 'SINGLE',
+            nationality: 'Congolaise',
+            phone: '+243840000002',
+            facultyCode: 'GST',
+            gradeCode: 'CT'
+        }
+    ],
+    courses: [
+        {
+            code: 'FST-ALG-101',
+            name: 'Algorithmique',
+            description: 'Introduction a l algorithmique et aux structures de donnees',
+            credits: 5,
+            courseUnitCode: 'FST-DEV'
+        },
+        {
+            code: 'GST-MGT-201',
+            name: 'Management des organisations',
+            description: 'Bases du management des organisations',
+            credits: 4,
+            courseUnitCode: 'GST-MGMT'
+        }
+    ],
+    courseAssignments: [
+        {
+            courseCode: 'FST-ALG-101',
+            professorEmail: 'jean.mbuyi@smart-campus.org',
+            assignment_type: 'LEAD_INSTRUCTOR'
+        },
+        {
+            courseCode: 'GST-MGT-201',
+            professorEmail: 'claire.kalala@smart-campus.org',
+            assignment_type: 'LEAD_INSTRUCTOR'
+        }
+    ],
+    rooms: [
+        {
+            name: 'A101',
+            location: 'Batiment A - 1er etage',
+            capacity: 60,
+            type: 'NORMAL'
+        },
+        {
+            name: 'LAB-INF-01',
+            location: 'Batiment B - Rez-de-chaussee',
+            capacity: 30,
+            type: 'LABORATORY'
+        },
+        {
+            name: 'ONLINE-MEET',
+            location: 'Virtual',
+            capacity: 200,
+            type: 'ONLINE',
+            link: 'https://meet.smart-campus.org/seed'
+        }
+    ],
+    timetables: [
+        {
+            programCode: 'FST-IA',
+            levelCode: 'L1',
+            entries: [
+                {
+                    courseCode: 'FST-ALG-101',
+                    roomName: 'A101',
+                    date: '2026-09-08T08:00:00.000Z',
+                    start_hour: '08:00:00',
+                    end_hour: '10:00:00',
+                    session_type: 'LECTURE'
+                }
+            ]
+        }
+    ],
+    candidatesToValidate: [
+        'aline.medecine@example.com',
+        'sarah.intelligence-artificielle@example.com',
+        'grace.architecture@example.com'
     ],
     candidates: [
         {
@@ -643,10 +865,19 @@ async function seed(api) {
         levels: [],
         programs: [],
         courseUnits: [],
+        courses: [],
         professorGrades: [],
+        professors: [],
+        courseAssignments: [],
+        rooms: [],
+        timetables: [],
+        timetableEntries: [],
+        privileges: [],
+        roles: [],
         profiles: [],
         users: [],
-        candidates: []
+        candidates: [],
+        validatedCandidates: []
     };
 
     context.academicYear = await ensureAcademicYear(api, seedCatalog.academicYear);
@@ -705,15 +936,17 @@ async function seed(api) {
         programsByCode[program.code] = ensuredProgram;
     }
 
+    const courseUnitsByCode = {};
+
     for (const courseUnit of seedCatalog.courseUnits) {
         const faculty = mustGet(facultiesByCode, courseUnit.facultyCode, 'faculty');
-        context.courseUnits.push(
-            await ensureCourseUnit(api, {
-                code: courseUnit.code,
-                faculty_id: faculty.id,
-                knowledge_skills_bloc: courseUnit.knowledge_skills_bloc
-            })
-        );
+        const ensuredUnit = await ensureCourseUnit(api, {
+            code: courseUnit.code,
+            faculty_id: faculty.id,
+            knowledge_skills_bloc: courseUnit.knowledge_skills_bloc
+        });
+        context.courseUnits.push(ensuredUnit);
+        courseUnitsByCode[courseUnit.code] = ensuredUnit;
     }
 
     for (const grade of seedCatalog.professorGrades) {
@@ -727,11 +960,92 @@ async function seed(api) {
         );
     }
 
-    for (const profile of seedCatalog.profiles) {
-        context.profiles.push(await ensureProfile(api, profile));
+    const gradesByCode = indexBy(context.professorGrades, 'code');
+
+    try {
+        const existingPrivileges = await listAll(api, '/api/v1/privileges');
+        const privilegesByName = {};
+
+        for (const privilegeName of seedCatalog.privileges) {
+            const ensured = await ensurePrivilege(api, privilegeName, existingPrivileges);
+            context.privileges.push(ensured);
+            privilegesByName[ensured.name] = ensured;
+
+            if (!existingPrivileges.some((item) => equals(item.name, privilegeName))) {
+                existingPrivileges.push(ensured);
+            }
+        }
+
+        const existingRoles = await listAll(api, '/api/v1/roles');
+        const rolesByName = {};
+
+        for (const role of seedCatalog.roles) {
+            const ensuredRole = await ensureRole(
+                api,
+                role.name,
+                role.privileges.map((name) => ({
+                    id: mustGet(privilegesByName, name, 'privilege').id,
+                    name
+                })),
+                existingRoles
+            );
+            context.roles.push(ensuredRole);
+            rolesByName[ensuredRole.name] = ensuredRole;
+
+            if (!existingRoles.some((item) => equals(item.name, role.name))) {
+                existingRoles.push(ensuredRole);
+            }
+        }
+
+        const existingProfiles = await listAll(api, '/api/v1/profiles');
+        const profilesByName = {};
+
+        for (const profile of seedCatalog.profiles) {
+            const ensuredProfile = await ensureProfileWithRoles(
+                api,
+                profile.name,
+                profile.roles.map((roleName) => ({
+                    id: mustGet(rolesByName, roleName, 'role').id,
+                    name: roleName
+                })),
+                existingProfiles
+            );
+            context.profiles.push(ensuredProfile);
+            profilesByName[ensuredProfile.name] = ensuredProfile;
+
+            if (!existingProfiles.some((item) => equals(item.name, profile.name))) {
+                existingProfiles.push(ensuredProfile);
+            }
+        }
+
+        Object.assign(context, { _profilesByName: profilesByName });
+    } catch (error) {
+        if (!(error instanceof HttpError && [401, 403].includes(error.status))) {
+            throw error;
+        }
+
+        console.warn(
+            `[warn] RBAC seed partially skipped (${error.status}): privilege/role APIs denied for current user. Falling back to profile names only.`
+        );
+
+        const existingProfiles = await listAll(api, '/api/v1/profiles');
+        const profilesByName = {};
+
+        for (const profile of seedCatalog.profiles) {
+            const ensuredProfile = await ensureProfile(api, profile.name, existingProfiles);
+            context.profiles.push(ensuredProfile);
+            profilesByName[ensuredProfile.name] = ensuredProfile;
+
+            if (!existingProfiles.some((item) => equals(item.name, profile.name))) {
+                existingProfiles.push(ensuredProfile);
+            }
+        }
+
+        Object.assign(context, { _profilesByName: profilesByName });
     }
 
-    const profilesByName = indexBy(context.profiles, 'name');
+    const profilesByName = context._profilesByName;
+    delete context._profilesByName;
 
     for (const user of seedCatalog.users) {
         const faculty = mustGet(facultiesByCode, user.facultyCode, 'faculty');
@@ -789,6 +1103,142 @@ async function seed(api) {
                 }
             })
         );
+    }
+
+    const candidatesByEmail = Object.fromEntries(
+        context.candidates
+            .filter((candidate) => candidate?.email && !candidate.skipped)
+            .map((candidate) => [String(candidate.email).toLowerCase(), candidate])
+    );
+
+    for (const email of seedCatalog.candidatesToValidate) {
+        const candidate = candidatesByEmail[String(email).toLowerCase()];
+
+        if (!candidate?.id) {
+            console.warn(`[skip] validate candidate missing: ${email}`);
+            continue;
+        }
+
+        try {
+            context.validatedCandidates.push(await ensureCandidateValidated(api, candidate));
+        } catch (error) {
+            if (error instanceof HttpError && [401, 403, 409].includes(error.status)) {
+                console.warn(`[skip] validate candidate ${email}: ${error.status}`);
+                continue;
+            }
+
+            throw error;
+        }
+    }
+
+    const coursesByCode = {};
+
+    for (const course of seedCatalog.courses) {
+        const courseUnit = mustGet(courseUnitsByCode, course.courseUnitCode, 'course unit');
+        const ensuredCourse = await ensureCourse(api, {
+            code: course.code,
+            name: course.name,
+            description: course.description,
+            credits: course.credits,
+            course_unit_id: courseUnit.id
+        });
+        context.courses.push(ensuredCourse);
+        coursesByCode[course.code] = ensuredCourse;
+    }
+
+    const professorsByEmail = {};
+
+    for (const professor of seedCatalog.professors) {
+        const faculty = mustGet(facultiesByCode, professor.facultyCode, 'faculty');
+        const grade = mustGet(gradesByCode, professor.gradeCode, 'professor grade');
+        const ensuredProfessor = await ensureProfessor(api, {
+            faculty_id: faculty.id,
+            professor_grade_id: grade.id,
+            first_name: professor.first_name,
+            last_name: professor.last_name,
+            middle_name: professor.middle_name,
+            gender: professor.gender,
+            birth_date: professor.birth_date,
+            birth_place: professor.birth_place,
+            marital_status: professor.marital_status,
+            nationality: professor.nationality,
+            email: professor.email,
+            phone: professor.phone
+        });
+        context.professors.push(ensuredProfessor);
+        professorsByEmail[String(professor.email).toLowerCase()] = ensuredProfessor;
+    }
+
+    const assignmentsByCourseCode = {};
+
+    for (const assignment of seedCatalog.courseAssignments) {
+        const course = mustGet(coursesByCode, assignment.courseCode, 'course');
+        const professor = mustGet(professorsByEmail, String(assignment.professorEmail).toLowerCase(), 'professor');
+        const ensuredAssignment = await ensureCourseAssignment(api, {
+            course_id: course.id,
+            professor_id: professor.id,
+            academic_year_id: context.academicYear.id,
+            assignment_type: assignment.assignment_type
+        }, assignment.courseCode);
+        context.courseAssignments.push(ensuredAssignment);
+        assignmentsByCourseCode[assignment.courseCode] = ensuredAssignment;
+    }
+
+    const roomsByName = {};
+
+    for (const room of seedCatalog.rooms) {
+        const ensuredRoom = await ensureRoom(api, room);
+        context.rooms.push(ensuredRoom);
+        roomsByName[room.name] = ensuredRoom;
+    }
+
+    for (const timetableSpec of seedCatalog.timetables) {
+        const program = mustGet(programsByCode, timetableSpec.programCode, 'program');
+        const programMeta = seedCatalog.programs.find((item) => item.code === timetableSpec.programCode);
+        const facultyEntity =
+            context.faculties.find((item) => item.id === program.faculty_id) ||
+            mustGet(facultiesByCode, programMeta?.facultyCode, 'faculty');
+        const level = mustGet(levelsByCode, timetableSpec.levelCode, 'level');
+
+        const ensuredTimetable = await ensureTimetable(api, {
+            faculty_id: facultyEntity.id,
+            faculty_name: facultyEntity.name,
+            program_id: program.id,
+            program_name: program.name,
+            program_level_id: level.id,
+            program_level_name: level.name || level.code || timetableSpec.levelCode
+        }, `${timetableSpec.programCode}-${timetableSpec.levelCode}`);
+
+        context.timetables.push(ensuredTimetable);
+
+        for (const entry of timetableSpec.entries) {
+            const assignment = mustGet(assignmentsByCourseCode, entry.courseCode, 'course assignment');
+            const room = mustGet(roomsByName, entry.roomName, 'room');
+
+            try {
+                context.timetableEntries.push(
+                    await ensureTimetableEntry(api, {
+                        timetable_id: ensuredTimetable.id,
+                        course_assignment_id: assignment.id,
+                        room_id: room.id,
+                        date: entry.date,
+                        start_hour: entry.start_hour,
+                        end_hour: entry.end_hour,
+                        session_type: entry.session_type,
+                        note: entry.note || 'Seed session'
+                    }, `${timetableSpec.programCode}-${entry.courseCode}-${entry.date}`)
+                );
+            } catch (error) {
+                if (error instanceof HttpError && [400, 404, 409, 422].includes(error.status)) {
+                    console.warn(
+                        `[skip] timetable entry ${timetableSpec.programCode}/${entry.courseCode}: ${error.status} ${error.payload?.detail || error.message}`
+                    );
+                    continue;
+                }
+
+                throw error;
+            }
+        }
     }
 
     return context;
@@ -878,8 +1328,73 @@ async function ensureCourseUnit(api, payload) {
     return create(api, 'course unit', '/api/v1/course-units', payload);
 }
 
-async function ensureProfile(api, profileName) {
-    const profiles = await listAll(api, '/api/v1/profiles');
+async function ensurePrivilege(api, privilegeName, knownPrivileges = null) {
+    const privileges = knownPrivileges ?? (await listAll(api, '/api/v1/privileges'));
+    const existing = privileges.find((privilege) => equals(privilege.name, privilegeName));
+
+    if (existing) {
+        return found('privilege', privilegeName, existing);
+    }
+
+    return create(api, 'privilege', '/api/v1/privileges', { name: privilegeName });
+}
+
+async function ensureRole(api, roleName, privileges, knownRoles = null) {
+    const roles = knownRoles ?? (await listAll(api, '/api/v1/roles'));
+    let role = roles.find((item) => equals(item.name, roleName));
+
+    if (!role) {
+        role = await create(api, 'role', '/api/v1/roles', { name: roleName });
+    } else {
+        found('role', roleName, role);
+    }
+
+    const existingKeys = new Set();
+
+    for (const privilege of role.privileges || []) {
+        if (typeof privilege === 'string') {
+            existingKeys.add(String(privilege).toLowerCase());
+            continue;
+        }
+
+        if (privilege?.id) {
+            existingKeys.add(String(privilege.id).toLowerCase());
+        }
+
+        if (privilege?.name) {
+            existingKeys.add(String(privilege.name).toLowerCase());
+        }
+    }
+
+    const missingPrivilegeIds = privileges
+        .filter((privilege) => {
+            const idKey = String(privilege.id).toLowerCase();
+            const nameKey = String(privilege.name).toLowerCase();
+            return !existingKeys.has(idKey) && !existingKeys.has(nameKey);
+        })
+        .map((privilege) => privilege.id);
+
+    if (missingPrivilegeIds.length) {
+        if (checkOnly) {
+            console.log(`[check] would attach ${missingPrivilegeIds.length} privilege(s) to role ${roleName}`);
+        } else {
+            await api.request(`/api/v1/roles/${role.id}/privileges`, {
+                method: 'POST',
+                body: { privilege_ids: missingPrivilegeIds }
+            });
+            console.log(`[post] attached ${missingPrivilegeIds.length} privilege(s) to role ${roleName}`);
+            role = {
+                ...role,
+                privileges: [...(role.privileges || []), ...missingPrivilegeIds]
+            };
+        }
+    }
+
+    return role;
+}
+
+async function ensureProfile(api, profileName, knownProfiles = null) {
+    const profiles = knownProfiles ?? (await listAll(api, '/api/v1/profiles'));
     const existing = profiles.find((profile) => equals(profile.name, profileName));
 
     if (existing) {
@@ -887,6 +1402,178 @@ async function ensureProfile(api, profileName) {
     }
 
     return create(api, 'profile', '/api/v1/profiles', { name: profileName });
+}
+
+async function ensureProfileWithRoles(api, profileName, roles, knownProfiles = null) {
+    let profile = await ensureProfile(api, profileName, knownProfiles);
+    const existingKeys = new Set();
+
+    for (const role of profile.roles || []) {
+        if (typeof role === 'string') {
+            existingKeys.add(String(role).toLowerCase());
+            continue;
+        }
+
+        if (role?.id) {
+            existingKeys.add(String(role.id).toLowerCase());
+        }
+
+        if (role?.name) {
+            existingKeys.add(String(role.name).toLowerCase());
+        }
+    }
+
+    const missingRoleIds = roles
+        .filter((role) => {
+            const idKey = String(role.id).toLowerCase();
+            const nameKey = String(role.name).toLowerCase();
+            return !existingKeys.has(idKey) && !existingKeys.has(nameKey);
+        })
+        .map((role) => role.id);
+
+    if (missingRoleIds.length) {
+        if (checkOnly) {
+            console.log(`[check] would attach ${missingRoleIds.length} role(s) to profile ${profileName}`);
+        } else {
+            await api.request(`/api/v1/profiles/${profile.id}/roles`, {
+                method: 'POST',
+                body: { role_ids: missingRoleIds }
+            });
+            console.log(`[post] attached ${missingRoleIds.length} role(s) to profile ${profileName}`);
+            profile = {
+                ...profile,
+                roles: [...(profile.roles || []), ...missingRoleIds]
+            };
+        }
+    }
+
+    return profile;
+}
+
+async function ensureCandidateValidated(api, candidate) {
+    const status = candidate.candidature?.status || candidate.status;
+
+    if (status === 'VALIDATED') {
+        return found('validated candidate', candidate.email, candidate);
+    }
+
+    if (checkOnly) {
+        console.log(`[check] would validate candidate: ${candidate.email}`);
+        return { ...candidate, candidature: { ...(candidate.candidature || {}), status: 'VALIDATED' } };
+    }
+
+    await api.request(`/api/v1/candidates/${candidate.id}/validate`, {
+        method: 'POST',
+        body: {}
+    });
+    console.log(`[post] validated candidate: ${candidate.email}`);
+
+    return {
+        ...candidate,
+        candidature: {
+            ...(candidate.candidature || {}),
+            status: 'VALIDATED'
+        }
+    };
+}
+
+async function ensureCourse(api, payload) {
+    const courses = await listAll(api, '/api/v1/courses');
+    const existing = courses.find((course) => equals(course.code, payload.code));
+
+    if (existing) {
+        return found('course', payload.code, existing);
+    }
+
+    return create(api, 'course', '/api/v1/courses', payload);
+}
+
+async function ensureProfessor(api, payload) {
+    const professors = await listAll(api, '/api/v1/professors');
+    const existing = professors.find((professor) => equals(professor.email, payload.email));
+
+    if (existing) {
+        return found('professor', payload.email, existing);
+    }
+
+    return create(api, 'professor', '/api/v1/professors', payload);
+}
+
+async function ensureCourseAssignment(api, payload, identity) {
+    try {
+        const byCourse = await api.request(`/api/v1/course-assignments/course/${payload.course_id}`);
+        const assignments = Array.isArray(byCourse) ? byCourse : byCourse?.content || [];
+        const existing = assignments.find(
+            (assignment) =>
+                equals(assignment.professor_id, payload.professor_id) &&
+                equals(assignment.academic_year_id, payload.academic_year_id)
+        );
+
+        if (existing) {
+            return found('course assignment', identity, existing);
+        }
+    } catch (error) {
+        if (!(error instanceof HttpError && error.status === 404)) {
+            console.warn(`[warn] could not list course assignments for ${identity}: ${error.message}`);
+        }
+    }
+
+    return create(api, 'course assignment', '/api/v1/course-assignments', payload, {
+        identity
+    });
+}
+
+async function ensureRoom(api, payload) {
+    const rooms = await listAll(api, '/api/v1/rooms');
+    const existing = rooms.find((room) => equals(room.name, payload.name));
+
+    if (existing) {
+        return found('room', payload.name, existing);
+    }
+
+    return create(api, 'room', '/api/v1/rooms', payload);
+}
+
+async function ensureTimetable(api, payload, identity) {
+    const timetables = await listAll(api, '/api/v1/timetables');
+    const existing = timetables.find(
+        (timetable) =>
+            equals(timetable.program_id, payload.program_id) &&
+            equals(timetable.program_level_id, payload.program_level_id)
+    );
+
+    if (existing) {
+        return found('timetable', identity, existing);
+    }
+
+    return create(api, 'timetable', '/api/v1/timetables', payload, {
+        identity
+    });
+}
+
+async function ensureTimetableEntry(api, payload, identity) {
+    try {
+        const entriesResponse = await api.request(`/api/v1/timetable-entries/timetable/${payload.timetable_id}`);
+        const entries = Array.isArray(entriesResponse) ? entriesResponse : entriesResponse?.content || [];
+        const existing = entries.find(
+            (entry) =>
+                equals(entry.course_assignment_id, payload.course_assignment_id) &&
+                String(entry.date || '').startsWith(String(payload.date).slice(0, 10)) &&
+                equals(entry.start_hour, payload.start_hour)
+        );
+
+        if (existing) {
+            return found('timetable entry', identity, existing);
+        }
+    } catch (error) {
+        if (!(error instanceof HttpError && error.status === 404)) {
+            console.warn(`[warn] could not list timetable entries for ${identity}: ${error.message}`);
+        }
+    }
+
+    return create(api, 'timetable entry', '/api/v1/timetable-entries', payload, {
+        identity
+    });
 }
 
 async function ensureUser(api, payload) {
@@ -937,7 +1624,7 @@ async function ensureCandidate(api, payload) {
     }
 
     try {
-        return await create(api, 'candidate', '/api/v1/candidates', payload, { retryRateLimit: false });
+        return await create(api, 'candidate', '/api/v1/candidates', payload, { retryRateLimit: true });
     } catch (error) {
         if (isFacultyForeignKeyError(error)) {
             console.warn(`[skip] candidate ${payload.email} rejected by backend faculty FK while creating the linked user`);
@@ -960,8 +1647,19 @@ async function ensureCandidate(api, payload) {
 }
 
 async function create(api, label, path, payload, options = {}) {
-    const identity = payload.code || payload.email || payload.label || payload.name;
+    const identity =
+        options.identity ||
+        payload.code ||
+        payload.email ||
+        payload.label ||
+        payload.name ||
+        label;
     const retryRateLimit = options.retryRateLimit ?? true;
+    const body = options.stripIdentityKeys
+        ? Object.fromEntries(
+            Object.entries(payload).filter(([key]) => !['code'].includes(key))
+        )
+        : payload;
 
     if (checkOnly) {
         console.log(`[check] would create ${label}: ${identity}`);
@@ -975,7 +1673,7 @@ async function create(api, label, path, payload, options = {}) {
         try {
             const created = await api.request(path, {
                 method: 'POST',
-                body: payload
+                body
             });
 
             console.log(`[post] created ${label}: ${identity}`);
@@ -1063,10 +1761,19 @@ function printSummary(context) {
         ['levels', context.levels.length],
         ['programs', context.programs.length],
         ['courseUnits', context.courseUnits.length],
+        ['courses', context.courses.length],
         ['professorGrades', context.professorGrades.length],
+        ['professors', context.professors.length],
+        ['courseAssignments', context.courseAssignments.length],
+        ['rooms', context.rooms.length],
+        ['timetables', context.timetables.length],
+        ['timetableEntries', context.timetableEntries.length],
+        ['privileges', context.privileges.length],
+        ['roles', context.roles.length],
         ['profiles', context.profiles.length],
         ['users', context.users.length],
         ['candidates', context.candidates.filter((candidate) => !candidate.skipped).length],
+        ['validatedCandidates', context.validatedCandidates.length],
         ['skippedCandidates', context.candidates.filter((candidate) => candidate.skipped).length]
     ];
 
@@ -1074,7 +1781,7 @@ function printSummary(context) {
     console.log(checkOnly ? 'Check complete. Planned seed data:' : 'Seed complete. Available seed data:');
 
     for (const [name, count] of rows) {
-        console.log(`  ${name.padEnd(16)} ${count}`);
+        console.log(`  ${name.padEnd(20)} ${count}`);
     }
 }
 

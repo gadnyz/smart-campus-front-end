@@ -59,8 +59,6 @@ export interface SubmitCandidatureRequest {
     candidature: CandidateCandidature;
 }
 
-export type UpdateCandidateRequest = SubmitCandidatureRequest;
-
 export interface CandidateResponse extends SubmitCandidatureRequest {
     id: string;
     academic_year_id: string;

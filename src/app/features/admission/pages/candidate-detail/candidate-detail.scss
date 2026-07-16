@@ -40,6 +40,25 @@
     color: var(--text-color-secondary);
 }
 
+.candidate-academic-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-top: 0.5rem;
+    color: var(--text-color-secondary);
+    font-size: 0.875rem;
+}
+
+.candidate-academic-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.candidate-academic-meta i {
+    color: var(--primary-color);
+}
+
 .section-heading {
     display: flex;
     align-items: center;

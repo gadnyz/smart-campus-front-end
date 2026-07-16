@@ -21,6 +21,27 @@ export const identityFeature: AppFeature = {
                     routerLink: ['/identity/users'],
                     permissions: [IdentityPermission.UserReadAll],
                     order: 10
+                },
+                {
+                    label: 'Profils métier',
+                    icon: 'pi pi-fw pi-id-card',
+                    routerLink: ['/identity/business-profiles'],
+                    permissions: [IdentityPermission.ProfileReadAll],
+                    order: 20
+                },
+                {
+                    label: 'Rôles',
+                    icon: 'pi pi-fw pi-shield',
+                    routerLink: ['/identity/roles'],
+                    permissions: [IdentityPermission.RoleReadAll],
+                    order: 30
+                },
+                {
+                    label: 'Privilèges',
+                    icon: 'pi pi-fw pi-key',
+                    routerLink: ['/identity/privileges'],
+                    permissions: [IdentityPermission.PrivilegeReadAll],
+                    order: 40
                 }
             ]
         }

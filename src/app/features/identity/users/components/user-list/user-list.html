@@ -68,6 +68,15 @@
                 </td>
                 <td>
                     <div class="flex items-center gap-2">
+                        <a
+                            pButton
+                            [routerLink]="['/identity/users', user.id]"
+                            icon="pi pi-arrow-right"
+                            rounded
+                            outlined
+                            severity="info"
+                            [attr.aria-label]="'Voir ' + user.username"
+                        ></a>
                         @if (canDeleteUsers()) {
                         <button
                             pButton

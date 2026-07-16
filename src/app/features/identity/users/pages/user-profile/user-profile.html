@@ -73,6 +73,30 @@
                     </div>
                 </form>
 
+                <div class="mt-6 pt-6 border-t border-surface">
+                    <div class="font-semibold text-lg mb-3">Profils métier</div>
+                    @if (currentUser.profiles.length) {
+                    <div class="flex flex-wrap gap-1 mb-4">
+                        @for (profile of currentUser.profiles; track profile) {
+                        <p-tag [value]="profile" severity="info" />
+                        }
+                    </div>
+                    } @else {
+                    <p class="text-color-secondary m-0 mb-4">Aucun profil assigné.</p>
+                    }
+
+                    <div class="font-semibold text-lg mb-3">Autorisations</div>
+                    @if (currentUser.authorities.length) {
+                    <div class="flex flex-wrap gap-1">
+                        @for (authority of currentUser.authorities; track authority) {
+                        <p-tag [value]="authority" severity="secondary" />
+                        }
+                    </div>
+                    } @else {
+                    <p class="text-color-secondary m-0">Aucune autorisation.</p>
+                    }
+                </div>
+
                 @if (editing()) {
                 <div class="flex justify-end gap-2 mt-6">
                     <button pButton type="button" label="Enregistrer" icon="pi pi-save" [loading]="saving()"

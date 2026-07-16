@@ -3,6 +3,20 @@ import { environment } from '@/environments/environment';
 const absoluteUrlPattern = /^(https?:)?\/\//i;
 const safeUrlPattern = /^(blob:|data:)/i;
 
+function resolveApiOrigin(): string {
+    const configured = environment.apiBaseUrl?.trim().replace(/\/$/, '') ?? '';
+
+    if (configured) {
+        return configured;
+    }
+
+    if (typeof window !== 'undefined' && window.location?.origin) {
+        return window.location.origin;
+    }
+
+    return '';
+}
+
 export function resolveAvatarUrl(value: string | null | undefined): string {
     const url = value?.trim();
 
@@ -14,7 +28,11 @@ export function resolveAvatarUrl(value: string | null | undefined): string {
         return url;
     }
 
-    const baseUrl = environment.apiBaseUrl.replace(/\/$/, '');
+    const baseUrl = resolveApiOrigin();
+
+    if (!baseUrl) {
+        return url.startsWith('/') ? url : `/${url}`;
+    }
 
     if (url.startsWith('/')) {
         return `${baseUrl}${url}`;
