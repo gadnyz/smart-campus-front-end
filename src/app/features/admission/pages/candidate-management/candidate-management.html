@@ -15,28 +15,62 @@
             </span>
         </div>
 
-        <p-select
-            [options]="statusOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Tous les statuts"
-            [showClear]="true"
-            [ngModel]="statusFilter()"
-            (ngModelChange)="onStatusChange($event)"
-        />
+        <div class="list-filters">
+            <p-iconfield>
+                <p-inputicon styleClass="pi pi-search" />
+                <input
+                    pInputText
+                    type="text"
+                    placeholder="Rechercher..."
+                    (input)="onGlobalFilter(dt, $event)"
+                />
+            </p-iconfield>
+
+            <p-select
+                [options]="faculties()"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Toutes les facultés"
+                [showClear]="true"
+                [loading]="loadingFaculties()"
+                [ngModel]="facultyFilter()"
+                (ngModelChange)="onFacultyChange($event)"
+            />
+
+            <p-select
+                [options]="statusOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Tous les statuts"
+                [showClear]="true"
+                [ngModel]="statusFilter()"
+                (ngModelChange)="onStatusChange($event)"
+            />
+        </div>
     </div>
 
     <p-table
+        #dt
         [value]="candidates()"
         [loading]="loading()"
         dataKey="id"
         [rowHover]="true"
+        [globalFilterFields]="[
+            'first_name',
+            'middle_name',
+            'last_name',
+            'email',
+            'phone'
+        ]"
         responsiveLayout="scroll"
-        [tableStyle]="{ 'min-width': '48rem' }"
+        [tableStyle]="{ 'min-width': '64rem' }"
     >
         <ng-template pTemplate="header">
             <tr>
                 <th>Candidat</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Soumise le</th>
                 <th>Statut</th>
                 <th class="actions-column">Actions</th>
             </tr>
@@ -53,6 +87,10 @@
                     </div>
                 </td>
 
+                <td>{{ candidate.email }}</td>
+                <td>{{ candidate.phone }}</td>
+                <td>{{ submittedLabel(candidate) }}</td>
+
                 <td>
                     <p-tag
                         [value]="statusLabel(candidate.status)"
@@ -64,7 +102,7 @@
                     <button
                         pButton
                         type="button"
-                        icon="pi pi-eye"
+                        icon="pi pi-arrow-right"
                         label="Détails"
                         size="small"
                         (click)="openCandidate(candidate)"
@@ -75,7 +113,7 @@
 
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="5">
+                <td colspan="6">
                     Aucune candidature trouvée.
                 </td>
             </tr>

@@ -1,0 +1,112 @@
+<p-toast />
+<p-confirmdialog [style]="{ width: '450px' }" />
+
+<app-content-subtopbar kicker="Gestion de l'identité" title="Privilèges" [actions]="actions()" />
+
+<div class="card">
+    <p-table
+        #dt
+        [value]="privileges()"
+        [loading]="loading()"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 20, 50]"
+        [globalFilterFields]="['name']"
+        [rowHover]="true"
+        dataKey="id"
+        responsiveLayout="scroll"
+        currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} privilèges"
+        [showCurrentPageReport]="true"
+        [tableStyle]="{ 'min-width': '40rem' }"
+    >
+        <ng-template pTemplate="caption">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div class="font-semibold text-xl">Liste des privilèges</div>
+
+                <p-iconfield>
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text" placeholder="Rechercher..." (input)="onGlobalFilter(dt, $event)" />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="name" style="min-width: 20rem">
+                    Nom
+                    <p-sortIcon field="name"></p-sortIcon>
+                </th>
+                <th pSortableColumn="created_at" style="min-width: 12rem">
+                    Créé le
+                    <p-sortIcon field="created_at"></p-sortIcon>
+                </th>
+                <th style="width: 6rem">Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-privilege>
+            <tr>
+                <td>{{ privilege.name }}</td>
+                <td>
+                    @if (privilege.created_at) {
+                    <span>{{ privilege.created_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+                    } @else {
+                    <span class="text-color-secondary">—</span>
+                    }
+                </td>
+                <td>
+                    @if (canDelete()) {
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-trash"
+                        rounded
+                        outlined
+                        severity="danger"
+                        [attr.aria-label]="'Supprimer ' + privilege.name"
+                        [loading]="deletingId() === privilege.id"
+                        [disabled]="deletingId() === privilege.id"
+                        (click)="confirmDelete(privilege)"
+                    ></button>
+                    }
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="3">Aucun privilège trouvé.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog
+    header="Créer un privilège"
+    [visible]="createDialogVisible()"
+    (visibleChange)="createDialogVisible.set($event)"
+    [modal]="true"
+    [style]="{ width: '32rem' }"
+    [breakpoints]="{ '640px': '95vw' }"
+>
+    <form [formGroup]="createForm" class="flex flex-col gap-4" (ngSubmit)="submitCreate()">
+        <div>
+            <label for="privilegeName" class="block text-sm text-color-secondary mb-1">Nom du privilège</label>
+            <input
+                pInputText
+                id="privilegeName"
+                formControlName="name"
+                placeholder="identity:example:read:all"
+                class="w-full"
+            />
+            @if (isCreateInvalid()) {
+            <small class="text-red-500 block mt-1">Le nom est obligatoire (2 caractères minimum).</small>
+            }
+        </div>
+
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined (click)="closeCreateDialog()"></button>
+            <button pButton type="submit" label="Créer" icon="pi pi-save" [loading]="creating()" [disabled]="creating()"></button>
+        </div>
+    </form>
+</p-dialog>

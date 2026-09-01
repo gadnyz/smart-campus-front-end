@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { appBrand } from '../../config/app-brand';
+import { Component, inject } from '@angular/core';
+import { CoreSettingsStore } from '@/app/core/settings/services/core-settings.store';
 
 @Component({
     selector: 'app-auth-footer',
@@ -8,5 +8,5 @@ import { appBrand } from '../../config/app-brand';
     styleUrl: './auth-footer.scss'
 })
 export class AuthFooter {
-    brand = appBrand;
+    readonly brand = inject(CoreSettingsStore).brand;
 }

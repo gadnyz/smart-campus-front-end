@@ -18,10 +18,19 @@ export class AuthService {
     }
 
     storeSession(response: AuthResponse): void {
+        const previousUser = this.currentUser();
+        const user = {
+            ...response.user,
+            avatar_url:
+                response.user.avatar_url ??
+                previousUser?.avatar_url ??
+                null
+        };
+
         sessionStorage.setItem(this.accessTokenKey, response.access_token);
         sessionStorage.setItem(this.refreshTokenKey, response.refresh_token);
-        sessionStorage.setItem(this.currentUserKey, JSON.stringify(response.user));
-        this.currentUser.set(response.user);
+        sessionStorage.setItem(this.currentUserKey, JSON.stringify(user));
+        this.currentUser.set(user);
     }
 
     private readCurrentUser(): AuthenticatedUser  | null {

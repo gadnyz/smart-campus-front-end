@@ -6,7 +6,7 @@ import { finalize } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
-import { appBrand } from '@/app/core/config/app-brand';
+import { CoreSettingsStore } from '@/app/core/settings/services/core-settings.store';
 import { AuthFooter } from '../auth-footer/auth-footer';
 import { AuthService } from '../services/auth.service';
 import { DividerModule } from 'primeng/divider';
@@ -23,7 +23,7 @@ export class ResetPassword implements OnInit {
     private readonly router = inject(Router);
     private readonly authService = inject(AuthService);
 
-    brand = appBrand;
+    readonly brand = inject(CoreSettingsStore).brand;
 
     token = signal('');
     password = '';

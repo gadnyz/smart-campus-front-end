@@ -267,4 +267,72 @@ describe('Login', () => {
         expect(component.loading()).toBeFalse();
         expect(component.errorMessage()).toBe('Connexion impossible pour le moment. Veuillez réessayer plus tard.');
     });
+
+    describe('Risk #1 — mobile responsiveness of login-card', () => {
+        const mobileWidths = [375, 390, 412];
+
+        for (const width of mobileWidths) {
+            it(`should keep login-card within the ${width}px viewport without overflow`, () => {
+                const page = fixture.nativeElement.querySelector('.login-page') as HTMLElement;
+                const card = fixture.nativeElement.querySelector('.login-card') as HTMLElement;
+                const emailInput = fixture.debugElement.query(By.css('#email1')).nativeElement as HTMLInputElement;
+                const submitButton = fixture.nativeElement.querySelector('button[type="submit"], .p-button') as HTMLElement;
+
+                page.style.width = `${width}px`;
+                page.style.maxWidth = `${width}px`;
+                fixture.detectChanges();
+
+                const pageBox = page.getBoundingClientRect();
+                const cardBox = card.getBoundingClientRect();
+
+                expect(cardBox.width).toBeLessThanOrEqual(pageBox.width + 1);
+                expect(cardBox.left).toBeGreaterThanOrEqual(pageBox.left - 1);
+                expect(cardBox.right).toBeLessThanOrEqual(pageBox.right + 1);
+
+                expect(emailInput.getBoundingClientRect().width).toBeGreaterThan(0);
+                expect(submitButton.getBoundingClientRect().width).toBeGreaterThan(0);
+                expect(getComputedStyle(emailInput).visibility).not.toBe('hidden');
+                expect(getComputedStyle(submitButton).visibility).not.toBe('hidden');
+            });
+        }
+    });
+
+    describe('error guessing', () => {
+        it('should trim leading/trailing spaces from the email before login', () => {
+            authService.login.and.returnValue(of(authResponse));
+            component.email = '\tadmin@unh.edu\n';
+            component.password = 'correct-password';
+
+            component.submit(createForm(true));
+
+            expect(authService.login).toHaveBeenCalledWith({
+                email: 'admin@unh.edu',
+                password: 'correct-password'
+            });
+        });
+
+        it('should tolerate rapid repeated submit attempts without leaving loading stuck', () => {
+            authService.login.and.returnValue(of(authResponse));
+            component.email = 'admin@unh.edu';
+            component.password = 'correct-password';
+
+            component.submit(createForm(true));
+            component.submit(createForm(true));
+
+            expect(authService.login).toHaveBeenCalledTimes(2);
+            expect(component.loading()).toBeFalse();
+        });
+
+        it('should surface offline reliability message without crashing (status 0)', () => {
+            authService.login.and.returnValue(
+                throwError(() => new HttpErrorResponse({ status: 0, statusText: 'Unknown Error' }))
+            );
+            component.email = 'admin@unh.edu';
+            component.password = 'pwd';
+
+            expect(() => component.submit(createForm(true))).not.toThrow();
+            expect(component.errorMessage()).toBe('Impossible de joindre le serveur.');
+            expect(fixture.nativeElement.querySelector('.login-card')).toBeTruthy();
+        });
+    });
 });

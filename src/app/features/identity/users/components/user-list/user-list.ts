@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { IdentityPermission } from '@/app/features/identity/permissions/permission.model';
+import { DetailNavigationService } from '@/app/shared/navigation/detail-navigation.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -21,7 +23,7 @@ type UserTableRow = User & {
 @Component({
     selector: 'app-user-list',
     standalone: true,
-    imports: [CommonModule, TableModule, ButtonModule, ToastModule, ConfirmDialogModule, InputTextModule, IconFieldModule, InputIconModule],
+    imports: [CommonModule, RouterModule, TableModule, ButtonModule, ToastModule, ConfirmDialogModule, InputTextModule, IconFieldModule, InputIconModule],
     templateUrl: './user-list.html',
     styleUrl: './user-list.scss',
     providers: [ConfirmationService, MessageService]
@@ -31,6 +33,10 @@ export class UserList implements OnInit {
     private readonly confirmationService = inject(ConfirmationService);
     private readonly messageService = inject(MessageService);
     private readonly permissionService = inject(PermissionService);
+    private readonly detailNavigation = inject(DetailNavigationService);
+
+    private readonly navigationScope = 'identity.users';
+    private readonly pageSize = 100;
 
     readonly users = signal<User[]>([]);
     readonly loading = signal(false);
@@ -54,9 +60,21 @@ export class UserList implements OnInit {
     loadUsers(): void {
         this.loading.set(true);
 
-        this.usersService.getUsers({ page: 0, size: 100 }).subscribe({
+        this.usersService.getUsers({ page: 0, size: this.pageSize }).subscribe({
             next: (response) => {
                 this.users.set(response.content);
+                this.detailNavigation.setContext({
+                    scope: this.navigationScope,
+                    listRoute: ['/settings/identity/users'],
+                    page: response.page,
+                    size: response.size,
+                    totalElements: response.total_elements,
+                    totalPages: response.total_pages,
+                    items: response.content.map((user) => ({
+                        id: user.id,
+                        label: user.username
+                    }))
+                });
                 this.loading.set(false);
             },
             error: () => {

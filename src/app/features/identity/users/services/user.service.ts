@@ -89,6 +89,22 @@ export class UsersService {
         return this.http.put<void>(`${this.baseUrl}/${userId}/disable`, {});
     }
 
+    assignProfile(userId: string, profileId: string): Observable<void> {
+        return this.http.put<void>(`${this.baseUrl}/${userId}/profiles/${profileId}`, {});
+    }
+
+    removeProfile(userId: string, profileId: string): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/${userId}/profiles/${profileId}`);
+    }
+
+    grantPrivilege(userId: string, privilegeId: string): Observable<void> {
+        return this.http.put<void>(`${this.baseUrl}/${userId}/privileges/${privilegeId}`, {});
+    }
+
+    revokePrivilege(userId: string, privilegeId: string): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/${userId}/privileges/${privilegeId}`);
+    }
+
     requestAvatarUploadUrl(extension: string): Observable<AvatarUploadUrlResponse> {
         const normalizedExtension = extension.startsWith('.') ? extension : `.${extension}`;
         const params = new HttpParams().set('extension', normalizedExtension);

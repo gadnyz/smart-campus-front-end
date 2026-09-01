@@ -21,7 +21,7 @@ export class UserManagement {
             icon: 'pi pi-plus',
             severity: 'info',
             outlined: false,
-            routerLink: ['/identity/users/new'],
+            routerLink: ['/settings/identity/users/new'],
             permissions: [IdentityPermission.UserCreateAll],
             mode: 'any'
         }
