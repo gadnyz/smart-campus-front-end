@@ -63,7 +63,7 @@ export class PrivilegeManagement implements OnInit {
 
     readonly actions = computed<SubtopbarAction[]>(() => [
         {
-            label: 'Nouveau privilège',
+            label: 'Nouveau',
             icon: 'pi pi-plus',
             severity: 'info',
             outlined: false,

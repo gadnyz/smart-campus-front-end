@@ -119,7 +119,7 @@ export class ProfileManagement implements OnInit {
 
     readonly actions = computed<SubtopbarAction[]>(() => [
         {
-            label: 'Nouveau profil',
+            label: 'Nouveau',
             icon: 'pi pi-plus',
             severity: 'info',
             outlined: false,

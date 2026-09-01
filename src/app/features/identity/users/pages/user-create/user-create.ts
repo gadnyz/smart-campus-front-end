@@ -124,7 +124,7 @@ export class UserCreate implements OnInit {
             next: (response) => {
                 this.showSuccess(`Utilisateur ${response.username} créé avec succès.`);
                 this.submitting.set(false);
-                void this.router.navigate(['/identity/users']);
+                void this.router.navigate(['/settings/identity/users']);
             },
             error: (error: HttpErrorResponse) => {
                 this.submitting.set(false);
@@ -156,7 +156,7 @@ export class UserCreate implements OnInit {
             return;
         }
 
-        void this.router.navigate(['/identity/users']);
+        void this.router.navigate(['/settings/identity/users']);
     }
 
     private showSuccess(detail: string): void {

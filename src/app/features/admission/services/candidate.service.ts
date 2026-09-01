@@ -18,8 +18,10 @@ import {
     CandidatureStatus,
     ConfirmDocumentRequest,
     ConfirmDocumentResponse,
+    DocumentDownloadUrlResponse,
     DocumentUploadUrlResponse,
     PagedResponse,
+    RejectCandidatureRequest,
     SubmitCandidatureRequest
 } from '../models/candidate.model';
 
@@ -144,9 +146,11 @@ export class CandidateService {
             );
     }
 
-    reject(id: string): Observable<CandidateResponse> {
+    reject(id: string, reason: string): Observable<CandidateResponse> {
+        const payload: RejectCandidatureRequest = { reason };
+
         return this.http
-            .post<void>(`${this.baseUrl}/${id}/reject`, {})
+            .post<void>(`${this.baseUrl}/${id}/reject`, payload)
             .pipe(
                 switchMap(() => this.getById(id, true)),
                 map((candidate) =>
@@ -233,25 +237,23 @@ export class CandidateService {
         );
     }
 
-    /**
-     * `document.file_url` stocke le chemin objet S3 (ex. students/.../file.pdf).
-     * POST /documents/confirm renvoie une URL présignée de lecture/téléchargement.
-     */
+    getDocumentDownloadUrl(
+        candidateId: string,
+        documentId: string
+    ): Observable<DocumentDownloadUrlResponse> {
+        return this.http.get<DocumentDownloadUrlResponse>(
+            `${this.baseUrl}/${candidateId}/documents/${documentId}/download-url`
+        );
+    }
+
+    /** Presigned read URL for staff document preview (detail page). */
     resolveDocumentViewUrl(
         candidateId: string,
-        document: Pick<CandidateDocument, 'file_url' | 'document_type'>,
-        options: { publicRequest?: boolean } = {}
+        document: Pick<CandidateDocument, 'id'>
     ): Observable<string> {
-        const objectPath = this.toDocumentObjectPath(document.file_url);
-
-        return this.confirmDocumentUpload(
-            candidateId,
-            {
-                object_path: objectPath,
-                type: document.document_type
-            },
-            options
-        ).pipe(map((response) => response.file_url));
+        return this.getDocumentDownloadUrl(candidateId, document.id).pipe(
+            map((response) => response.file_url)
+        );
     }
 
     clearDetailCache(id?: string): void {
@@ -364,24 +366,6 @@ export class CandidateService {
             ...document,
             document_type: documentType
         };
-    }
-    private toDocumentObjectPath(fileUrl: string): string {
-        const value = fileUrl.trim();
-
-        if (!value) {
-            return value;
-        }
-
-        try {
-            if (/^https?:\/\//i.test(value)) {
-                const pathname = new URL(value).pathname.replace(/^\/+/, '');
-                return pathname.replace(/^private-vaults\//, '');
-            }
-        } catch {
-            // ignore invalid absolute URLs
-        }
-
-        return value.replace(/^\/+/, '');
     }
 }
 

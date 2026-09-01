@@ -199,10 +199,30 @@ describe('CandidateDetail', () => {
     });
 
     it('should reject candidate and update status immediately', () => {
-        component['rejectCandidate']('c1');
+        component['rejectCandidate']('c1', 'Dossier incomplet');
 
         expect(component.candidate()?.candidature.status).toBe('REJECTED');
-        expect(candidateService.reject).toHaveBeenCalledWith('c1');
+        expect(candidateService.reject).toHaveBeenCalledWith(
+            'c1',
+            'Dossier incomplet'
+        );
         expect(component.currentStatusLabel()).toBe('Rejetée');
+    });
+
+    it('should require a rejection reason before submitting reject dialog', () => {
+        component.rejectReason.set('');
+        component.submitReject();
+
+        expect(candidateService.reject).not.toHaveBeenCalled();
+    });
+
+    it('should submit reject dialog with trimmed reason', () => {
+        component.rejectReason.set('  Documents manquants  ');
+        component.submitReject();
+
+        expect(candidateService.reject).toHaveBeenCalledWith(
+            'c1',
+            'Documents manquants'
+        );
     });
 });

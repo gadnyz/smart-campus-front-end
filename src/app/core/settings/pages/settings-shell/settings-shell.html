@@ -1,0 +1,46 @@
+<div class="settings-shell">
+    <h1 class="settings-title">Paramètres</h1>
+
+    @if (tabs().length) {
+    <nav class="settings-tabs" aria-label="Sections des paramètres">
+        @for (tab of tabs(); track tab.key) {
+        <a
+            class="settings-tab"
+            [routerLink]="tab.routerLink"
+            routerLinkActive="settings-tab--active"
+            [routerLinkActiveOptions]="{ exact: false }"
+        >
+            {{ tab.label }}
+        </a>
+        }
+    </nav>
+
+    @if (secondaryItems().length > 1) {
+    <nav class="settings-subnav" aria-label="Sous-sections">
+        @for (item of secondaryItems(); track item.routerLink.join('/')) {
+        <a
+            class="settings-subnav__link"
+            [routerLink]="item.routerLink"
+            routerLinkActive="settings-subnav__link--active"
+            [routerLinkActiveOptions]="{ exact: !item.routerLink[item.routerLink.length - 1]?.endsWith('users') }"
+        >
+            @if (item.icon) {
+            <i [class]="item.icon"></i>
+            }
+            <span>{{ item.label }}</span>
+        </a>
+        }
+    </nav>
+    }
+
+    <div class="settings-content">
+        <router-outlet />
+    </div>
+    } @else {
+    <div class="card">
+        <p class="text-color-secondary m-0">
+            Aucune section de configuration n’est accessible avec vos permissions actuelles.
+        </p>
+    </div>
+    }
+</div>

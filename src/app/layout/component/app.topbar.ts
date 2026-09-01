@@ -10,7 +10,7 @@ import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { LayoutService } from '@/app/layout/service/layout.service';
-import { appBrand } from '@/app/core/config/app-brand';
+import { CoreSettingsStore } from '@/app/core/settings/services/core-settings.store';
 import { filter, finalize } from 'rxjs';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { AuthService } from '@/app/core/auth/services/auth.service';
@@ -27,8 +27,8 @@ import { AuthService } from '@/app/core/auth/services/auth.service';
                 </button>
 
                 <a class="layout-topbar-logo" routerLink="/">
-                    <img [src]="brand.logos.main" [alt]="brand.appName" />
-                    <span>{{ brand.appName }}</span>
+                    <img [src]="brand().logos.main" [alt]="brand().appName" />
+                    <span>{{ brand().appName }}</span>
                 </a>
             </div>
 
@@ -52,10 +52,12 @@ import { AuthService } from '@/app/core/auth/services/auth.service';
     `
 })
 export class AppTopbar {
-    readonly brand = appBrand;
+    private readonly coreSettingsStore = inject(CoreSettingsStore);
     readonly layoutService = inject(LayoutService);
     private readonly router = inject(Router);
     private readonly authService = inject(AuthService);
+
+    readonly brand = this.coreSettingsStore.brand;
 
     readonly notificationCount = 5;
     readonly currentUser = this.authService.currentUser;
@@ -102,14 +104,14 @@ export class AppTopbar {
             label: 'Nouvelle demande de création utilisateur',
             icon: '',
             command: () => {
-                void this.router.navigate(['/identity/users/new']);
+                void this.router.navigate(['/settings/identity/users/new']);
             }
         },
         {
             label: 'Mot de passe réinitialisé avec succès',
             icon: '',
             command: () => {
-                void this.router.navigate(['/identity/users']);
+                void this.router.navigate(['/settings/identity/users']);
             }
         },
         {

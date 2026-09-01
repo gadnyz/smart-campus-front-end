@@ -112,6 +112,15 @@ export interface ConfirmDocumentResponse {
     type: CandidateDocumentType;
 }
 
+export interface DocumentDownloadUrlResponse {
+    file_url: string;
+    type: CandidateDocumentType;
+}
+
+export interface RejectCandidatureRequest {
+    reason: string;
+}
+
 export interface CandidateListItem {
     id: string;
     first_name: string;

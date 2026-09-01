@@ -240,6 +240,51 @@
 }
 
 <p-dialog
+    header="Rejeter la candidature"
+    [visible]="rejectDialogVisible()"
+    (visibleChange)="onRejectDialogVisibleChange($event)"
+    [modal]="true"
+    [style]="{ width: '32rem' }"
+    [breakpoints]="{ '640px': '95vw' }"
+>
+    <p class="reject-dialog-intro">
+        Indiquez le motif du rejet. Ce message pourra être consulté par l'équipe admissions.
+    </p>
+
+    <textarea
+        pTextarea
+        [ngModel]="rejectReason()"
+        (ngModelChange)="rejectReason.set($event)"
+        rows="4"
+        maxlength="500"
+        class="w-full"
+        placeholder="Motif du rejet"
+        aria-label="Motif du rejet"
+    ></textarea>
+
+    <div class="reject-dialog-footer">
+        <button
+            pButton
+            type="button"
+            label="Annuler"
+            severity="secondary"
+            [outlined]="true"
+            (click)="onRejectDialogVisibleChange(false)"
+        ></button>
+
+        <button
+            pButton
+            type="button"
+            label="Rejeter"
+            icon="pi pi-times"
+            severity="danger"
+            [disabled]="!rejectReason().trim() || busy()"
+            (click)="submitReject()"
+        ></button>
+    </div>
+</p-dialog>
+
+<p-dialog
     [header]="previewTitle()"
     [visible]="previewVisible()"
     (visibleChange)="onPreviewVisibleChange($event)"

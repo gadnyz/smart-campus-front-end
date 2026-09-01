@@ -4,7 +4,7 @@
 <div class="apply-shell">
     <section class="apply-success" tabindex="-1" aria-live="polite">
         <header class="apply-header apply-header--success">
-            <img [src]="brand.logos.large" [alt]="brand.appName" class="apply-logo" />
+            <img [src]="brand().logos.large" [alt]="brand().appName" class="apply-logo" />
         </header>
 
         <div class="success-icon" [class.success-icon--warn]="documentsUploadWarning()">
@@ -66,13 +66,22 @@
 } @else {
 <div class="apply-shell">
     <header class="apply-header">
-        <img [src]="brand.logos.large" [alt]="brand.appName" class="apply-logo" />
+        <img [src]="brand().logos.large" [alt]="brand().appName" class="apply-logo" />
     </header>
 
     <main class="apply-card">
+        @if (!enrollmentOpen()) {
+        <div class="apply-closed-banner" role="alert">
+            <i class="pi pi-lock"></i>
+            <div>
+                <strong>Préinscriptions indisponibles ({{ enrollmentStatus() }})</strong>
+                <p>La période d’inscription n’est pas ouverte. Réessayez plus tard ou contactez le service des admissions.</p>
+            </div>
+        </div>
+        } @else {
         <header class="form-heading">
             <h1>Formulaire de pré-inscription</h1>
-            <p>Veuillez compléter les étapes ci-dessous pour soumettre votre candidature.</p>
+            <p>{{ applyWelcomeMessage() }}</p>
         </header>
 
         <form [formGroup]="form" (ngSubmit)="submit()">
@@ -561,6 +570,7 @@
                 </p-step-panels>
             </p-stepper>
         </form>
+        }
     </main>
 
     <footer class="apply-footer">

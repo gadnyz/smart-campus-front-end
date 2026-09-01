@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { appBrand } from '@/app/core/config/app-brand';
+import { CoreSettingsStore } from '@/app/core/settings/services/core-settings.store';
 import { AuthFooter } from '../auth-footer/auth-footer';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../services/auth.service';
@@ -19,7 +19,7 @@ import { AuthService } from '../services/auth.service';
 export class forgetPassword {
     private readonly authService = inject(AuthService);
 
-    brand = appBrand;
+    readonly brand = inject(CoreSettingsStore).brand;
 
     email = '';
     loading = signal(false);

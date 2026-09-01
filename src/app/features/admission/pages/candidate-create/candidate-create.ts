@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, AbstractControl, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -14,7 +14,8 @@ import { CandidateDocumentType, CandidateGender, CandidateResponse, CandidatureT
 import { CandidateService } from '../../services/candidate.service';
 import { AdmissionAcademicReferenceService } from '../../services/admission-academic-reference.service';
 import { AuthFooter } from '@/app/core/auth/auth-footer/auth-footer';
-import { appBrand } from '@/app/core/config/app-brand';
+import { CoreSettingsStore } from '@/app/core/settings/services/core-settings.store';
+import { AdmissionSettingsStore } from '@/app/features/admission/settings/services/admission-settings.store';
 import { ProgramReference } from '@/app/features/academic/academic.public-api';
 import { DatePicker } from 'primeng/datepicker';
 import { InputNumber } from 'primeng/inputnumber';
@@ -84,6 +85,8 @@ export class CandidateCreate implements OnInit {
     private readonly messageService = inject(MessageService);
     private readonly candidateService = inject(CandidateService);
     private readonly academicReferenceService = inject(AdmissionAcademicReferenceService);
+    private readonly coreSettingsStore = inject(CoreSettingsStore);
+    private readonly admissionSettingsStore = inject(AdmissionSettingsStore);
 
     private readonly MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
     private readonly ALLOWED_MIME_TYPES = new Set([
@@ -111,7 +114,10 @@ export class CandidateCreate implements OnInit {
     readonly submittedCandidate = signal<CandidateResponse | null>(null);
     readonly activeStep = signal(1);
 
-    readonly brand = appBrand;
+    readonly brand = computed(() => this.coreSettingsStore.brand());
+    readonly applyWelcomeMessage = computed(() => this.admissionSettingsStore.settings().applyWelcomeMessage);
+    readonly enrollmentOpen = computed(() => this.admissionSettingsStore.isEnrollmentOpen());
+    readonly enrollmentStatus = computed(() => this.admissionSettingsStore.enrollmentStatusLabel());
 
     /** Libellé FR de la RDC (indicatif CD), aligné sur countryOptions. */
     readonly defaultCountryName =
@@ -193,6 +199,9 @@ export class CandidateCreate implements OnInit {
     });
 
     ngOnInit(): void {
+        this.coreSettingsStore.load();
+        this.admissionSettingsStore.load();
+
         const routePublicMode = this.route.snapshot.data['publicMode'];
         this.publicMode.set(routePublicMode !== false);
 

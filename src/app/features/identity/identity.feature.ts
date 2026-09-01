@@ -10,41 +10,54 @@ export const identityFeature: AppFeature = {
         path: 'identity',
         loadChildren: () => import('./routes')
     },
-    menu: [
-        {
-            label: 'Identité',
-            order: 10,
-            items: [
-                {
-                    label: 'Utilisateurs',
-                    icon: 'pi pi-fw pi-users',
-                    routerLink: ['/identity/users'],
-                    permissions: [IdentityPermission.UserReadAll],
-                    order: 10
-                },
-                {
-                    label: 'Profils métier',
-                    icon: 'pi pi-fw pi-id-card',
-                    routerLink: ['/identity/business-profiles'],
-                    permissions: [IdentityPermission.ProfileReadAll],
-                    order: 20
-                },
-                {
-                    label: 'Rôles',
-                    icon: 'pi pi-fw pi-shield',
-                    routerLink: ['/identity/roles'],
-                    permissions: [IdentityPermission.RoleReadAll],
-                    order: 30
-                },
-                {
-                    label: 'Privilèges',
-                    icon: 'pi pi-fw pi-key',
-                    routerLink: ['/identity/privileges'],
-                    permissions: [IdentityPermission.PrivilegeReadAll],
-                    order: 40
-                }
-            ]
-        }
-    ],
+    /** No operational sidebar entries — admin lives under Paramètres. */
+    menu: [],
+    settingsTab: {
+        key: 'identity',
+        label: 'Identité',
+        order: 20,
+        routerLink: ['/settings/identity/users'],
+        permissions: [
+            IdentityPermission.UserReadAll,
+            IdentityPermission.ProfileReadAll,
+            IdentityPermission.RoleReadAll,
+            IdentityPermission.PrivilegeReadAll
+        ],
+        mode: 'any',
+        items: [
+            {
+                label: 'Utilisateurs',
+                icon: 'pi pi-users',
+                routerLink: ['/settings/identity/users'],
+                permissions: [IdentityPermission.UserReadAll],
+                order: 10
+            },
+            {
+                label: 'Profils métier',
+                icon: 'pi pi-id-card',
+                routerLink: ['/settings/identity/business-profiles'],
+                permissions: [IdentityPermission.ProfileReadAll],
+                order: 20
+            },
+            {
+                label: 'Rôles',
+                icon: 'pi pi-shield',
+                routerLink: ['/settings/identity/roles'],
+                permissions: [IdentityPermission.RoleReadAll],
+                order: 30
+            },
+            {
+                label: 'Privilèges',
+                icon: 'pi pi-key',
+                routerLink: ['/settings/identity/privileges'],
+                permissions: [IdentityPermission.PrivilegeReadAll],
+                order: 40
+            }
+        ]
+    },
+    settingsRoute: {
+        path: 'identity',
+        loadChildren: () => import('./routes.admin').then((m) => m.identityAdminRoutes)
+    },
     dashboardWidgets: identityDashboardWidgets
 };

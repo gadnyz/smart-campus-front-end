@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
     Component,
@@ -26,6 +27,7 @@ import { ImageModule } from 'primeng/image';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 
 import {
@@ -75,7 +77,8 @@ import {
     formatCandidateGender,
     formatCandidatureStatus,
     formatCandidatureType,
-    formatMaritalStatus
+    formatMaritalStatus,
+    resolveCandidateDocumentKind
 } from '../../utils/candidate-format';
 
 type CandidateDetailRow = {
@@ -100,6 +103,7 @@ type CandidateName = Pick<
     standalone: true,
     imports: [
         CommonModule,
+        FormsModule,
         AvatarModule,
         ButtonModule,
         CardModule,
@@ -110,6 +114,7 @@ type CandidateName = Pick<
         ProgressBarModule,
         SkeletonModule,
         TagModule,
+        TextareaModule,
         ToastModule,
         ContentSubtopbar
     ],
@@ -165,6 +170,9 @@ export class CandidateDetail implements OnInit {
         signal<CandidateDocument | null>(null);
 
     readonly previewVisible = signal(false);
+
+    readonly rejectDialogVisible = signal(false);
+    readonly rejectReason = signal('');
 
     readonly documentViewUrls = signal<Record<string, string>>({});
 
@@ -690,19 +698,34 @@ export class CandidateDetail implements OnInit {
             return;
         }
 
-        this.confirmationService.confirm({
-            header: 'Confirmation',
-            message:
-                `Voulez-vous vraiment rejeter la candidature de ` +
-                `${this.fullName(candidate)} ?`,
-            icon: 'pi pi-exclamation-triangle',
-            acceptLabel: 'Rejeter',
-            rejectLabel: 'Annuler',
-            acceptButtonStyleClass: 'p-button-danger',
-            rejectButtonStyleClass: 'p-button-secondary',
-            accept: () =>
-                this.rejectCandidate(candidate.id)
-        });
+        this.rejectReason.set('');
+        this.rejectDialogVisible.set(true);
+    }
+
+    onRejectDialogVisibleChange(visible: boolean): void {
+        this.rejectDialogVisible.set(visible);
+
+        if (!visible) {
+            this.rejectReason.set('');
+        }
+    }
+
+    submitReject(): void {
+        const candidate = this.candidate();
+        const reason = this.rejectReason().trim();
+
+        if (!candidate || !reason) {
+            this.showError('Le motif de rejet est obligatoire.');
+            return;
+        }
+
+        if (reason.length > 500) {
+            this.showError('Le motif ne peut pas dépasser 500 caractères.');
+            return;
+        }
+
+        this.rejectDialogVisible.set(false);
+        this.rejectCandidate(candidate.id, reason);
     }
 
     fullName(candidate: CandidateName): string {
@@ -740,32 +763,7 @@ export class CandidateDetail implements OnInit {
     documentKind(
         document: CandidateDocument
     ): 'image' | 'pdf' | 'unknown' {
-        const source = [
-            document.content_type,
-            document.file_name,
-            document.file_url
-        ]
-            .filter(Boolean)
-            .join(' ')
-            .toLowerCase();
-
-        if (
-            source.includes('image/') ||
-            /\.(png|jpe?g|webp|gif)(?:[?#]|$)/.test(
-                source
-            )
-        ) {
-            return 'image';
-        }
-
-        if (
-            source.includes('application/pdf') ||
-            /\.pdf(?:[?#]|$)/.test(source)
-        ) {
-            return 'pdf';
-        }
-
-        return 'unknown';
+        return resolveCandidateDocumentKind(document);
     }
 
     openDocument(document: CandidateDocument): void {
@@ -1039,11 +1037,11 @@ export class CandidateDetail implements OnInit {
         });
     }
 
-    private rejectCandidate(id: string): void {
+    private rejectCandidate(id: string, reason: string): void {
         this.applyLocalStatus(id, 'REJECTED');
         this.processingAction.set('reject');
 
-        this.candidateService.reject(id).subscribe({
+        this.candidateService.reject(id, reason).subscribe({
             next: (updatedCandidate) =>
                 this.applyStatusChange(
                     updatedCandidate,

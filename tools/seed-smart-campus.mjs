@@ -7,6 +7,10 @@ const args = new Set(process.argv.slice(2));
 const checkOnly = args.has('--check');
 const skipOpenApi = args.has('--skip-openapi');
 const printEndpoints = args.has('--print-endpoints');
+const repairCandidateDocuments = args.has('--repair-candidate-documents');
+const resetSeed = args.has('--reset');
+const resetOnly = args.has('--reset-only');
+const confirmReset = args.has('--yes');
 const showHelp = args.has('--help') || args.has('-h');
 
 if (showHelp) {
@@ -21,6 +25,18 @@ Options:
   --check            Verify OpenAPI, login, and list endpoints without creating data.
   --skip-openapi     Skip /v3/api-docs verification.
   --print-endpoints  Print all operations loaded from OpenAPI.
+  --repair-candidate-documents
+                     Upload missing candidate documents (does not replace broken metadata).
+  --reset --yes      Delete seed data then re-run the seed (keeps protected admin user).
+  --reset-only --yes Delete seed data without re-seeding.
+
+Note:
+  Candidatures are NOT deleted — backend does not expose DELETE /api/v1/candidates/{id}.
+  After reset, existing candidates remain; new seed candidates are added via ensureCandidate().
+
+Protected users (never deleted):
+  - SMARTCAMPUS_API_USERNAME (default: ${DEFAULT_API_USERNAME})
+  - SMARTCAMPUS_KEEP_USERS   Optional comma-separated extra emails to keep
 
 Environment:
   SMARTCAMPUS_API_URL       Defaults to ${DEFAULT_API_BASE_URL}
@@ -40,6 +56,21 @@ if (!config.password) {
     console.error("Missing SMARTCAMPUS_API_PASSWORD. Example: $env:SMARTCAMPUS_API_PASSWORD = 'admin@password'");
     process.exit(1);
 }
+
+if ((resetSeed || resetOnly) && !confirmReset && !checkOnly) {
+    console.error('Reset is destructive. Re-run with --yes to confirm.');
+    console.error('Examples:');
+    console.error('  npm run seed:api:reset');
+    console.error('  node tools/seed-smart-campus.mjs --reset-only --yes');
+    process.exit(1);
+}
+
+if (resetSeed && resetOnly) {
+    console.error('Use either --reset or --reset-only, not both.');
+    process.exit(1);
+}
+
+const protectedUserEmails = buildProtectedUserEmails(config.username);
 
 const requiredSeedEndpoints = [
     ['post', '/api/v1/auth/login'],
@@ -80,12 +111,29 @@ const requiredSeedEndpoints = [
     ['post', '/api/v1/auth/register'],
     ['get', '/api/v1/candidates'],
     ['post', '/api/v1/candidates'],
-    ['post', '/api/v1/candidates/{id}/validate']
+    ['post', '/api/v1/candidates/{id}/validate'],
+    ['post', '/api/v1/candidates/{candidateId}/documents/upload-url'],
+    ['post', '/api/v1/candidates/{candidateId}/documents/confirm'],
+    ['get', '/api/v1/candidates/{candidateId}/documents/{documentId}/download-url']
 ];
 
 const commonLevelCodes = ['L1', 'L2', 'L3', 'M1', 'M2'];
 const preparatoryLevelCodes = ['PREP', ...commonLevelCodes];
 const computerScienceLevelCodes = ['L1', 'L2', 'L3', 'L4', 'M1', 'M2'];
+
+const MINIMAL_PNG = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    'base64'
+);
+const MINIMAL_PDF = Buffer.from('%PDF-1.1\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n');
+
+const SEED_DOCUMENT_SPECS = [
+    { type: 'PHOTO', extension: '.png', contentType: 'image/png', buffer: MINIMAL_PNG },
+    { type: 'ID_CARD', extension: '.png', contentType: 'image/png', buffer: MINIMAL_PNG },
+    { type: 'DIPLOMA', extension: '.pdf', contentType: 'application/pdf', buffer: MINIMAL_PDF },
+    { type: 'TRANSCRIPT', extension: '.pdf', contentType: 'application/pdf', buffer: MINIMAL_PDF },
+    { type: 'PAYMENT_SLIP', extension: '.pdf', contentType: 'application/pdf', buffer: MINIMAL_PDF }
+];
 
 const seedCatalog = {
     academicYear: {
@@ -823,12 +871,21 @@ class SmartCampusApi {
 async function main() {
     const api = new SmartCampusApi(config);
 
-    if (!skipOpenApi) {
+    if (!skipOpenApi && !resetSeed && !resetOnly) {
         await verifyOpenApi(api);
     }
 
     const user = await api.login();
     console.log(`[auth] logged in as ${user?.email || config.username}`);
+
+    if (resetSeed || resetOnly) {
+        await resetSeedData(api);
+    }
+
+    if (resetOnly) {
+        console.log('[reset] done (no re-seed requested).');
+        return;
+    }
 
     const context = await seed(api);
 
@@ -1103,6 +1160,12 @@ async function seed(api) {
                 }
             })
         );
+    }
+
+    for (const candidate of context.candidates) {
+        if (candidate?.id && !candidate.skipped) {
+            await ensureCandidateDocuments(api, candidate);
+        }
     }
 
     const candidatesByEmail = Object.fromEntries(
@@ -1448,6 +1511,225 @@ async function ensureProfileWithRoles(api, profileName, roles, knownProfiles = n
     }
 
     return profile;
+}
+
+function buildProtectedUserEmails(primaryUsername) {
+    const emails = new Set([
+        DEFAULT_API_USERNAME.toLowerCase(),
+        String(primaryUsername || '').trim().toLowerCase()
+    ]);
+
+    for (const email of String(process.env.SMARTCAMPUS_KEEP_USERS || '').split(',')) {
+        const normalized = email.trim().toLowerCase();
+
+        if (normalized) {
+            emails.add(normalized);
+        }
+    }
+
+    emails.delete('');
+    return emails;
+}
+
+async function safeDeleteRequest(api, path, label) {
+    if (checkOnly) {
+        console.log(`[check] would delete ${label}`);
+        return true;
+    }
+
+    try {
+        await api.request(path, { method: 'DELETE' });
+        console.log(`[delete] ${label}`);
+        return true;
+    } catch (error) {
+        if (error instanceof HttpError && [404, 405, 409, 422].includes(error.status)) {
+            console.warn(`[skip] ${label}: HTTP ${error.status}`);
+            return false;
+        }
+
+        throw error;
+    }
+}
+
+async function listTimetableEntries(api, timetableId) {
+    try {
+        const response = await api.request(`/api/v1/timetable-entries/timetable/${timetableId}`);
+
+        if (Array.isArray(response)) {
+            return response;
+        }
+
+        if (Array.isArray(response?.content)) {
+            return response.content;
+        }
+    } catch (error) {
+        if (error instanceof HttpError && [404, 403].includes(error.status)) {
+            return [];
+        }
+
+        throw error;
+    }
+
+    return [];
+}
+
+async function resetSeedData(api) {
+    console.log('[reset] starting cleanup (catalog preserved, protected users kept)...');
+    console.log(`[reset] protected users: ${[...protectedUserEmails].join(', ')}`);
+
+    const timetables = await listAll(api, '/api/v1/timetables');
+
+    for (const timetable of timetables) {
+        const entries = await listTimetableEntries(api, timetable.id);
+
+        for (const entry of entries) {
+            await safeDeleteRequest(
+                api,
+                `/api/v1/timetable-entries/${entry.id}`,
+                `timetable entry ${entry.id}`
+            );
+        }
+    }
+
+    for (const timetable of timetables) {
+        await safeDeleteRequest(
+            api,
+            `/api/v1/timetables/${timetable.id}`,
+            `timetable ${timetable.id}`
+        );
+    }
+
+    const candidates = await listAll(api, '/api/v1/candidates');
+
+    if (candidates.length) {
+        console.warn(
+            `[skip] ${candidates.length} candidature(s) kept — backend does not expose DELETE /api/v1/candidates/{id}`
+        );
+    }
+
+    for (const professor of await listAll(api, '/api/v1/professors')) {
+        await safeDeleteRequest(
+            api,
+            `/api/v1/professors/${professor.id}`,
+            `professor ${professor.email || professor.id}`
+        );
+    }
+
+    for (const room of await listAll(api, '/api/v1/rooms')) {
+        await safeDeleteRequest(
+            api,
+            `/api/v1/rooms/${room.id}`,
+            `room ${room.name || room.id}`
+        );
+    }
+
+    for (const user of await listAll(api, '/api/v1/users')) {
+        const email = String(user.email || '').trim().toLowerCase();
+
+        if (protectedUserEmails.has(email)) {
+            console.log(`[keep] user: ${user.email}`);
+            continue;
+        }
+
+        await safeDeleteRequest(
+            api,
+            `/api/v1/users/${user.id}`,
+            `user ${user.email || user.id}`
+        );
+    }
+
+    console.log('[reset] cleanup complete');
+}
+
+async function ensureCandidateDocuments(api, candidate) {
+    if (checkOnly) {
+        console.log(`[check] would ensure documents for candidate: ${candidate.email}`);
+        return;
+    }
+
+    const detail = await api.request(`/api/v1/candidates/${candidate.id}`);
+    const documents = detail.documents || [];
+    const documentsByType = new Map(
+        documents.map((document) => [document.document_type || document.type, document])
+    );
+
+    for (const spec of SEED_DOCUMENT_SPECS) {
+        const existing = documentsByType.get(spec.type);
+        const accessible = existing
+            ? await isStoredDocumentAccessible(api, candidate.id, existing)
+            : false;
+
+        if (existing && !accessible) {
+            console.warn(
+                `[warn] candidate ${candidate.email}: ${spec.type} metadata exists but storage file is missing (re-create candidature via /apply or delete candidate to re-seed)`
+            );
+            continue;
+        }
+
+        if (existing && accessible) {
+            continue;
+        }
+
+        if (!repairCandidateDocuments && existing) {
+            continue;
+        }
+
+        try {
+            await uploadCandidateDocument(api, candidate.id, spec);
+            console.log(`[post] uploaded ${spec.type} for candidate: ${candidate.email}`);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            console.warn(`[warn] could not upload ${spec.type} for ${candidate.email}: ${message}`);
+        }
+    }
+}
+
+async function isStoredDocumentAccessible(api, candidateId, document) {
+    if (!document?.id) {
+        return false;
+    }
+
+    try {
+        const response = await api.request(
+            `/api/v1/candidates/${candidateId}/documents/${document.id}/download-url`
+        );
+
+        if (!response?.file_url) {
+            return false;
+        }
+
+        const asset = await fetch(response.file_url);
+        return asset.ok;
+    } catch {
+        return false;
+    }
+}
+
+async function uploadCandidateDocument(api, candidateId, spec) {
+    const uploadMeta = await api.request(
+        `/api/v1/candidates/${candidateId}/documents/upload-url?type=${spec.type}&extension=${encodeURIComponent(spec.extension)}`,
+        { method: 'POST', body: null }
+    );
+
+    const uploadResponse = await fetch(uploadMeta.upload_url, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': spec.contentType
+        },
+        body: spec.buffer
+    });
+
+    if (!uploadResponse.ok) {
+        throw new Error(`storage upload failed with ${uploadResponse.status}`);
+    }
+
+    await api.request(`/api/v1/candidates/${candidateId}/documents/confirm`, {
+        method: 'POST',
+        body: {
+            object_path: uploadMeta.object_path,
+            type: spec.type
+        }
+    });
 }
 
 async function ensureCandidateValidated(api, candidate) {

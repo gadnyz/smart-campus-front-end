@@ -491,7 +491,7 @@ export class UserDetail implements OnInit {
         this.usersService.deleteUser(userId).subscribe({
             next: () => {
                 this.showSuccess('Utilisateur supprimé avec succès.');
-                void this.router.navigate(['/identity/users']);
+                void this.router.navigate(['/settings/identity/users']);
             },
             error: (error: HttpErrorResponse) => {
                 this.showError(error.error?.detail ?? 'Impossible de supprimer l\'utilisateur.');
@@ -513,7 +513,7 @@ export class UserDetail implements OnInit {
     }
 
     goToList(): void {
-        const route = this.navigationState()?.context.listRoute ?? ['/identity/users'];
+        const route = this.navigationState()?.context.listRoute ?? ['/settings/identity/users'];
         void this.router.navigate(route);
     }
 
@@ -527,7 +527,7 @@ export class UserDetail implements OnInit {
         const previous = state.context.items[state.localIndex - 1];
 
         if (previous) {
-            void this.router.navigate(['/identity/users', previous.id]);
+            void this.router.navigate(['/settings/identity/users', previous.id]);
         }
     }
 
@@ -541,7 +541,7 @@ export class UserDetail implements OnInit {
         const next = state.context.items[state.localIndex + 1];
 
         if (next) {
-            void this.router.navigate(['/identity/users', next.id]);
+            void this.router.navigate(['/settings/identity/users', next.id]);
         }
     }
 
@@ -551,7 +551,7 @@ export class UserDetail implements OnInit {
             return;
         }
 
-        void this.router.navigate(['/identity/users']);
+        void this.router.navigate(['/settings/identity/users']);
     }
 
     private setUser(user: User): void {

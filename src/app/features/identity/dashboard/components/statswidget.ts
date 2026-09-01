@@ -47,8 +47,8 @@ export class StatsWidget implements OnInit {
             icon: 'pi pi-users',
             iconContainerClass: 'bg-blue-100 dark:bg-blue-400/10',
             iconClass: 'text-blue-500',
-            createRoute: '/identity/users/new',
-            listRoute: '/identity/users'
+            createRoute: '/settings/identity/users/new',
+            listRoute: '/settings/identity/users'
         }
     ]);
 

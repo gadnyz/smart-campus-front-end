@@ -211,3 +211,15 @@
         height: 65vh;
     }
 }
+
+.reject-dialog-intro {
+    margin: 0 0 0.75rem;
+    color: var(--text-color-secondary);
+}
+
+.reject-dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}

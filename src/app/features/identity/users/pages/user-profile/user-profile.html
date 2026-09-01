@@ -85,16 +85,6 @@
                     <p class="text-color-secondary m-0 mb-4">Aucun profil assigné.</p>
                     }
 
-                    <div class="font-semibold text-lg mb-3">Autorisations</div>
-                    @if (currentUser.authorities.length) {
-                    <div class="flex flex-wrap gap-1">
-                        @for (authority of currentUser.authorities; track authority) {
-                        <p-tag [value]="authority" severity="secondary" />
-                        }
-                    </div>
-                    } @else {
-                    <p class="text-color-secondary m-0">Aucune autorisation.</p>
-                    }
                 </div>
 
                 @if (editing()) {

@@ -1,82 +1,27 @@
 import { Routes } from '@angular/router';
-import { UserManagement } from './users/pages/user-management/user-management';
-import { UserCreate } from './users/pages/user-create/user-create';
-import { UserDetail } from './users/pages/user-detail/user-detail';
 import { UserProfile } from './users/pages/user-profile/user-profile';
-import { RoleManagement } from './pages/role-management/role-management';
-import { PrivilegeManagement } from './pages/privilege-management/privilege-management';
-import { ProfileManagement } from './pages/profile-management/profile-management';
 import { Preferences } from './users/pages/preferences/preferences';
+import { IdentityUserRedirect } from './pages/identity-user-redirect';
 import { permissionGuard } from '@/app/core/permissions/permission.guard';
 import { IdentityPermission } from './permissions/permission.model';
 
+/** Personal account routes kept at /identity (topbar). Admin moved to /settings/identity. */
 export default [
-    {
-        path: 'users',
-        component: UserManagement,
-        canActivate: [permissionGuard],
-        data: {
-            permissions: [IdentityPermission.UserReadAll],
-            mode: 'any'
-        }
-    },
-    {
-        path: 'users/new',
-        component: UserCreate,
-        canActivate: [permissionGuard],
-        data: {
-            permissions: [IdentityPermission.UserCreateAll],
-            mode: 'any'
-        }
-    },
-    {
-        path: 'users/:id',
-        component: UserDetail,
-        canActivate: [permissionGuard],
-        data: {
-            permissions: [IdentityPermission.UserReadAll],
-            mode: 'any'
-        }
-    },
-    {
-        path: 'roles',
-        component: RoleManagement,
-        canActivate: [permissionGuard],
-        data: {
-            permissions: [IdentityPermission.RoleReadAll],
-            mode: 'any'
-        }
-    },
-    {
-        path: 'privileges',
-        component: PrivilegeManagement,
-        canActivate: [permissionGuard],
-        data: {
-            permissions: [IdentityPermission.PrivilegeReadAll],
-            mode: 'any'
-        }
-    },
-    {
-        path: 'business-profiles',
-        component: ProfileManagement,
-        canActivate: [permissionGuard],
-        data: {
-            permissions: [IdentityPermission.ProfileReadAll],
-            mode: 'any'
-        }
-    },
     {
         path: 'profile',
         component: UserProfile,
         canActivate: [permissionGuard],
         data: {
-            permissions: [
-                IdentityPermission.UserReadOwn,
-                IdentityPermission.UserUpdateOwn
-            ],
+            permissions: [IdentityPermission.UserReadOwn, IdentityPermission.UserUpdateOwn],
             mode: 'any'
         }
     },
     { path: 'preferences', component: Preferences },
-    { path: '', redirectTo: 'users', pathMatch: 'full' }
+    { path: 'users/new', redirectTo: '/settings/identity/users/new', pathMatch: 'full' },
+    { path: 'users/:id', component: IdentityUserRedirect },
+    { path: 'users', redirectTo: '/settings/identity/users', pathMatch: 'full' },
+    { path: 'roles', redirectTo: '/settings/identity/roles', pathMatch: 'full' },
+    { path: 'privileges', redirectTo: '/settings/identity/privileges', pathMatch: 'full' },
+    { path: 'business-profiles', redirectTo: '/settings/identity/business-profiles', pathMatch: 'full' },
+    { path: '', redirectTo: 'profile', pathMatch: 'full' }
 ] as Routes;

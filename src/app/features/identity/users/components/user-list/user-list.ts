@@ -65,7 +65,7 @@ export class UserList implements OnInit {
                 this.users.set(response.content);
                 this.detailNavigation.setContext({
                     scope: this.navigationScope,
-                    listRoute: ['/identity/users'],
+                    listRoute: ['/settings/identity/users'],
                     page: response.page,
                     size: response.size,
                     totalElements: response.total_elements,

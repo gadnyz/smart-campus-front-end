@@ -25,5 +25,26 @@ export const admissionFeature: AppFeature = {
             ]
         }
     ],
+    settingsTab: {
+        key: 'admission',
+        label: 'Admission',
+        order: 30,
+        routerLink: ['/settings/admission'],
+        permissions: [AdmissionPermission.AdmissionCandidateUpdateAll],
+        mode: 'any',
+        items: [
+            {
+                label: 'Activation',
+                icon: 'pi pi-power-off',
+                routerLink: ['/settings/admission'],
+                permissions: [AdmissionPermission.AdmissionCandidateUpdateAll],
+                order: 10
+            }
+        ]
+    },
+    settingsRoute: {
+        path: 'admission',
+        loadChildren: () => import('./settings/routes')
+    },
     dashboardWidgets: admissionDashboardWidgets
 };

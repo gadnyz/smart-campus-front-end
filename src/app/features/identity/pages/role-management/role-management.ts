@@ -116,7 +116,7 @@ export class RoleManagement implements OnInit {
 
     readonly actions = computed<SubtopbarAction[]>(() => [
         {
-            label: 'Nouveau rôle',
+            label: 'Nouveau',
             icon: 'pi pi-plus',
             severity: 'info',
             outlined: false,

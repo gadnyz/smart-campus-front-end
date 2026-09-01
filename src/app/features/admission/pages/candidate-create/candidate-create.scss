@@ -73,6 +73,34 @@
     margin-bottom: 2.5rem;
 }
 
+.apply-closed-banner {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--orange-500, #f97316) 35%, var(--surface-border, #e2e8f0));
+    background: color-mix(in srgb, var(--orange-500, #f97316) 8%, var(--surface-card, #fff));
+    color: var(--text-color-secondary, #475569);
+
+    i {
+        color: var(--orange-600, #ea580c);
+        font-size: 1.25rem;
+        margin-top: 0.15rem;
+    }
+
+    strong {
+        display: block;
+        color: var(--text-color, #0f172a);
+        margin-bottom: 0.35rem;
+    }
+
+    p {
+        margin: 0;
+        line-height: 1.5;
+    }
+}
+
 .form-heading {
     text-align: center;
     margin-bottom: 3rem;
