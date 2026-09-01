@@ -12,7 +12,9 @@
     "test": "ng test",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadlessNoSandbox --code-coverage",
     "seed:api": "node tools/seed-smart-campus.mjs",
-    "seed:api:check": "node tools/seed-smart-campus.mjs --check"
+    "seed:api:check": "node tools/seed-smart-campus.mjs --check",
+    "seed:api:reset": "node tools/seed-smart-campus.mjs --reset --yes",
+    "seed:api:reset-only": "node tools/seed-smart-campus.mjs --reset-only --yes"
   },
   "private": true,
   "dependencies": {

@@ -9,7 +9,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { RippleModule } from 'primeng/ripple';
-import { appBrand } from '@/app/core/config/app-brand';
+import { CoreSettingsStore } from '@/app/core/settings/services/core-settings.store';
 import { AuthService } from './services/auth.service';
 import { AuthFooter } from './auth-footer/auth-footer';
 import { ActivatedRoute } from '@angular/router';
@@ -41,7 +41,7 @@ export class Login implements AfterViewInit {
     private readonly route = inject(ActivatedRoute);
     private readonly messageService = inject(MessageService);
 
-    brand = appBrand;
+    readonly brand = inject(CoreSettingsStore).brand;
     email = '';
     password = '';
     checked = false;
@@ -107,7 +107,7 @@ export class Login implements AfterViewInit {
         }
 
         if (error.status === 403) {
-            this.errorMessage.set('Votre  compte ne dispose pas des autorisations nécessaires pour accéder à la plateforme.');
+            this.errorMessage.set('Votre compte ne dispose pas des autorisations nécessaires pour accéder à la plateforme.');
             return;
         }
 

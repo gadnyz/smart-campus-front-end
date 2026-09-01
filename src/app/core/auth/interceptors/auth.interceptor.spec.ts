@@ -61,6 +61,67 @@ describe('authInterceptor', () => {
         req.flush([]);
     });
 
+    describe('Swagger-generated API services — JWT attachment', () => {
+        const swaggerPaths = [
+            '/api/v1/users',
+            '/api/v1/profiles',
+            '/api/v1/roles',
+            '/api/v1/privileges',
+            '/api/v1/candidates'
+        ];
+
+        for (const path of swaggerPaths) {
+            it(`should attach Bearer token to ${path}`, () => {
+                sessionStorage.setItem('access_token', 'swagger-jwt');
+
+                httpClient.get(path).subscribe();
+
+                const req = httpTesting.expectOne(path);
+                expect(req.request.headers.get('Authorization')).toBe('Bearer swagger-jwt');
+                req.flush([]);
+            });
+        }
+    });
+
+    it('should propagate 403 responses without clearing the session (authorization vs authentication)', () => {
+        sessionStorage.setItem('access_token', 'my-token');
+        spyOn(authService, 'clearSession');
+
+        let status: number | undefined;
+        httpClient.get('/api/v1/users').subscribe({
+            next: () => fail('expected error'),
+            error: (err) => {
+                status = err.status;
+            }
+        });
+
+        const req = httpTesting.expectOne('/api/v1/users');
+        req.flush({ detail: 'Forbidden' }, { status: 403, statusText: 'Forbidden' });
+
+        expect(status).toBe(403);
+        expect(authService.clearSession).not.toHaveBeenCalled();
+        expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should propagate 500 responses without clearing the session', () => {
+        sessionStorage.setItem('access_token', 'my-token');
+        spyOn(authService, 'clearSession');
+
+        let status: number | undefined;
+        httpClient.get('/api/v1/profiles').subscribe({
+            next: () => fail('expected error'),
+            error: (err) => {
+                status = err.status;
+            }
+        });
+
+        const req = httpTesting.expectOne('/api/v1/profiles');
+        req.flush({ detail: 'Server error' }, { status: 500, statusText: 'Server Error' });
+
+        expect(status).toBe(500);
+        expect(authService.clearSession).not.toHaveBeenCalled();
+    });
+
     it('should not add Authorization header for public auth URLs', () => {
         sessionStorage.setItem('access_token', 'my-token');
 

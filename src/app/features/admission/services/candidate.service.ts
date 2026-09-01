@@ -18,8 +18,10 @@ import {
     CandidatureStatus,
     ConfirmDocumentRequest,
     ConfirmDocumentResponse,
+    DocumentDownloadUrlResponse,
     DocumentUploadUrlResponse,
     PagedResponse,
+    RejectCandidatureRequest,
     SubmitCandidatureRequest
 } from '../models/candidate.model';
 
@@ -137,15 +139,23 @@ export class CandidateService {
         return this.http
             .post<void>(`${this.baseUrl}/${id}/validate`, {})
             .pipe(
-                switchMap(() => this.getById(id, true))
+                switchMap(() => this.getById(id, true)),
+                map((candidate) =>
+                    this.withStatus(candidate, 'VALIDATED')
+                )
             );
     }
 
-    reject(id: string): Observable<CandidateResponse> {
+    reject(id: string, reason: string): Observable<CandidateResponse> {
+        const payload: RejectCandidatureRequest = { reason };
+
         return this.http
-            .post<void>(`${this.baseUrl}/${id}/reject`, {})
+            .post<void>(`${this.baseUrl}/${id}/reject`, payload)
             .pipe(
-                switchMap(() => this.getById(id, true))
+                switchMap(() => this.getById(id, true)),
+                map((candidate) =>
+                    this.withStatus(candidate, 'REJECTED')
+                )
             );
     }
 
@@ -227,6 +237,25 @@ export class CandidateService {
         );
     }
 
+    getDocumentDownloadUrl(
+        candidateId: string,
+        documentId: string
+    ): Observable<DocumentDownloadUrlResponse> {
+        return this.http.get<DocumentDownloadUrlResponse>(
+            `${this.baseUrl}/${candidateId}/documents/${documentId}/download-url`
+        );
+    }
+
+    /** Presigned read URL for staff document preview (detail page). */
+    resolveDocumentViewUrl(
+        candidateId: string,
+        document: Pick<CandidateDocument, 'id'>
+    ): Observable<string> {
+        return this.getDocumentDownloadUrl(candidateId, document.id).pipe(
+            map((response) => response.file_url)
+        );
+    }
+
     clearDetailCache(id?: string): void {
         if (id) {
             this.detailCache.delete(id);
@@ -234,6 +263,22 @@ export class CandidateService {
         }
 
         this.detailCache.clear();
+    }
+
+    private withStatus(
+        candidate: CandidateResponse,
+        status: CandidatureStatus
+    ): CandidateResponse {
+        const updated: CandidateResponse = {
+            ...candidate,
+            candidature: {
+                ...candidate.candidature,
+                status
+            }
+        };
+
+        this.detailCache.set(updated.id, updated);
+        return updated;
     }
 
     private httpContext(publicRequest?: boolean): HttpContext {
@@ -323,3 +368,4 @@ export class CandidateService {
         };
     }
 }
+

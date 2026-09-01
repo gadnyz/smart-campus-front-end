@@ -1,0 +1,64 @@
+.settings-panel {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--content-border-radius, 8px);
+    overflow: hidden;
+}
+
+.settings-section {
+    padding: 1.25rem 0 0.5rem;
+}
+
+.settings-section__title {
+    margin: 0 0 0.75rem;
+    padding: 0 1.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.settings-row {
+    display: grid;
+    grid-template-columns: minmax(12rem, 16rem) 1fr;
+    gap: 1rem 1.5rem;
+    align-items: start;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--surface-border);
+}
+
+.settings-row__label {
+    padding-top: 0.35rem;
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.settings-row__hint {
+    display: block;
+    margin-top: 0.35rem;
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: var(--text-color-secondary);
+    line-height: 1.4;
+}
+
+.settings-row__control {
+    min-width: 0;
+}
+
+.settings-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem 1.25rem;
+    border-top: 1px solid var(--surface-border);
+    background: var(--surface-ground);
+}
+
+@media (max-width: 768px) {
+    .settings-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+}

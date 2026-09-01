@@ -6,7 +6,7 @@ import { PermissionAwareItem } from '@/app/core/permissions/permission.model';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { AppMenuitem } from './app.menuitem';
 import { FeatureMenuItem } from '@/app/core/modules/app-feature.model';
-import { appMenuItems } from '@/app/core/modules/app-feature.registry';
+import { appMenuItems, appSettingsTabs } from '@/app/core/modules/app-feature.registry';
 
 type AppMenuItem = MenuItem &
     PermissionAwareItem & {
@@ -35,6 +35,13 @@ export class AppMenu implements OnInit {
     model: AppMenuItem[] = [];
 
     ngOnInit(): void {
+        const hasSettingsAccess = appSettingsTabs.some((tab) =>
+            this.permissionService.canAccess({
+                permissions: tab.permissions,
+                mode: tab.mode
+            })
+        );
+
         const menu: FeatureMenuItem[] = [
             {
                 label: 'Tableau de bord',
@@ -47,7 +54,22 @@ export class AppMenu implements OnInit {
                     }
                 ]
             },
-            ...appMenuItems
+            ...appMenuItems,
+            ...(hasSettingsAccess
+                ? [
+                      {
+                          label: 'Configuration',
+                          order: 90,
+                          items: [
+                              {
+                                  label: 'Paramètres',
+                                  icon: 'pi pi-fw pi-cog',
+                                  routerLink: ['/settings']
+                              }
+                          ]
+                      } satisfies FeatureMenuItem
+                  ]
+                : [])
         ];
 
         this.model = this.filterMenu(menu);

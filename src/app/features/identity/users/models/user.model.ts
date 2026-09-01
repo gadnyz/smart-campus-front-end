@@ -31,6 +31,7 @@ export interface RegisterResponse {
 export interface UpdateUserRequest {
     username: string;
     email: string;
+    faculty_id?: string | null;
 }
 
 export interface UserProfileResponse {

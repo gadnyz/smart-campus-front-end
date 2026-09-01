@@ -1,0 +1,23 @@
+<p-toast />
+
+<app-content-subtopbar kicker="Paramètres" title="Admission" [actions]="actions()" />
+
+<div class="settings-panel">
+    <form [formGroup]="form">
+        <section class="settings-section">
+            <h2 class="settings-section__title">Activation</h2>
+
+            <div class="settings-row">
+                <div class="settings-row__label">Portail public</div>
+                <div class="settings-row__control flex items-center gap-2">
+                    <p-checkbox
+                        formControlName="publicApplyEnabled"
+                        [binary]="true"
+                        inputId="publicApplyEnabled"
+                    />
+                    <label for="publicApplyEnabled">Autoriser les préinscriptions en ligne</label>
+                </div>
+            </div>
+        </section>
+    </form>
+</div>

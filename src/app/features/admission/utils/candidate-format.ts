@@ -1,5 +1,6 @@
-// import { formatDate } from '@angular/common';
-import { CandidateDocumentType, CandidateGender, CandidatureStatus, CandidatureType, MaritalStatus } from '../models/candidate.model';
+import { CandidateDocument, CandidateDocumentType, CandidateGender, CandidatureStatus, CandidatureType, MaritalStatus } from '../models/candidate.model';
+
+export type CandidateDocumentKind = 'image' | 'pdf' | 'unknown';
 
 export type CandidateStatusSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary';
 
@@ -68,6 +69,63 @@ export function candidateStatusSeverity(value: CandidatureStatus): CandidateStat
 
 export function formatCandidateDocumentType(value: CandidateDocumentType): string {
     return DOCUMENT_TYPE_LABEL[value];
+}
+
+/** Prefer document_type, then file metadata (extension, MIME). */
+export function resolveCandidateDocumentKind(
+    document: Pick<
+        CandidateDocument,
+        'document_type' | 'content_type' | 'file_name' | 'file_url'
+    >
+): CandidateDocumentKind {
+    if (document.document_type === 'PHOTO') {
+        return 'image';
+    }
+
+    const fromMetadata = inferDocumentKindFromMetadata(document);
+
+    if (fromMetadata !== 'unknown') {
+        return fromMetadata;
+    }
+
+    switch (document.document_type) {
+        case 'ID_CARD':
+            return 'image';
+        case 'DIPLOMA':
+        case 'TRANSCRIPT':
+        case 'PAYMENT_SLIP':
+            return 'pdf';
+        default:
+            return 'unknown';
+    }
+}
+
+function inferDocumentKindFromMetadata(
+    document: Pick<
+        CandidateDocument,
+        'content_type' | 'file_name' | 'file_url'
+    >
+): CandidateDocumentKind {
+    const source = [document.content_type, document.file_name, document.file_url]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+    if (
+        source.includes('image/') ||
+        /\.(png|jpe?g|webp|gif)(?:[?#]|$)/.test(source)
+    ) {
+        return 'image';
+    }
+
+    if (
+        source.includes('application/pdf') ||
+        /\.pdf(?:[?#]|$)/.test(source)
+    ) {
+        return 'pdf';
+    }
+
+    return 'unknown';
 }
 
 function toDate(value: string | null | undefined): Date | null {

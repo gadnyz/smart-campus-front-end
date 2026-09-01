@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, NavigationEnd } from '@angular/router';
 
 import { Component, inject, computed, signal, effect } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { getUserInitial, resolveAvatarUrl } from '@/app/shared/utils/avatar-url';
 import { MenuItem } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
@@ -9,8 +10,8 @@ import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { LayoutService } from '@/app/layout/service/layout.service';
-import { appBrand } from '@/app/core/config/app-brand';
-import { finalize } from 'rxjs';
+import { CoreSettingsStore } from '@/app/core/settings/services/core-settings.store';
+import { filter, finalize } from 'rxjs';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { AuthService } from '@/app/core/auth/services/auth.service';
 
@@ -22,23 +23,23 @@ import { AuthService } from '@/app/core/auth/services/auth.service';
         <header class="layout-topbar">
             <div class="layout-topbar-left">
                 <button type="button" class="layout-menu-button layout-topbar-action" (click)="layoutService.onMenuToggle()">
-                    <i class="pi pi-th-large"></i> 
+                    <i class="pi pi-th-large"></i>
                 </button>
-                
+
                 <a class="layout-topbar-logo" routerLink="/">
-                    <img [src]="brand.logos.main" [alt]="brand.appName" />
-                    <span>{{ brand.appName }}</span>
+                    <img [src]="brand().logos.main" [alt]="brand().appName" />
+                    <span>{{ brand().appName }}</span>
                 </a>
             </div>
 
             <div class="layout-topbar-right">
                 <button type="button" class="layout-topbar-avatar-button" aria-label="Profil utilisateur" (click)="userMenu.toggle($event)">
-                   @if (avatarUrl()) {
-                        <p-avatar
-                            [image]="avatarUrl()"
-                            shape="circle"
-                            styleClass="layout-topbar-avatar"
-                            (onImageError)="onAvatarImageError()"
+                    @if (avatarUrl(); as url) {
+                        <img
+                            class="layout-topbar-avatar-image"
+                            [src]="url"
+                            [alt]="userInitial()"
+                            (error)="onAvatarImageError()"
                         />
                     } @else {
                         <p-avatar [label]="userInitial()" shape="circle" styleClass="layout-topbar-avatar" />
@@ -51,10 +52,12 @@ import { AuthService } from '@/app/core/auth/services/auth.service';
     `
 })
 export class AppTopbar {
-    readonly brand = appBrand;
+    private readonly coreSettingsStore = inject(CoreSettingsStore);
     readonly layoutService = inject(LayoutService);
     private readonly router = inject(Router);
     private readonly authService = inject(AuthService);
+
+    readonly brand = this.coreSettingsStore.brand;
 
     readonly notificationCount = 5;
     readonly currentUser = this.authService.currentUser;
@@ -78,26 +81,37 @@ export class AppTopbar {
             this.currentUser()?.avatar_url;
             this.avatarLoadFailed.set(false);
         });
+
+        // p-avatar/onImageError can flip permanently after transient remounts during navigation.
+        this.router.events
+            .pipe(
+                filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+                takeUntilDestroyed()
+            )
+            .subscribe(() => {
+                if (this.currentUser()?.avatar_url) {
+                    this.avatarLoadFailed.set(false);
+                }
+            });
     }
 
     onAvatarImageError(): void {
         this.avatarLoadFailed.set(true);
     }
 
-
     readonly notificationMenuItems: MenuItem[] = [
         {
             label: 'Nouvelle demande de création utilisateur',
             icon: '',
             command: () => {
-                void this.router.navigate(['/identity/users/new']);
+                void this.router.navigate(['/settings/identity/users/new']);
             }
         },
         {
             label: 'Mot de passe réinitialisé avec succès',
             icon: '',
             command: () => {
-                void this.router.navigate(['/identity/users']);
+                void this.router.navigate(['/settings/identity/users']);
             }
         },
         {
@@ -173,8 +187,8 @@ export class AppTopbar {
                 })
             )
             .subscribe({
-                next: () => { },
-                error: () => { }
+                next: () => {},
+                error: () => {}
             });
     }
 }

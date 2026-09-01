@@ -1,0 +1,206 @@
+<p-toast />
+<p-confirmdialog [style]="{ width: '450px' }" />
+
+<app-content-subtopbar kicker="Gestion de l'identité" title="Rôles" [actions]="actions()" />
+
+<div class="card">
+    <p-table
+        #dt
+        [value]="rows()"
+        [loading]="loading()"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 20, 50]"
+        [globalFilterFields]="['name', 'privilegesLabel']"
+        [rowHover]="true"
+        dataKey="id"
+        responsiveLayout="scroll"
+        currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} rôles"
+        [showCurrentPageReport]="true"
+        [tableStyle]="{ 'min-width': '50rem' }"
+    >
+        <ng-template pTemplate="caption">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div class="font-semibold text-xl">Liste des rôles</div>
+
+                <p-iconfield>
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text" placeholder="Rechercher..." (input)="onGlobalFilter(dt, $event)" />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="name" style="min-width: 14rem">
+                    Nom
+                    <p-sortIcon field="name"></p-sortIcon>
+                </th>
+                <th style="min-width: 18rem">Liste des privilèges</th>
+                
+                <th style="width: 6rem">Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-role>
+            <tr>
+                <td>{{ role.name }}</td>
+                <td>
+                    @if (role.privileges.length) {
+                    <div class="flex flex-wrap gap-1">
+                        @for (privilege of role.privileges; track privilege) {
+                        <p-tag [value]="privilege" severity="info" />
+                        }
+                    </div>
+                    } @else {
+                    <span class="text-color-secondary">Aucun</span>
+                    }
+                </td>
+               
+                <td>
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-arrow-right"
+                        rounded
+                        outlined
+                        severity="info"
+                        [attr.aria-label]="'Voir ' + role.name"
+                        (click)="openDetail(role)"
+                    ></button>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="5">Aucun rôle trouvé.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog
+    header="Créer un rôle"
+    [visible]="createDialogVisible()"
+    (visibleChange)="createDialogVisible.set($event)"
+    [modal]="true"
+    [style]="{ width: '32rem' }"
+    [breakpoints]="{ '640px': '95vw' }"
+>
+    <form [formGroup]="createForm" class="flex flex-col gap-4" (ngSubmit)="submitCreate()">
+        <div>
+            <label for="roleName" class="block text-sm text-color-secondary mb-1">Nom du rôle</label>
+            <input
+                pInputText
+                id="roleName"
+                formControlName="name"
+                placeholder="ROLE_EXEMPLE"
+                class="w-full"
+            />
+            @if (isCreateInvalid()) {
+            <small class="text-red-500 block mt-1">
+                Le nom doit respecter le format ROLE_XXX (majuscules et underscores uniquement).
+            </small>
+            } @else {
+            <small class="text-color-secondary block mt-1">Format attendu : ROLE_XXX (ex. ROLE_ADMIN)</small>
+            }
+        </div>
+
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined (click)="closeCreateDialog()"></button>
+            <button pButton type="submit" label="Créer" icon="pi pi-save" [loading]="creating()" [disabled]="creating()"></button>
+        </div>
+    </form>
+</p-dialog>
+
+<p-dialog
+    [header]="selectedRole()?.name ?? 'Détail du rôle'"
+    [visible]="detailDialogVisible()"
+    (visibleChange)="detailDialogVisible.set($event)"
+    [modal]="true"
+    [style]="{ width: '48rem' }"
+    [contentStyle]="{ 'max-height': '70vh', 'overflow-y': 'auto' }"
+    [breakpoints]="{ '640px': '95vw' }"
+    (onHide)="closeDetail()"
+>
+    @if (selectedRole(); as role) {
+    <div class="flex flex-col gap-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-color-secondary text-sm">{{ detailPositionLabel() }}</span>
+            <div class="flex gap-2">
+                <button
+                    pButton
+                    type="button"
+                    label="Précédent"
+                    icon="pi pi-chevron-left"
+                    severity="secondary"
+                    outlined
+                    [disabled]="!canGoPreviousDetail()"
+                    (click)="goToPreviousDetail()"
+                ></button>
+                <button
+                    pButton
+                    type="button"
+                    label="Suivant"
+                    icon="pi pi-chevron-right"
+                    iconPos="right"
+                    severity="secondary"
+                    outlined
+                    [disabled]="!canGoNextDetail()"
+                    (click)="goToNextDetail()"
+                ></button>
+            </div>
+        </div>
+
+        <div>
+            <div class="font-semibold mb-2">Privilèges assignés</div>
+            @if (role.privileges.length) {
+            <div class="flex flex-wrap gap-1">
+                @for (privilege of role.privileges; track privilege) {
+                <p-tag [value]="privilege" severity="info" />
+                }
+            </div>
+            } @else {
+            <span class="text-color-secondary">Aucun privilège assigné.</span>
+            }
+        </div>
+
+        @if (canUpdateRoles()) {
+        <div>
+            <label for="privilegeSelect" class="block text-sm text-color-secondary mb-1">Ajouter des privilèges</label>
+            <p-multiselect
+                inputId="privilegeSelect"
+                [options]="availablePrivileges()"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Sélectionner des privilèges"
+                display="chip"
+                appendTo="body"
+                class="w-full"
+                [filter]="true"
+                [loading]="loadingPrivileges()"
+                [ngModel]="selectedPrivilegeIds()"
+                (ngModelChange)="selectedPrivilegeIds.set($event)"
+            />
+            @if (!loadingPrivileges() && !privileges().length) {
+            <small class="text-red-500 block mt-1">
+                Aucun privilège disponible. Vérifiez vos permissions ou la page Privilèges.
+            </small>
+            }
+            <div class="flex justify-end mt-3">
+                <button
+                    pButton
+                    type="button"
+                    label="Ajouter"
+                    icon="pi pi-plus"
+                    [loading]="attaching()"
+                    [disabled]="attaching() || !selectedPrivilegeIds().length"
+                    (click)="attachPrivileges()"
+                ></button>
+            </div>
+        </div>
+        }
+    </div>
+    }
+</p-dialog>

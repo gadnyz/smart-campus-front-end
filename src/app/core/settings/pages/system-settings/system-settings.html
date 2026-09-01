@@ -1,0 +1,50 @@
+<p-toast />
+
+<app-content-subtopbar kicker="Paramètres" title="Système" [actions]="actions()" />
+
+<div class="settings-panel">
+    <form [formGroup]="form">
+        <section class="settings-section">
+            <h2 class="settings-section__title">Communication</h2>
+
+            <div class="settings-row">
+                <div class="settings-row__label">
+                    Email système
+                    <span class="settings-row__hint">Adresse expéditeur des notifications automatiques.</span>
+                </div>
+                <div class="settings-row__control">
+                    <input pInputText class="w-full" type="email" formControlName="systemEmail" [readonly]="!editing()" />
+                </div>
+            </div>
+
+            <div class="settings-row">
+                <div class="settings-row__label">
+                    Email support
+                    <span class="settings-row__hint">Contact affiché aux utilisateurs et candidats.</span>
+                </div>
+                <div class="settings-row__control">
+                    <input pInputText class="w-full" type="email" formControlName="supportEmail" [readonly]="!editing()" />
+                </div>
+            </div>
+        </section>
+
+        <section class="settings-section">
+            <h2 class="settings-section__title">Académique</h2>
+
+            <div class="settings-row">
+                <div class="settings-row__label">Année académique courante</div>
+                <div class="settings-row__control">
+                    <p-select
+                        formControlName="currentAcademicYearId"
+                        [options]="academicYearOptions()"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Sélectionner une année"
+                        appendTo="body"
+                        class="w-full"
+                    />
+                </div>
+            </div>
+        </section>
+    </form>
+</div>

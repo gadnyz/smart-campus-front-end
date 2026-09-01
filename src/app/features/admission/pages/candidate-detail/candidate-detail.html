@@ -58,7 +58,7 @@
                         shape="circle"
                         size="xlarge"
                         styleClass="candidate-avatar"
-                        (onImageError)="photoLoadFailed.set(true)"
+                        (onImageError)="onPhotoImageError()"
                     />
                 } @else {
                     <p-avatar
@@ -76,11 +76,32 @@
                         <span>{{ candidate.email }}</span>
                         <span>{{ candidate.phone }}</span>
                     </div>
+
+                    @if (academicLabels(); as labels) {
+                        <div class="candidate-academic-meta">
+                            <span>
+                                <i class="pi pi-building"></i>
+                                {{ labels.facultyLabel }}
+                            </span>
+                            <span>
+                                <i class="pi pi-book"></i>
+                                {{ labels.programLabel }}
+                            </span>
+                            <span>
+                                <i class="pi pi-sitemap"></i>
+                                {{ labels.levelLabel }}
+                            </span>
+                            <span>
+                                <i class="pi pi-calendar"></i>
+                                {{ labels.academicYearLabel }}
+                            </span>
+                        </div>
+                    }
                 </div>
 
                 <p-tag
-                    [value]="statusLabel(candidate.candidature.status)"
-                    [severity]="statusSeverity(candidate.candidature.status)"
+                    [value]="currentStatusLabel()"
+                    [severity]="currentStatusSeverity()"
                 />
             </div>
 
@@ -139,8 +160,8 @@
                                 documentKind(document) === 'image'
                             ) {
                                 <p-image
-                                    [src]="document.file_url"
-                                    [previewImageSrc]="document.file_url"
+                                    [src]="documentViewUrl(document)"
+                                    [previewImageSrc]="documentViewUrl(document)"
                                     [alt]="documentLabel(document)"
                                     [preview]="true"
                                     [imageStyle]="{
@@ -148,6 +169,7 @@
                                         height: '10rem',
                                         objectFit: 'cover'
                                     }"
+                                    (onImageError)="onDocumentImageError(document)"
                                 />
                             } @else {
                                 <div class="document-placeholder">
@@ -196,7 +218,7 @@
                             ) {
                                 <a
                                     pButton
-                                    [href]="document.file_url"
+                                    [href]="documentViewUrl(document)"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     icon="pi pi-external-link"
@@ -216,6 +238,51 @@
         </p-card>
     </div>
 }
+
+<p-dialog
+    header="Rejeter la candidature"
+    [visible]="rejectDialogVisible()"
+    (visibleChange)="onRejectDialogVisibleChange($event)"
+    [modal]="true"
+    [style]="{ width: '32rem' }"
+    [breakpoints]="{ '640px': '95vw' }"
+>
+    <p class="reject-dialog-intro">
+        Indiquez le motif du rejet. Ce message pourra être consulté par l'équipe admissions.
+    </p>
+
+    <textarea
+        pTextarea
+        [ngModel]="rejectReason()"
+        (ngModelChange)="rejectReason.set($event)"
+        rows="4"
+        maxlength="500"
+        class="w-full"
+        placeholder="Motif du rejet"
+        aria-label="Motif du rejet"
+    ></textarea>
+
+    <div class="reject-dialog-footer">
+        <button
+            pButton
+            type="button"
+            label="Annuler"
+            severity="secondary"
+            [outlined]="true"
+            (click)="onRejectDialogVisibleChange(false)"
+        ></button>
+
+        <button
+            pButton
+            type="button"
+            label="Rejeter"
+            icon="pi pi-times"
+            severity="danger"
+            [disabled]="!rejectReason().trim() || busy()"
+            (click)="submitReject()"
+        ></button>
+    </div>
+</p-dialog>
 
 <p-dialog
     [header]="previewTitle()"
@@ -246,7 +313,7 @@
         <div class="preview-actions">
             <a
                 pButton
-                [href]="document.file_url"
+                [href]="documentViewUrl(document)"
                 target="_blank"
                 rel="noopener noreferrer"
                 icon="pi pi-external-link"
