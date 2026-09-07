@@ -8,13 +8,15 @@
         </header>
 
         <div class="success-icon" [class.success-icon--warn]="documentsUploadWarning()">
-            <i class="pi" [class.pi-check]="!documentsUploadWarning()" [class.pi-exclamation-triangle]="documentsUploadWarning()"></i>
+            <i class="pi" [class.pi-check]="!documentsUploadWarning()"
+                [class.pi-exclamation-triangle]="documentsUploadWarning()"></i>
         </div>
 
         <h1>{{ documentsUploadWarning() ? 'Candidature enregistrée' : 'Candidature enregistrée !' }}</h1>
         <p class="success-subtitle">
             @if (documentsUploadWarning()) {
-            Votre dossier a été créé, mais certains documents n’ont pas pu être joints. Conservez vos coordonnées : le service des admissions pourra vous recontacter.
+            Votre dossier a été créé, mais certains documents n’ont pas pu être joints. Conservez vos coordonnées : le
+            service des admissions pourra vous recontacter.
             } @else {
             Votre dossier a été transmis avec succès aux services académiques.
             }
@@ -45,11 +47,11 @@
         </div>
 
         <div class="success-instructions">
-            <h4><i class="pi pi-info-circle mr-2"></i>Prochaines étapes</h4>
+            <h4><i class="pi pi-info-circle mr-2"></i>Suivi de votre dossier</h4>
             <ul>
-                <li>Conservez l’email et le téléphone indiqués : nos services vous recontacteront si besoin.</li>
-                <li>Nos équipes analyseront votre dossier et vos documents.</li>
-                <li>Vous serez contacté(e) si des informations complémentaires sont nécessaires.</li>
+                <li>Consultez votre boîte mail : vos identifiants de connexion vous y ont été envoyés.</li>
+                <li>Connectez-vous pour suivre l’évolution de votre dossier.</li>
+                <li>Complétez les éléments manquants (documents ou informations) depuis votre espace candidat.</li>
             </ul>
         </div>
 
@@ -57,8 +59,8 @@
             (click)="startAnotherApplication()"></button>
 
         @if (documentsUploadWarning()) {
-        <button pButton type="button" label="Réessayer l’envoi des documents" icon="pi pi-upload"
-            severity="warn" class="w-full sm:w-auto mt-3" [loading]="submitting()" [disabled]="submitting()"
+        <button pButton type="button" label="Réessayer l’envoi des documents" icon="pi pi-upload" severity="warn"
+            class="w-full sm:w-auto mt-3" [loading]="submitting()" [disabled]="submitting()"
             (click)="retryDocumentUploads()"></button>
         }
     </section>
@@ -75,7 +77,8 @@
             <i class="pi pi-lock"></i>
             <div>
                 <strong>Préinscriptions indisponibles ({{ enrollmentStatus() }})</strong>
-                <p>La période d’inscription n’est pas ouverte. Réessayez plus tard ou contactez le service des admissions.</p>
+                <p>La période d’inscription n’est pas ouverte. Réessayez plus tard ou contactez le service des
+                    admissions.</p>
             </div>
         </div>
         } @else {
@@ -224,9 +227,9 @@
                                     </div>
 
                                     <div class="col-span-12 md:col-span-6">
-                                        <label for="territory" class="field-label-required">Territoire / Ville</label>
+                                        <label for="territory" class="field-label-required">Territoire</label>
                                         <input pInputText id="territory" formControlName="territory" class="w-full"
-                                            placeholder="Ex. : Lubumbashi" />
+                                            placeholder="Ex. : Kipushi" />
                                         @if (isInvalid('territory')) {
                                         <small class="field-error">Le territoire est requis.</small>
                                         }
@@ -235,16 +238,16 @@
                                     <div class="col-span-12 md:col-span-6">
                                         <label for="sector" class="field-label-required">Secteur</label>
                                         <input pInputText id="sector" formControlName="sector" class="w-full"
-                                            placeholder="Ex. : Kampemba" />
+                                            placeholder="Ex. : Bukanda" />
                                         @if (isInvalid('sector')) {
                                         <small class="field-error">Le secteur est requis.</small>
                                         }
                                     </div>
 
                                     <div class="col-span-12 md:col-span-6">
-                                        <label for="commune" class="field-label-required">Commune</label>
+                                        <label for="commune" class="field-label-required">Village</label>
                                         <input pInputText id="commune" formControlName="commune" class="w-full"
-                                            placeholder="Ex. : Kampemba" />
+                                            placeholder="Ex. : Kasongo" />
                                         @if (isInvalid('commune')) {
                                         <small class="field-error">La commune est requise.</small>
                                         }
@@ -279,7 +282,7 @@
                                     </div>
 
                                     <div class="col-span-12 md:col-span-6">
-                                        <label for="program_id" class="field-label-required">Programme d'études</label>
+                                        <label for="program_id" class="field-label-required">Filière</label>
                                         <p-select id="program_id" formControlName="program_id" [options]="programs()"
                                             optionLabel="label" optionValue="value"
                                             placeholder="Sélectionner le programme" class="w-full" [filter]="true"
@@ -290,7 +293,7 @@
                                     </div>
 
                                     <div class="col-span-12 md:col-span-6">
-                                        <label for="level_id" class="field-label-required">Niveau d'entrée</label>
+                                        <label for="level_id" class="field-label-required">Promotion</label>
                                         <p-select id="level_id" formControlName="level_id" [options]="levels()"
                                             optionLabel="label" optionValue="value" placeholder="Sélectionner le niveau"
                                             class="w-full" [filter]="true" />
@@ -311,7 +314,7 @@
                                         <label for="school_name" class="field-label-required">Nom de l'école
                                             secondaire</label>
                                         <input pInputText id="school_name" formControlName="school_name" class="w-full"
-                                            placeholder="Ex. : Institut Kalonge" />
+                                            placeholder="Ex. : Age d'Or" />
                                         @if (isInvalid('school_name')) {
                                         <small class="field-error">L'école est requise.</small>
                                         }
@@ -320,7 +323,7 @@
                                     <div class="col-span-12 md:col-span-6">
                                         <label for="option" class="field-label-required">Option d'études</label>
                                         <input pInputText id="option" formControlName="option" class="w-full"
-                                            placeholder="Ex. : Complet / Scientifique" />
+                                            placeholder="Ex. : Science" />
                                         @if (isInvalid('option')) {
                                         <small class="field-error">L'option est requise.</small>
                                         }
@@ -329,9 +332,9 @@
                                     <div class="col-span-12 md:col-span-6">
                                         <label for="percentage" class="field-label-required">Pourcentage</label>
                                         <p-inputnumber id="percentage" formControlName="percentage" suffix=" %"
-                                            [min]="0" [max]="100" class="w-full" placeholder="Ex. : 75" />
+                                            [min]="50" [max]="100" class="w-full" placeholder="Ex. : 75" />
                                         @if (isInvalid('percentage')) {
-                                        <small class="field-error">Le pourcentage est requis (0 à 100).</small>
+                                        <small class="field-error">Le pourcentage est requis (50 à 100).</small>
                                         }
                                     </div>
 
@@ -428,7 +431,7 @@
                                     <div class="col-span-12 md:col-span-6">
                                         <label for="tutor_email" class="field-label">Email du tuteur</label>
                                         <input pInputText id="tutor_email" type="email" formControlName="tutor_email"
-                                            class="w-full" placeholder="optionnel@email.com" />
+                                            class="w-full" placeholder="" />
                                         @if (isInvalid('tutor_email')) {
                                         <small class="field-error">Saisissez un email valide.</small>
                                         }
@@ -446,13 +449,19 @@
                                 <h3 class="step-section-title mt-6"><i class="pi pi-phone"></i> Contact d’urgence</h3>
                                 <div class="grid grid-cols-12 gap-4">
                                     <div class="col-span-12 md:col-span-6">
-                                        <label for="emergency_full_name" class="field-label">Nom complet</label>
+                                        <label for="emergency_full_name" class="field-label-required">Nom
+                                            complet</label>
                                         <input pInputText id="emergency_full_name" formControlName="emergency_full_name"
                                             class="w-full" placeholder="Ex. : Mwamba Tshibanda" />
+
+                                        @if (isInvalid('emergency_full_name')) {
+                                        <small class="field-error">Le nom du contact d'urgence est obligatoire.</small>
+                                        }
                                     </div>
 
                                     <div class="col-span-12 md:col-span-6">
-                                        <label for="emergency_phone" class="field-label">Téléphone d'urgence</label>
+                                        <label for="emergency_phone" class="field-label-required">Téléphone
+                                            d'urgence</label>
                                         <div class="phone-control">
                                             <p-select inputId="emergency_phone_country"
                                                 formControlName="emergency_phone_country" [options]="countryOptions"
@@ -474,15 +483,18 @@
                                                 class="w-full" />
                                         </div>
                                         @if (isInvalid('emergency_phone')) {
-                                        <small class="field-error">Le numéro ou l’indicatif du pays est invalide.</small>
+                                        <small class="field-error">
+                                            {{ form.controls.emergency_phone.hasError('required')
+                                            ? 'Le téléphone d\'urgence est obligatoire.'
+                                            : 'Le numéro ou l’indicatif du pays est invalide.' }}
+                                        </small>
                                         }
                                     </div>
 
                                     <div class="col-span-12 md:col-span-6">
                                         <label for="emergency_email" class="field-label">Email de contact</label>
                                         <input pInputText id="emergency_email" type="email"
-                                            formControlName="emergency_email" class="w-full"
-                                            placeholder="optionnel@email.com" />
+                                            formControlName="emergency_email" class="w-full" placeholder="" />
                                         @if (isInvalid('emergency_email')) {
                                         <small class="field-error">Saisissez un email valide.</small>
                                         }
@@ -493,7 +505,7 @@
                                             Relation</label>
                                         <input pInputText id="emergency_relationship"
                                             formControlName="emergency_relationship" class="w-full"
-                                            placeholder="Ex. : Père, mère, oncle" />
+                                            placeholder="Ex. : Père" />
                                     </div>
                                 </div>
                             </div>
@@ -513,9 +525,6 @@
                             <div class="step-content-body">
                                 <h3 class="step-section-title"><i class="pi pi-cloud-upload"></i> Pièces jointes
                                     requises</h3>
-                                <p class="section-subtitle">Joignez des fichiers lisibles (PDF, PNG, JPG — max. 5 Mo par
-                                    fichier). Tous les documents listés sont obligatoires.</p>
-
                                 <div class="grid grid-cols-12 gap-6 mb-8">
                                     @for (document of documentUploads(); track document.type) {
                                     <div class="col-span-12 md:col-span-6">
@@ -523,8 +532,7 @@
                                             accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*"
                                             (change)="onDocumentSelected($event, document.type)" />
 
-                                        <div class="document-upload-row"
-                                            [class.has-file]="!!document.file"
+                                        <div class="document-upload-row" [class.has-file]="!!document.file"
                                             [class.has-error]="!!documentFieldError(document.type)">
                                             <label [for]="'document_' + document.type" class="document-upload-card">
                                                 <div class="upload-icon-container">

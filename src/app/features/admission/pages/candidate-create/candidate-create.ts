@@ -176,10 +176,11 @@ export class CandidateCreate implements OnInit {
         ]],
         tutor_profession: [''],
 
-        emergency_full_name: [''],
+        emergency_full_name: ['', Validators.required],
         emergency_email: ['', this.optionalEmailValidator()],
-        emergency_phone_country: ['CD' as CountryCode],
+        emergency_phone_country: ['CD' as CountryCode, Validators.required],
         emergency_phone: ['', [
+            Validators.required,
             this.phoneValidator('emergency_phone_country')
         ]],
         emergency_relationship: [''],
@@ -592,7 +593,10 @@ export class CandidateCreate implements OnInit {
             'school_name', 'option', 'percentage', 'graduation_year',
             'study_country', 'study_city'
         ],
-        3: ['tutor_full_name', 'tutor_phone', 'tutor_email', 'emergency_email'],
+        3: [
+            'tutor_full_name', 'tutor_phone', 'tutor_email',
+            'emergency_full_name', 'emergency_phone', 'emergency_email'
+        ],
         4: []
     };
 
@@ -770,11 +774,10 @@ export class CandidateCreate implements OnInit {
 
     private initialDocumentUploads(): CandidateDocumentDraft[] {
         return [
-            { type: 'ID_CARD', label: 'Pièce d’identité', required: true, file: null },
-            { type: 'DIPLOMA', label: 'Diplôme', required: true, file: null },
-            { type: 'TRANSCRIPT', label: 'Relevé de notes', required: true, file: null },
-            { type: 'PAYMENT_SLIP', label: 'Preuve de paiement', required: true, file: null },
-            { type: 'PHOTO', label: 'Photo', required: true, file: null }
+            { type: 'ID_CARD', label: 'Pièce d’identité', required: false, file: null },
+            { type: 'DIPLOMA', label: 'Diplôme', required: false, file: null },
+            { type: 'TRANSCRIPT', label: 'Bulletins / Relevés de notes ', required: false, file: null },
+            { type: 'PAYMENT_SLIP', label: 'Preuve de paiement', required: false, file: null }
         ];
     }
 
