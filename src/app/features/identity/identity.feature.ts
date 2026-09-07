@@ -45,13 +45,6 @@ export const identityFeature: AppFeature = {
                 routerLink: ['/settings/identity/roles'],
                 permissions: [IdentityPermission.RoleReadAll],
                 order: 30
-            },
-            {
-                label: 'Privilèges',
-                icon: 'pi pi-key',
-                routerLink: ['/settings/identity/privileges'],
-                permissions: [IdentityPermission.PrivilegeReadAll],
-                order: 40
             }
         ]
     },

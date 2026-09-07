@@ -3,7 +3,6 @@ import { UserManagement } from './users/pages/user-management/user-management';
 import { UserCreate } from './users/pages/user-create/user-create';
 import { UserDetail } from './users/pages/user-detail/user-detail';
 import { RoleManagement } from './pages/role-management/role-management';
-import { PrivilegeManagement } from './pages/privilege-management/privilege-management';
 import { ProfileManagement } from './pages/profile-management/profile-management';
 import { permissionGuard } from '@/app/core/permissions/permission.guard';
 import { IdentityPermission } from './permissions/permission.model';
@@ -43,15 +42,6 @@ export const identityAdminRoutes: Routes = [
         canActivate: [permissionGuard],
         data: {
             permissions: [IdentityPermission.RoleReadAll],
-            mode: 'any'
-        }
-    },
-    {
-        path: 'privileges',
-        component: PrivilegeManagement,
-        canActivate: [permissionGuard],
-        data: {
-            permissions: [IdentityPermission.PrivilegeReadAll],
             mode: 'any'
         }
     },

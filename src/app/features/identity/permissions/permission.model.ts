@@ -7,16 +7,13 @@ export const IdentityPermission = {
     ProfileUpdateAll : "identity:profile:update:all",
     RoleCreateAll : "identity:role:create:all",
     UserDeleteAll : "identity:user:delete:all",
-    PrivilegeDeleteAll : "identity:privilege:delete:all",
     ApiManage : "identity:api:manage",
     ProfileDeleteAll : "identity:profile:delete:all",
-    PrivilegeUpdateAll : "identity:privilege:update:all",
     UserUpdateOwn : "identity:user:update:own",
     UserCreateAll : "identity:user:create:all",
     RoleDeleteAll : "identity:role:delete:all",
     UserUpdateAll : "identity:user:update:all",
     RoleUpdateAll: "identity:role:update:all",
-    PrivilegeCreateAll : "identity:privilege:create:all",
     PrivilegeReadAll  : "identity:privilege:read:all"
 } as const;
 export type IdentityPermission =
