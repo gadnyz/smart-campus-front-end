@@ -133,3 +133,6 @@ export interface CandidateListItem {
     submitted_at: string;
     created_at: string;
 }
+
+/** Same body as submit; used by PUT /candidates/me */
+export type UpdateOwnCandidatureRequest = SubmitCandidatureRequest;

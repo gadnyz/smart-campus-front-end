@@ -14,6 +14,20 @@ export default [
             mode: 'any'
         }
     },
+
+    {
+        path: 'my-application',
+        loadComponent: () =>
+            import('./pages/candidate-portal/candidate-portal').then((m) => m.CandidatePortal),
+        canActivate: [permissionGuard],
+        data: {
+            permissions: [
+                AdmissionPermission.AdmissionCandidateReadOwn,
+                AdmissionPermission.AdmissionCandidateUpdateOwn
+            ],
+            mode: 'any'
+        }
+    },
     {
         path: 'candidates/:id',
         component: CandidateDetail,

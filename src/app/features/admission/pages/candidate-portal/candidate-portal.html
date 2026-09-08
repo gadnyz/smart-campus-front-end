@@ -1,0 +1,268 @@
+<p-toast />
+
+@if (loading()) {
+<div class="portal-shell">
+    <p-skeleton height="3rem" styleClass="mb-3" />
+    <p-skeleton height="14rem" />
+</div>
+} @else if (notFound()) {
+<div class="portal-shell">
+    <app-content-subtopbar kicker="Admission" title="Mon dossier" [actions]="[]" />
+    <div class="portal-empty">
+        <h2>Aucune candidature trouvée</h2>
+        <p>Vous n’avez pas encore de dossier d’admission.</p>
+        <a pButton routerLink="/apply" label="Déposer une candidature" icon="pi pi-send"></a>
+    </div>
+</div>
+} @else if (candidate(); as c) {
+<div class="portal-shell">
+    <app-content-subtopbar kicker="Admission" title="Mon dossier" [actions]="actions()" />
+
+    <div class="portal-header card">
+        <div class="portal-header__status">
+            <p-tag [value]="statusLabel()" [severity]="statusSeverity()" />
+            <p class="portal-hint">{{ statusHint() }}</p>
+        </div>
+
+        <div class="portal-meta">
+            <span>Dernière modification : <strong>{{ lastUpdatedLabel() }}</strong></span>
+            @if (c.candidature.submitted_at) {
+            <span>Soumise le :
+                <strong>{{ c.candidature.submitted_at | date: 'dd/MM/yyyy HH:mm' }}</strong>
+            </span>
+            }
+            @if (academicLabels().academicYearLabel) {
+            <span>Année : <strong>{{ academicLabels().academicYearLabel }}</strong></span>
+            }
+        </div>
+
+        @if (canEdit() && missingDocumentTypes().length) {
+        <p class="portal-missing">
+            Documents manquants : {{ missingDocumentsLabel() }}.
+        </p>
+        }
+    </div>
+
+    <form [formGroup]="form" class="portal-form card">
+        <section class="portal-section">
+            <h3>Identité</h3>
+            <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="last_name">Nom</label>
+                    <input pInputText id="last_name" class="w-full" formControlName="last_name" />
+                    @if (isInvalid('last_name')) {
+                    <small class="field-error">Obligatoire.</small>
+                    }
+                </div>
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="middle_name">Post-nom</label>
+                    <input pInputText id="middle_name" class="w-full" formControlName="middle_name" />
+                </div>
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="first_name">Prénom</label>
+                    <input pInputText id="first_name" class="w-full" formControlName="first_name" />
+                </div>
+
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="gender">Genre</label>
+                    <p-select id="gender" class="w-full" formControlName="gender" [options]="genderOptions"
+                        optionLabel="label" optionValue="value" />
+                </div>
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="birth_date">Date de naissance</label>
+                    <p-datepicker id="birth_date" class="w-full" formControlName="birth_date" dateFormat="yy-mm-dd"
+                        [showIcon]="true" dataType="string" />
+                </div>
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="birth_place">Lieu de naissance</label>
+                    <input pInputText id="birth_place" class="w-full" formControlName="birth_place" />
+                </div>
+
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="marital_status">État civil</label>
+                    <p-select id="marital_status" class="w-full" formControlName="marital_status"
+                        [options]="maritalStatusOptions" optionLabel="label" optionValue="value" />
+                </div>
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="nationality">Nationalité</label>
+                    <input pInputText id="nationality" class="w-full" formControlName="nationality" />
+                </div>
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="email">Email</label>
+                    <input pInputText id="email" type="email" class="w-full" formControlName="email" />
+                </div>
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="phone">Téléphone</label>
+                    <input pInputText id="phone" class="w-full" formControlName="phone" />
+                </div>
+            </div>
+        </section>
+
+        <section class="portal-section">
+            <h3>Origine</h3>
+            <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 md:col-span-3">
+                    <label class="field-label" for="province">Province</label>
+                    <input pInputText id="province" class="w-full" formControlName="province" />
+                </div>
+                <div class="col-span-12 md:col-span-3">
+                    <label class="field-label" for="territory">Territoire</label>
+                    <input pInputText id="territory" class="w-full" formControlName="territory" />
+                </div>
+                <div class="col-span-12 md:col-span-3">
+                    <label class="field-label" for="sector">Secteur</label>
+                    <input pInputText id="sector" class="w-full" formControlName="sector" />
+                </div>
+                <div class="col-span-12 md:col-span-3">
+                    <label class="field-label" for="commune">Village / Commune</label>
+                    <input pInputText id="commune" class="w-full" formControlName="commune" />
+                </div>
+            </div>
+        </section>
+
+        <section class="portal-section">
+            <h3>Choix académique</h3>
+            <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="faculty_id">Faculté</label>
+                    <p-select id="faculty_id" class="w-full" formControlName="faculty_id" [options]="faculties()"
+                        optionLabel="label" optionValue="value"
+                        placeholder="{{ academicLabels().facultyLabel || 'Sélectionner' }}" />
+                </div>
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="program_id">Filière</label>
+                    <p-select id="program_id" class="w-full" formControlName="program_id" [options]="programs()"
+                        optionLabel="label" optionValue="value"
+                        placeholder="{{ academicLabels().programLabel || 'Sélectionner' }}" />
+                </div>
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="level_id">Promotion</label>
+                    <p-select id="level_id" class="w-full" formControlName="level_id" [options]="levels()"
+                        optionLabel="label" optionValue="value"
+                        placeholder="{{ academicLabels().levelLabel || 'Sélectionner' }}" />
+                </div>
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="candidature_type">Type de candidature</label>
+                    <p-select id="candidature_type" class="w-full" formControlName="candidature_type"
+                        [options]="candidatureTypeOptions" optionLabel="label" optionValue="value" />
+                </div>
+            </div>
+        </section>
+
+        <section class="portal-section">
+            <h3>Parcours scolaire</h3>
+            <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 md:col-span-6">
+                    <label class="field-label" for="school_name">École</label>
+                    <input pInputText id="school_name" class="w-full" formControlName="school_name" />
+                </div>
+                <div class="col-span-12 md:col-span-6">
+                    <label class="field-label" for="option">Option</label>
+                    <input pInputText id="option" class="w-full" formControlName="option" />
+                </div>
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="percentage">Pourcentage</label>
+                    <input pInputText id="percentage" type="number" class="w-full" formControlName="percentage" />
+                </div>
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="graduation_year">Année d’obtention</label>
+                    <input pInputText id="graduation_year" type="number" class="w-full"
+                        formControlName="graduation_year" />
+                </div>
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="study_country">Pays d’étude</label>
+                    <input pInputText id="study_country" class="w-full" formControlName="study_country" />
+                </div>
+                <div class="col-span-12 md:col-span-4">
+                    <label class="field-label" for="study_city">Ville d’étude</label>
+                    <input pInputText id="study_city" class="w-full" formControlName="study_city" />
+                </div>
+            </div>
+        </section>
+
+        <section class="portal-section">
+            <h3>Tuteur</h3>
+            <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 md:col-span-6">
+                    <label class="field-label" for="tutor_full_name">Nom complet</label>
+                    <input pInputText id="tutor_full_name" class="w-full" formControlName="tutor_full_name" />
+                </div>
+                <div class="col-span-12 md:col-span-6">
+                    <label class="field-label" for="tutor_phone">Téléphone</label>
+                    <input pInputText id="tutor_phone" class="w-full" formControlName="tutor_phone" />
+                </div>
+                <div class="col-span-12 md:col-span-6">
+                    <label class="field-label" for="tutor_email">Email</label>
+                    <input pInputText id="tutor_email" type="email" class="w-full" formControlName="tutor_email" />
+                </div>
+                <div class="col-span-12 md:col-span-6">
+                    <label class="field-label" for="tutor_profession">Profession</label>
+                    <input pInputText id="tutor_profession" class="w-full" formControlName="tutor_profession" />
+                </div>
+            </div>
+        </section>
+
+        <section class="portal-section">
+            <h3>Contact d’urgence</h3>
+            <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 md:col-span-6">
+                    <label class="field-label" for="emergency_full_name">Nom complet</label>
+                    <input pInputText id="emergency_full_name" class="w-full" formControlName="emergency_full_name" />
+                </div>
+                <div class="col-span-12 md:col-span-6">
+                    <label class="field-label" for="emergency_phone">Téléphone</label>
+                    <input pInputText id="emergency_phone" class="w-full" formControlName="emergency_phone" />
+                </div>
+                <div class="col-span-12 md:col-span-6">
+                    <label class="field-label" for="emergency_email">Email</label>
+                    <input pInputText id="emergency_email" type="email" class="w-full"
+                        formControlName="emergency_email" />
+                </div>
+                <div class="col-span-12 md:col-span-6">
+                    <label class="field-label" for="emergency_relationship">Lien / relation</label>
+                    <input pInputText id="emergency_relationship" class="w-full"
+                        formControlName="emergency_relationship" />
+                </div>
+            </div>
+        </section>
+    </form>
+
+    <section class="portal-docs card">
+        <h3>Documents</h3>
+
+        <ul class="portal-docs__list">
+            @for (doc of c.documents; track doc.id) {
+            <li>
+                <strong>{{ documentLabel(doc.document_type) }}</strong>
+                <span>{{ doc.uploaded_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </li>
+            } @empty {
+            <li class="portal-docs__empty">Aucun document joint pour le moment.</li>
+            }
+        </ul>
+
+        @if (canEdit()) {
+        <div class="portal-docs__upload">
+            <p class="portal-hint">Ajoutez les pièces manquantes pour finaliser votre dossier.</p>
+            @for (doc of pendingDocs(); track doc.type) {
+            <div class="portal-docs__row">
+                <label [for]="'portal_doc_' + doc.type">{{ doc.label }}</label>
+                <input type="file" hidden [id]="'portal_doc_' + doc.type"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*"
+                    (change)="onDocumentSelected($event, doc.type)" />
+                <button pButton type="button" class="p-button-outlined p-button-sm"
+                    [label]="doc.file ? doc.file.name : 'Choisir un fichier'"
+                    (click)="openDocumentPicker(doc.type)"></button>
+                @if (doc.file) {
+                <button pButton type="button" icon="pi pi-times" class="p-button-text p-button-danger p-button-sm"
+                    (click)="removePendingDocument(doc.type)"></button>
+                }
+            </div>
+            }
+            <button pButton type="button" label="Téléverser les documents" icon="pi pi-upload" class="mt-3"
+                [loading]="uploading()" [disabled]="uploading()" (click)="uploadPendingDocuments()"></button>
+        </div>
+        }
+    </section>
+</div>
+}
