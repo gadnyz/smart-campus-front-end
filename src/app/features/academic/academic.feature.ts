@@ -1,5 +1,6 @@
 import { AppFeature } from '@/app/core/modules/app-feature.model';
 import { AcademicPermission } from './permissions/permission.model';
+import { academicDashboardWidgets } from './dashboard/dashboard.widgets';
 
 export const academicFeature: AppFeature = {
     key: 'academic',
@@ -15,11 +16,17 @@ export const academicFeature: AppFeature = {
             order: 15,
             items: [
                 {
+                    label: 'Ma faculté',
+                    icon: 'pi pi-fw pi-building',
+                    routerLink: ['/academic/my-faculty'],
+                    permissions: [AcademicPermission.FacultyReadOwn],
+                    order: 5
+                },
+                {
                     label: 'Facultés',
                     icon: 'pi pi-fw pi-building',
                     routerLink: ['/academic/faculties'],
-                    permissions: [AcademicPermission.FacultyReadAll, AcademicPermission.FacultyReadOwn],
-                    mode: 'any',
+                    permissions: [AcademicPermission.FacultyReadAll],
                     order: 10
                 },
                 {
@@ -93,5 +100,6 @@ export const academicFeature: AppFeature = {
     settingsRoute: {
         path: 'academic',
         loadChildren: () => import('./settings/routes')
-    }
+    },
+    dashboardWidgets: academicDashboardWidgets
 };

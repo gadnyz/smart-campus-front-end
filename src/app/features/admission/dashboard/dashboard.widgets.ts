@@ -12,6 +12,6 @@ export const admissionDashboardWidgets: DashboardWidget[] = [
         permissions: [AdmissionPermission.AdmissionCandidateReadAll],
         mode: 'any',
         size: 'sm',
-        order: 30
+        order: 16
     }
 ];

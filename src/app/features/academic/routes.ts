@@ -2,17 +2,26 @@ import { Routes } from '@angular/router';
 import { permissionGuard } from '@/app/core/permissions/permission.guard';
 import { AcademicPermission } from './permissions/permission.model';
 import { AcademicPlaceholder } from './pages/academic-placeholder/academic-placeholder';
+import { AcademicHomeRedirect } from './pages/academic-home-redirect/academic-home-redirect';
 import { FacultyListPage } from './pages/faculty-list/faculty-list';
 import { FacultyDetailPage } from './pages/faculty-detail/faculty-detail';
 
 export default [
     {
+        path: 'my-faculty',
+        component: FacultyDetailPage,
+        canActivate: [permissionGuard],
+        data: {
+            permissions: [AcademicPermission.FacultyReadOwn],
+            ownFaculty: true
+        }
+    },
+    {
         path: 'faculties',
         component: FacultyListPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.FacultyReadAll, AcademicPermission.FacultyReadOwn],
-            mode: 'any'
+            permissions: [AcademicPermission.FacultyReadAll]
         }
     },
     {
@@ -54,5 +63,5 @@ export default [
             mode: 'any'
         }
     },
-    { path: '', redirectTo: 'faculties', pathMatch: 'full' }
+    { path: '', component: AcademicHomeRedirect }
 ] as Routes;

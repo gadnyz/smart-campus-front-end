@@ -97,15 +97,7 @@ export class FacultyDetailPage implements OnInit {
         return faculty ? `${faculty.code} — ${faculty.name}` : 'Faculté';
     });
 
-    readonly actions = computed<SubtopbarAction[]>(() => [
-        {
-            label: 'Retour',
-            icon: 'pi pi-arrow-left',
-            severity: 'secondary',
-            outlined: true,
-            command: () => void this.router.navigate(['/academic/faculties'])
-        }
-    ]);
+
 
     readonly programForm = this.fb.nonNullable.group({
         code: ['', Validators.required],
@@ -118,7 +110,40 @@ export class FacultyDetailPage implements OnInit {
         role: [null as FacultyLeadershipRole | null, Validators.required]
     });
 
+    readonly ownFaculty = signal(false);
+
+    readonly actions = computed<SubtopbarAction[]>(() => {
+        if (this.ownFaculty() || !this.permissionService.hasAnyPermission([AcademicPermission.FacultyReadAll])) {
+            return [];
+        }
+
+        return [
+            {
+                label: 'Retour',
+                icon: 'pi pi-arrow-left',
+                severity: 'secondary',
+                outlined: true,
+                command: () => void this.router.navigate(['/academic/faculties'])
+            }
+        ];
+    });
+
     ngOnInit(): void {
+        const ownFaculty = this.route.snapshot.data['ownFaculty'] === true;
+        this.ownFaculty.set(ownFaculty);
+
+        this.levelService.getAll().subscribe({
+            next: (levels) =>
+                this.levelOptions.set(
+                    levels.map((level) => ({ label: `${level.code} — ${level.name}`, value: level.id }))
+                )
+        });
+
+        if (ownFaculty) {
+            this.loadOwnFaculty();
+            return;
+        }
+
         const id = this.route.snapshot.paramMap.get('id');
 
         if (!id) {
@@ -127,13 +152,33 @@ export class FacultyDetailPage implements OnInit {
         }
 
         this.loadFaculty(id);
-        this.levelService.getAll().subscribe({
-            next: (levels) =>
-                this.levelOptions.set(
-                    levels.map((level) => ({ label: `${level.code} — ${level.name}`, value: level.id }))
-                )
+    }
+
+    private loadOwnFaculty(): void {
+        this.loading.set(true);
+
+        this.facultyService.getAll().subscribe({
+            next: (faculties) => {
+                const faculty = faculties[0] ?? null;
+
+                if (!faculty) {
+                    this.loading.set(false);
+                    this.showError('Aucune faculté rattachée à votre compte.');
+                    return;
+                }
+
+                this.faculty.set(faculty);
+                this.loading.set(false);
+                this.loadPrograms(faculty.id);
+                this.loadLeadership(faculty.id);
+            },
+            error: (error: HttpErrorResponse) => {
+                this.loading.set(false);
+                this.showError(error.error?.detail ?? 'Impossible de charger votre faculté.');
+            }
         });
     }
+
 
     openCreateProgram(): void {
         this.editingProgramId.set(null);
