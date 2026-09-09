@@ -4,6 +4,7 @@ import { AcademicPermission } from '../permissions/permission.model';
 import { AcademicPlaceholder } from '../pages/academic-placeholder/academic-placeholder';
 import { AcademicYearsPage } from './pages/academic-years/academic-years';
 import { SemestersPage } from './pages/semesters/semesters';
+import { LevelsPage } from './pages/levels/levels';
 
 export default [
     {
@@ -26,7 +27,7 @@ export default [
     },
     {
         path: 'levels',
-        component: AcademicPlaceholder,
+        component: LevelsPage,
         canActivate: [permissionGuard],
         data: {
             permissions: [AcademicPermission.LevelReadAll],

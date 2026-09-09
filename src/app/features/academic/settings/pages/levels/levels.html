@@ -1,0 +1,123 @@
+<p-toast />
+<p-confirmdialog [style]="{ width: '450px' }" />
+
+<app-content-subtopbar kicker="Paramètres Academic" title="Niveaux" [actions]="actions()" />
+
+<div class="card">
+    <p-table
+        #dt
+        [value]="levels()"
+        [loading]="loading()"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 20, 50]"
+        [globalFilterFields]="['code', 'name']"
+        [rowHover]="true"
+        dataKey="id"
+        responsiveLayout="scroll"
+        currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} niveaux"
+        [showCurrentPageReport]="true"
+        [tableStyle]="{ 'min-width': '40rem' }"
+    >
+        <ng-template pTemplate="caption">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div class="font-semibold text-xl">Liste des niveaux</div>
+                <p-iconfield>
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text" placeholder="Rechercher..." (input)="onGlobalFilter(dt, $event)" />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="code">Code <p-sortIcon field="code" /></th>
+                <th pSortableColumn="name">Nom <p-sortIcon field="name" /></th>
+                <th pSortableColumn="level_order">Ordre <p-sortIcon field="level_order" /></th>
+                <th style="width: 8rem">Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-level>
+            <tr>
+                <td>{{ level.code }}</td>
+                <td>{{ level.name }}</td>
+                <td>{{ level.level_order }}</td>
+                <td>
+                    <div class="flex gap-2">
+                        @if (canUpdate()) {
+                        <button
+                            pButton
+                            type="button"
+                            icon="pi pi-pencil"
+                            rounded
+                            outlined
+                            severity="info"
+                            [attr.aria-label]="'Modifier ' + level.code"
+                            (click)="openEditDialog(level)"
+                        ></button>
+                        }
+                        @if (canDelete()) {
+                        <button
+                            pButton
+                            type="button"
+                            icon="pi pi-trash"
+                            rounded
+                            outlined
+                            severity="danger"
+                            [attr.aria-label]="'Supprimer ' + level.code"
+                            (click)="confirmDelete(level)"
+                        ></button>
+                        }
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="4">Aucun niveau.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog
+    [header]="dialogTitle()"
+    [visible]="dialogVisible()"
+    (visibleChange)="dialogVisible.set($event)"
+    [modal]="true"
+    [style]="{ width: '32rem' }"
+    [breakpoints]="{ '640px': '95vw' }"
+>
+    <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="submit()">
+        <div>
+            <label for="levelCode" class="block text-sm text-color-secondary mb-1">Code</label>
+            <input pInputText id="levelCode" formControlName="code" placeholder="L1" class="w-full" />
+            @if (isInvalid('code')) {
+            <small class="text-red-500 block mt-1">Le code est obligatoire.</small>
+            }
+        </div>
+
+        <div>
+            <label for="levelName" class="block text-sm text-color-secondary mb-1">Nom</label>
+            <input pInputText id="levelName" formControlName="name" placeholder="Licence 1" class="w-full" />
+            @if (isInvalid('name')) {
+            <small class="text-red-500 block mt-1">Le nom est obligatoire.</small>
+            }
+        </div>
+
+        <div>
+            <label for="levelOrder" class="block text-sm text-color-secondary mb-1">Ordre</label>
+            <p-inputnumber inputId="levelOrder" formControlName="order" [min]="1" [showButtons]="true" class="w-full" />
+            @if (isInvalid('order')) {
+            <small class="text-red-500 block mt-1">L’ordre doit être un entier ≥ 1.</small>
+            }
+        </div>
+
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined (click)="closeDialog()"></button>
+            <button pButton type="submit" label="Enregistrer" icon="pi pi-save" [loading]="saving()" [disabled]="saving()"></button>
+        </div>
+    </form>
+</p-dialog>

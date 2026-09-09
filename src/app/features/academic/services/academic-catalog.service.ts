@@ -136,4 +136,7 @@ export class AcademicCatalogService {
         this.academicYears$ = undefined;
     }
 
+    invalidateLevels(): void {
+        this.levels$ = undefined;
+    }
 }
