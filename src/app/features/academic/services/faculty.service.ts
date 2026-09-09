@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { environment } from '@/environments/environment';
 import {
     AssignLeadershipRequest,
@@ -44,5 +44,36 @@ export class FacultyService {
 
     revokeLeadership(facultyId: string, assignmentId: string): Observable<void> {
         return this.http.delete<void>(`${this.baseUrl}/${facultyId}/leadership/${assignmentId}`);
+    }
+
+    resolveAttachedFaculty(userId: string, facultyId?: string | null): Observable<Faculty | null> {
+        if (facultyId) {
+            return this.getById(facultyId).pipe(catchError(() => of(null)));
+        }
+
+        return this.getAll().pipe(
+            switchMap((faculties) => {
+                if (!faculties.length) {
+                    return of([] as Array<Faculty | null>);
+                }
+
+                return forkJoin(
+                    faculties.map((faculty) =>
+                        this.getLeadership(faculty.id).pipe(
+                            map((items) =>
+                                items.some((item) => item.user_id === userId && item.active !== false)
+                                    ? faculty
+                                    : null
+                            ),
+                            catchError(() => of(null))
+                        )
+                    )
+                );
+            }),
+            map((matches) => {
+                const attached = matches.filter((item): item is Faculty => item !== null);
+                return attached.length === 1 ? attached[0] : null;
+            })
+        );
     }
 }

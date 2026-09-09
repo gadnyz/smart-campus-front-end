@@ -15,4 +15,7 @@ export interface PermissionRouteData {
 export interface PermissionAwareItem {
     permissions?: readonly PermissionValue[];
     mode?: PermissionMode;
+    /** Hide the item when the current user holds any/all of these permissions. */
+    hiddenWhenPermissions?: readonly PermissionValue[];
+    hiddenWhenMode?: PermissionMode;
 }

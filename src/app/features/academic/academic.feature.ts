@@ -20,6 +20,7 @@ export const academicFeature: AppFeature = {
                     icon: 'pi pi-fw pi-building',
                     routerLink: ['/academic/my-faculty'],
                     permissions: [AcademicPermission.FacultyReadOwn],
+                    hiddenWhenPermissions: [AcademicPermission.FacultyReadAll],
                     order: 5
                 },
                 {
