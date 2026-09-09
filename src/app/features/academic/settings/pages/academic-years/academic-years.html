@@ -1,0 +1,159 @@
+<p-toast />
+<p-confirmdialog [style]="{ width: '450px' }" />
+
+<app-content-subtopbar kicker="Paramètres Academic" title="Années académiques" [actions]="actions()" />
+
+<div class="card">
+    <p-table
+        #dt
+        [value]="years()"
+        [loading]="loading()"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 20, 50]"
+        [globalFilterFields]="['label', 'status']"
+        [rowHover]="true"
+        dataKey="id"
+        responsiveLayout="scroll"
+        currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} années"
+        [showCurrentPageReport]="true"
+        [tableStyle]="{ 'min-width': '50rem' }"
+    >
+        <ng-template pTemplate="caption">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div class="font-semibold text-xl">Liste des années</div>
+                <p-iconfield>
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text" placeholder="Rechercher..." (input)="onGlobalFilter(dt, $event)" />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="label" style="min-width: 10rem">
+                    Libellé <p-sortIcon field="label" />
+                </th>
+                <th pSortableColumn="start_date">Début <p-sortIcon field="start_date" /></th>
+                <th pSortableColumn="end_date">Fin <p-sortIcon field="end_date" /></th>
+                <th pSortableColumn="status">Statut <p-sortIcon field="status" /></th>
+                <th style="width: 12rem">Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-year>
+            <tr>
+                <td>
+                    <div class="flex items-center gap-2">
+                        <span>{{ year.label }}</span>
+                        @if (currentYearId() === year.id) {
+                        <p-tag value="Courante" severity="info" />
+                        }
+                    </div>
+                </td>
+                <td>{{ year.start_date | date: 'dd/MM/yyyy' }}</td>
+                <td>{{ year.end_date | date: 'dd/MM/yyyy' }}</td>
+                <td>
+                    <p-tag [value]="statusLabel(year.status)" [severity]="statusSeverity(year.status)" />
+                </td>
+                <td>
+                    @if (canUpdate()) {
+                    <div class="flex gap-2">
+                        @if (canActivate(year)) {
+                        <button
+                            pButton
+                            type="button"
+                            label="Activer"
+                            icon="pi pi-check"
+                            size="small"
+                            severity="info"
+                            outlined
+                            [loading]="mutatingId() === year.id"
+                            [disabled]="mutatingId() !== null"
+                            (click)="confirmActivate(year)"
+                        ></button>
+                        }
+                        @if (canClose(year)) {
+                        <button
+                            pButton
+                            type="button"
+                            label="Clôturer"
+                            icon="pi pi-lock"
+                            size="small"
+                            severity="warn"
+                            outlined
+                            [loading]="mutatingId() === year.id"
+                            [disabled]="mutatingId() !== null"
+                            (click)="confirmClose(year)"
+                        ></button>
+                        }
+                    </div>
+                    }
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="5">Aucune année académique.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog
+    header="Nouvelle année académique"
+    [visible]="createDialogVisible()"
+    (visibleChange)="createDialogVisible.set($event)"
+    [modal]="true"
+    [style]="{ width: '32rem' }"
+    [breakpoints]="{ '640px': '95vw' }"
+>
+    <form [formGroup]="createForm" class="flex flex-col gap-4" (ngSubmit)="submitCreate()">
+        <div>
+            <label for="yearLabel" class="block text-sm text-color-secondary mb-1">Libellé</label>
+            <input pInputText id="yearLabel" formControlName="label" placeholder="2027-2028" class="w-full" />
+            @if (isInvalid('label')) {
+            <small class="text-red-500 block mt-1">Le libellé est obligatoire.</small>
+            }
+        </div>
+
+        <div>
+            <label for="yearStart" class="block text-sm text-color-secondary mb-1">Date de début</label>
+            <p-datepicker
+                inputId="yearStart"
+                formControlName="start_date"
+                dateFormat="yy-mm-dd"
+                [showIcon]="true"
+                appendTo="body"
+                class="w-full"
+            />
+            @if (isInvalid('start_date')) {
+            <small class="text-red-500 block mt-1">La date de début est obligatoire.</small>
+            }
+        </div>
+
+        <div>
+            <label for="yearEnd" class="block text-sm text-color-secondary mb-1">Date de fin</label>
+            <p-datepicker
+                inputId="yearEnd"
+                formControlName="end_date"
+                dateFormat="yy-mm-dd"
+                [showIcon]="true"
+                appendTo="body"
+                class="w-full"
+            />
+            @if (isInvalid('end_date')) {
+            <small class="text-red-500 block mt-1">La date de fin est obligatoire.</small>
+            }
+            @if (createForm.errors?.['dateRange'] && createForm.touched) {
+            <small class="text-red-500 block mt-1">La date de fin doit être postérieure au début.</small>
+            }
+        </div>
+
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined (click)="closeCreateDialog()"></button>
+            <button pButton type="submit" label="Créer" icon="pi pi-save" [loading]="creating()" [disabled]="creating()"></button>
+        </div>
+    </form>
+</p-dialog>

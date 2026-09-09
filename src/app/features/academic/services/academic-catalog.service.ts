@@ -66,26 +66,26 @@ export class AcademicCatalogService {
 
 
     getProgramsByFaculty(facultyId: string, options: AcademicCatalogRequestOptions = {}): Observable<ProgramReference[]> {
-    if (options.publicRequest) {
-        return this.getPrograms(options).pipe(
-            map((programs) => programs.filter((program) => program.faculty_id === facultyId))
+        if (options.publicRequest) {
+            return this.getPrograms(options).pipe(
+                map((programs) => programs.filter((program) => program.faculty_id === facultyId))
+            );
+        }
+
+        const cached = this.programsByFaculty.get(facultyId);
+
+        if (cached) {
+            return cached;
+        }
+
+        const request$ = this.getPrograms().pipe(
+            map((programs) => programs.filter((program) => program.faculty_id === facultyId)),
+            shareReplay(1)
         );
+
+        this.programsByFaculty.set(facultyId, request$);
+        return request$;
     }
-
-    const cached = this.programsByFaculty.get(facultyId);
-
-    if (cached) {
-        return cached;
-    }
-
-    const request$ = this.getPrograms().pipe(
-        map((programs) => programs.filter((program) => program.faculty_id === facultyId)),
-        shareReplay(1)
-    );
-
-    this.programsByFaculty.set(facultyId, request$);
-    return request$;
-}
 
     getPrograms(options: AcademicCatalogRequestOptions = {}): Observable<ProgramReference[]> {
         if (options.publicRequest) {
@@ -131,4 +131,9 @@ export class AcademicCatalogService {
     private defaultParams(): HttpParams {
         return new HttpParams().set('page', 0).set('size', 100);
     }
+
+    invalidateAcademicYears(): void {
+        this.academicYears$ = undefined;
+    }
+
 }

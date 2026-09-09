@@ -2,11 +2,13 @@ import { Routes } from '@angular/router';
 import { permissionGuard } from '@/app/core/permissions/permission.guard';
 import { AcademicPermission } from '../permissions/permission.model';
 import { AcademicPlaceholder } from '../pages/academic-placeholder/academic-placeholder';
+import { AcademicYearsPage } from './pages/academic-years/academic-years';
+import { SemestersPage } from './pages/semesters/semesters';
 
 export default [
     {
         path: 'years',
-        component: AcademicPlaceholder,
+        component: AcademicYearsPage,
         canActivate: [permissionGuard],
         data: {
             permissions: [AcademicPermission.AcademicYearReadAll],
@@ -15,7 +17,7 @@ export default [
     },
     {
         path: 'semesters',
-        component: AcademicPlaceholder,
+        component: SemestersPage,
         canActivate: [permissionGuard],
         data: {
             permissions: [AcademicPermission.SemesterReadAll],
