@@ -12,11 +12,12 @@
                 [class.pi-exclamation-triangle]="documentsUploadWarning()"></i>
         </div>
 
-        <h1>{{ documentsUploadWarning() ? 'Candidature enregistrée' : 'Candidature enregistrée !' }}</h1>
+        <h1>Candidature enregistrée</h1>
         <p class="success-subtitle">
             @if (documentsUploadWarning()) {
-            Votre dossier a été créé, mais certains documents n’ont pas pu être joints. Conservez vos coordonnées : le
-            service des admissions pourra vous recontacter.
+            Votre dossier a été créé. Les documents sélectionnés seront à joindre après connexion,
+            depuis <strong>Admission → Mon dossier</strong> (l’envoi automatique n’est pas possible
+            sans être authentifié).
             } @else {
             Votre dossier a été transmis avec succès aux services académiques.
             }
@@ -51,18 +52,13 @@
             <ul>
                 <li>Consultez votre boîte mail : vos identifiants de connexion vous y ont été envoyés.</li>
                 <li>Connectez-vous pour suivre l’évolution de votre dossier.</li>
-                <li>Complétez les éléments manquants (documents ou informations) depuis votre espace candidat.</li>
+                <li>Complétez les éléments manquants (documents ou informations) depuis
+                    <strong>Admission → Mon dossier</strong>.</li>
             </ul>
         </div>
 
-        <button pButton type="button" label="Inscrire un autre candidat" icon="pi pi-plus" class="w-full sm:w-auto"
-            (click)="startAnotherApplication()"></button>
-
-        @if (documentsUploadWarning()) {
-        <button pButton type="button" label="Réessayer l’envoi des documents" icon="pi pi-upload" severity="warn"
-            class="w-full sm:w-auto mt-3" [loading]="submitting()" [disabled]="submitting()"
-            (click)="retryDocumentUploads()"></button>
-        }
+        <button pButton type="button" label="Inscrire un autre candidat" icon="pi pi-plus"
+            class="w-full sm:w-auto" (click)="startAnotherApplication()"></button>
     </section>
 </div>
 } @else {

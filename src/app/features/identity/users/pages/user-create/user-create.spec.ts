@@ -210,6 +210,37 @@ describe('UserCreate (equivalence partitioning + boundary value analysis)', () =
                 })
             );
         });
+
+        it('should map SQL duplicate email constraint to a friendly message', () => {
+            usersService.createUser.and.returnValue(
+                throwError(
+                    () =>
+                        new HttpErrorResponse({
+                            status: 500,
+                            error: {
+                                detail:
+                                    'could not execute batch [...]; constraint [uc_users_email] Key (email)=(gadnyz.research@gmail.com) already exists.'
+                            }
+                        })
+                )
+            );
+
+            component.form.setValue({
+                username: 'prof.gad',
+                email: 'gadnyz.research@gmail.com',
+                profiles: ['profile-1']
+            });
+            component.submit();
+
+            expect(component.validationErrors()['email']).toContain('déjà utilisée');
+            expect(messageService.add).toHaveBeenCalledWith(
+                jasmine.objectContaining({
+                    severity: 'error',
+                    detail: jasmine.stringMatching(/e-mail est déjà associée/)
+                })
+            );
+            expect(component.submitting()).toBeFalse();
+        });
     });
 
     describe('HTTP lifecycle while loading profiles', () => {

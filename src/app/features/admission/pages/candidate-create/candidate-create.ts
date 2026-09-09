@@ -14,6 +14,7 @@ import { CandidateDocumentType, CandidateGender, CandidateResponse, CandidatureT
 import { CandidateService } from '../../services/candidate.service';
 import { AdmissionAcademicReferenceService } from '../../services/admission-academic-reference.service';
 import { AuthFooter } from '@/app/core/auth/auth-footer/auth-footer';
+import { AuthService } from '@/app/core/auth/services/auth.service';
 import { CoreSettingsStore } from '@/app/core/settings/services/core-settings.store';
 import { AdmissionSettingsStore } from '@/app/features/admission/settings/services/admission-settings.store';
 import { ProgramReference } from '@/app/features/academic/academic.public-api';
@@ -85,6 +86,7 @@ export class CandidateCreate implements OnInit {
     private readonly messageService = inject(MessageService);
     private readonly candidateService = inject(CandidateService);
     private readonly academicReferenceService = inject(AdmissionAcademicReferenceService);
+    private readonly authService = inject(AuthService);
     private readonly coreSettingsStore = inject(CoreSettingsStore);
     private readonly admissionSettingsStore = inject(AdmissionSettingsStore);
 
@@ -287,23 +289,47 @@ export class CandidateCreate implements OnInit {
         this.submitting.set(true);
 
         this.candidateService.submit(this.buildPayload(), { publicRequest: this.publicMode() }).pipe(
-            switchMap((candidate) =>
-                this.uploadSelectedDocuments(candidate.id).pipe(
+            switchMap((candidate) => {
+                const hasFiles = this.documentUploads().some((d) => !!d.file);
+                const hasToken = !!this.authService.getAccessToken();
+
+                // Dépôt public sans session : l'API refuse upload-url → reporter vers Mon dossier
+                if (this.publicMode() && !hasToken) {
+                    if (hasFiles) {
+                        console.warn('[apply] documents deferred: no session token; upload-url requires auth', {
+                            candidateId: candidate.id,
+                            types: this.documentUploads()
+                                .filter((d) => !!d.file)
+                                .map((d) => d.type)
+                        });
+                    }
+
+                    return of({
+                        candidate,
+                        uploadFailures: false,
+                        documentsDeferred: hasFiles
+                    });
+                }
+
+                return this.uploadSelectedDocuments(candidate.id).pipe(
                     map((results) => ({
                         candidate,
-                        uploadFailures: results.some((result) => result === null)
+                        uploadFailures: results.some((result) => result === null),
+                        documentsDeferred: false
                     }))
-                )
-            )
+                );
+            })
         ).subscribe({
-            next: ({ candidate, uploadFailures }) => {
+            next: ({ candidate, uploadFailures, documentsDeferred }) => {
                 this.submitting.set(false);
                 this.submittedCandidate.set(candidate);
 
-                if (uploadFailures) {
+                if (uploadFailures || documentsDeferred) {
                     this.documentsUploadWarning.set(true);
                     this.showWarning(
-                        'Votre candidature a été enregistrée, mais certains documents n’ont pas pu être téléversés. Vous pouvez réessayer ci-dessous.',
+                        documentsDeferred
+                            ? 'Candidature enregistrée. Connectez-vous puis joignez vos documents depuis Mon dossier.'
+                            : 'Votre candidature a été enregistrée, mais certains documents n’ont pas pu être joints. Complétez-les depuis Mon dossier.',
                         8000
                     );
                 }
@@ -639,45 +665,6 @@ export class CandidateCreate implements OnInit {
         return true;
     }
 
-
-    retryDocumentUploads(): void {
-        const candidate = this.submittedCandidate();
-        if (!candidate || this.submitting()) {
-            return;
-        }
-
-        this.submitting.set(true);
-        this.uploadSelectedDocuments(candidate.id).subscribe({
-            next: (results) => {
-                this.submitting.set(false);
-                const failed = results.some((result) => result === null);
-                this.documentsUploadWarning.set(failed);
-
-                if (failed) {
-                    this.showWarning(
-                        'Certains documents n’ont toujours pas pu être joints. Réessayez ou contactez les admissions.',
-                        8000
-                    );
-                    return;
-                }
-
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Documents joints',
-                    detail: 'Tous les documents ont été téléversés avec succès.',
-                    life: 6000
-                });
-            },
-            error: () => {
-                this.submitting.set(false);
-                this.showWarning(
-                    'La reprise des documents a échoué. Réessayez dans quelques instants.',
-                    8000
-                );
-            }
-        });
-    }
-
     startAnotherApplication(): void {
         this.submittedCandidate.set(null);
         this.documentsUploadWarning.set(false);
@@ -798,12 +785,22 @@ export class CandidateCreate implements OnInit {
                     document.type,
                     file,
                     extension
-                ).pipe(catchError(() => of(null)));
+                ).pipe(
+                    catchError((error: unknown) => {
+                        const status = error instanceof HttpErrorResponse ? error.status : 0;
+                        console.warn('[apply] document upload failed (outer)', {
+                            type: document.type,
+                            status,
+                            error
+                        });
+                        return of(null);
+                    })
+                );
             })
         );
     }
 
-    /** Demande un upload-url, upload, confirm — renouvelle l’URL une fois si elle a expiré. */
+    /** Upload authentifié : ne jamais forcer publicRequest (sinon 401 sur upload-url). */
     private uploadDocumentWithUrlRefresh(
         candidateId: string,
         type: CandidateDocumentType,
@@ -811,20 +808,14 @@ export class CandidateCreate implements OnInit {
         extension: string
     ): Observable<ConfirmDocumentResponse | null> {
         const runOnce = (): Observable<ConfirmDocumentResponse> =>
-            this.candidateService.requestDocumentUploadUrl(
-                candidateId,
-                type,
-                extension,
-                { publicRequest: this.publicMode() }
-            ).pipe(
+            this.candidateService.requestDocumentUploadUrl(candidateId, type, extension).pipe(
                 switchMap((upload) =>
                     this.candidateService.uploadDocument(upload.upload_url, file).pipe(
                         switchMap(() =>
-                            this.candidateService.confirmDocumentUpload(
-                                candidateId,
-                                { object_path: upload.object_path, type },
-                                { publicRequest: this.publicMode() }
-                            )
+                            this.candidateService.confirmDocumentUpload(candidateId, {
+                                object_path: upload.object_path,
+                                type
+                            })
                         )
                     )
                 )
@@ -832,16 +823,29 @@ export class CandidateCreate implements OnInit {
 
         return runOnce().pipe(
             catchError((error: unknown) => {
-                const status =
-                    error instanceof HttpErrorResponse ? error.status : 0;
-                const expired =
-                    status === 403 || status === 401 || status === 0;
+                const status = error instanceof HttpErrorResponse ? error.status : 0;
 
-                if (!expired) {
+                // Retry seulement si l’URL S3 / réseau a lâchement échoué (pas un vrai 401 auth API).
+                const maybeExpiredUrl = status === 0;
+
+                console.warn('[apply] document upload failed', { type, status, error });
+
+                if (!maybeExpiredUrl) {
                     return of(null);
                 }
 
-                return runOnce().pipe(catchError(() => of(null)));
+                return runOnce().pipe(
+                    catchError((retryError: unknown) => {
+                        const retryStatus =
+                            retryError instanceof HttpErrorResponse ? retryError.status : 0;
+                        console.warn('[apply] document upload failed', {
+                            type,
+                            status: retryStatus,
+                            error: retryError
+                        });
+                        return of(null);
+                    })
+                );
             })
         );
     }
