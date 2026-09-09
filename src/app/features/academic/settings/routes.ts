@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
 import { permissionGuard } from '@/app/core/permissions/permission.guard';
 import { AcademicPermission } from '../permissions/permission.model';
-import { AcademicPlaceholder } from '../pages/academic-placeholder/academic-placeholder';
 import { AcademicYearsPage } from './pages/academic-years/academic-years';
 import { SemestersPage } from './pages/semesters/semesters';
 import { LevelsPage } from './pages/levels/levels';
+import { ProfessorGradesPage } from './pages/professor-grades/professor-grades';
 
 export default [
     {
@@ -36,7 +36,7 @@ export default [
     },
     {
         path: 'professor-grades',
-        component: AcademicPlaceholder,
+        component: ProfessorGradesPage,
         canActivate: [permissionGuard],
         data: {
             permissions: [AcademicPermission.ProfessorGradeReadAll],
