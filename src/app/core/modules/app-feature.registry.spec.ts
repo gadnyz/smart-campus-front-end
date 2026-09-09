@@ -22,6 +22,7 @@ describe('app-feature.registry (dynamic module registry)', () => {
         expect(paths).toContain('identity');
         expect(paths).toContain('admission');
         expect(paths).toContain('settings');
+        expect(paths).toContain('academic');
     });
 
     it('should aggregate settings tabs with identity users entry', () => {
