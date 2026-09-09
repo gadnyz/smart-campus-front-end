@@ -1,0 +1,137 @@
+<p-toast />
+<p-confirmdialog [style]="{ width: '450px' }" />
+
+<app-content-subtopbar kicker="Academic" [title]="title()" [actions]="actions()" />
+
+<div class="card mb-4">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="font-semibold text-xl">Programmes (filières)</div>
+        @if (canCreatePrograms()) {
+        <button pButton type="button" label="Nouveau programme" icon="pi pi-plus" size="small"
+            (click)="openCreateProgram()"></button>
+        }
+    </div>
+
+    <p-table [value]="programs()" dataKey="id" [rowHover]="true" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Code</th>
+                <th>Nom</th>
+                <th>Niveaux</th>
+                <th style="width: 8rem">Actions</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-program>
+            <tr>
+                <td>{{ program.code }}</td>
+                <td>{{ program.name }}</td>
+                <td>
+                    @for (item of program.levels ?? []; track item.level.id) {
+                    <p-tag class="mr-1 mb-1" [value]="item.level.code" />
+                    }
+                </td>
+                <td>
+                    <div class="flex gap-2">
+                        @if (canUpdatePrograms()) {
+                        <button pButton type="button" icon="pi pi-pencil" rounded outlined severity="info"
+                            (click)="openEditProgram(program)"></button>
+                        }
+                        @if (canDeletePrograms()) {
+                        <button pButton type="button" icon="pi pi-trash" rounded outlined severity="danger"
+                            (click)="confirmDeleteProgram(program)"></button>
+                        }
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="4">Aucun programme.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<div class="card">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="font-semibold text-xl">Staff de direction</div>
+        @if (canManageLeadership()) {
+        <button pButton type="button" label="Assigner" icon="pi pi-plus" size="small"
+            (click)="openAssignLeadership()"></button>
+        }
+    </div>
+
+    <p-table [value]="leadership()" dataKey="id" [rowHover]="true" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Rôle</th>
+                <th>Nom</th>
+                <th>Email</th>
+                <th style="width: 6rem">Actions</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+            <tr>
+                <td>{{ item.role_label || roleLabel(item.role) }}</td>
+                <td>{{ item.user_name }}</td>
+                <td>{{ item.user_email }}</td>
+                <td>
+                    @if (canManageLeadership()) {
+                    <button pButton type="button" icon="pi pi-times" rounded outlined severity="danger"
+                        (click)="confirmRevoke(item)"></button>
+                    }
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="4">Aucun staff de direction.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog header="Programme" [visible]="programDialogVisible()" (visibleChange)="programDialogVisible.set($event)"
+    [modal]="true" [style]="{ width: '32rem' }">
+    <form [formGroup]="programForm" class="flex flex-col gap-4" (ngSubmit)="submitProgram()">
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Code</label>
+            <input pInputText formControlName="code" placeholder="FST-GL" class="w-full" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Nom</label>
+            <input pInputText formControlName="name" placeholder="Génie Logiciel" class="w-full" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Niveaux</label>
+            <p-multiselect formControlName="level_ids" [options]="levelOptions()" optionLabel="label"
+                optionValue="value" display="chip" appendTo="body" class="w-full" />
+        </div>
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined
+                (click)="programDialogVisible.set(false)"></button>
+            <button pButton type="submit" label="Enregistrer" icon="pi pi-save" [loading]="savingProgram()"></button>
+        </div>
+    </form>
+</p-dialog>
+
+<p-dialog header="Assigner un rôle" [visible]="leadershipDialogVisible()"
+    (visibleChange)="leadershipDialogVisible.set($event)" [modal]="true" [style]="{ width: '32rem' }">
+    <form [formGroup]="leadershipForm" class="flex flex-col gap-4" (ngSubmit)="submitLeadership()">
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Utilisateur</label>
+            <p-select formControlName="user_id" [options]="userOptions()" optionLabel="label" optionValue="value"
+                [filter]="true" appendTo="body" class="w-full" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Rôle</label>
+            <p-select formControlName="role" [options]="roleOptions" optionLabel="label" optionValue="value"
+                appendTo="body" class="w-full" />
+        </div>
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined
+                (click)="leadershipDialogVisible.set(false)"></button>
+            <button pButton type="submit" label="Assigner" icon="pi pi-save" [loading]="savingLeadership()"></button>
+        </div>
+    </form>
+</p-dialog>

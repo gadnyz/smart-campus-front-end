@@ -139,4 +139,13 @@ export class AcademicCatalogService {
     invalidateLevels(): void {
         this.levels$ = undefined;
     }
+
+    invalidateFaculties(): void {
+        this.faculties$ = undefined;
+    }
+
+    invalidatePrograms(): void {
+        this.programs$ = undefined;
+        this.programsByFaculty.clear();
+    }
 }
