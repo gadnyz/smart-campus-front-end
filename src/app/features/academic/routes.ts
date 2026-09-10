@@ -5,6 +5,9 @@ import { AcademicPlaceholder } from './pages/academic-placeholder/academic-place
 import { AcademicHomeRedirect } from './pages/academic-home-redirect/academic-home-redirect';
 import { FacultyListPage } from './pages/faculty-list/faculty-list';
 import { FacultyDetailPage } from './pages/faculty-detail/faculty-detail';
+import { CourseListPage } from './pages/course-list/course-list';
+import { CourseDetailPage } from './pages/course-detail/course-detail';
+
 
 export default [
     {
@@ -35,10 +38,18 @@ export default [
     },
     {
         path: 'courses',
-        component: AcademicPlaceholder,
+        component: CourseListPage,
         canActivate: [permissionGuard],
         data: {
-            title: 'Cours',
+            permissions: [AcademicPermission.CourseReadAll, AcademicPermission.CourseReadOwn],
+            mode: 'any'
+        }
+    },
+    {
+        path: 'courses/:id',
+        component: CourseDetailPage,
+        canActivate: [permissionGuard],
+        data: {
             permissions: [AcademicPermission.CourseReadAll, AcademicPermission.CourseReadOwn],
             mode: 'any'
         }
