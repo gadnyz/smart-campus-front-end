@@ -1,7 +1,6 @@
 <p-toast />
-<p-confirmdialog [style]="{ width: '450px' }" />
 
-<app-content-subtopbar kicker="Academic" title="Cours" [actions]="actions()" />
+<app-content-subtopbar kicker="Academc" title="Cours" [actions]="actions()" />
 
 <div class="card">
     <p-table
@@ -11,13 +10,13 @@
         [paginator]="true"
         [rows]="10"
         [rowsPerPageOptions]="[10, 20, 50]"
-        [globalFilterFields]="['code', 'name', 'course_unit_code']"
+        [globalFilterFields]="['code', 'name']"
         [rowHover]="true"
         dataKey="id"
         responsiveLayout="scroll"
         currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} cours"
         [showCurrentPageReport]="true"
-        [tableStyle]="{ 'min-width': '50rem' }"
+        [tableStyle]="{ 'min-width': '40rem' }"
     >
         <ng-template pTemplate="caption">
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -48,9 +47,8 @@
             <tr>
                 <th pSortableColumn="code">Code <p-sortIcon field="code" /></th>
                 <th pSortableColumn="name">Nom <p-sortIcon field="name" /></th>
-                <th>UE</th>
                 <th pSortableColumn="credits">Crédits <p-sortIcon field="credits" /></th>
-                <th style="width: 8rem">Actions</th>
+                <th style="width: 6rem">Actions</th>
             </tr>
         </ng-template>
 
@@ -58,31 +56,24 @@
             <tr>
                 <td>{{ course.code }}</td>
                 <td>{{ course.name }}</td>
-                <td>{{ course.course_unit_code || '—' }}</td>
                 <td>{{ course.credits }}</td>
                 <td>
-                    <div class="flex gap-2">
-                        <button pButton type="button" icon="pi pi-arrow-right" rounded outlined severity="info"
-                            [attr.aria-label]="'Détail ' + course.code" (click)="openDetail(course)"></button>
-                        @if (canUpdate()) {
-                        <button pButton type="button" icon="pi pi-pencil" rounded outlined severity="info"
-                            [attr.aria-label]="'Modifier ' + course.code" (click)="openEditDialog(course)"></button>
-                        }
-                    </div>
+                    <button pButton type="button" icon="pi pi-arrow-right" rounded outlined severity="info"
+                        [attr.aria-label]="'Détail ' + course.code" (click)="openDetail(course)"></button>
                 </td>
             </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="5">Aucun cours.</td>
+                <td colspan="4">Aucun cours.</td>
             </tr>
         </ng-template>
     </p-table>
 </div>
 
 <p-dialog
-    [header]="dialogTitle()"
+    header="Nouveau cours"
     [visible]="dialogVisible()"
     (visibleChange)="dialogVisible.set($event)"
     [modal]="true"
@@ -95,27 +86,11 @@
             <p-select formControlName="faculty_id" [options]="facultyOptions()" optionLabel="label" optionValue="value"
                 [disabled]="!canReadAll() && !!scopedFacultyId()" appendTo="body" class="w-full" />
         </div>
-        <div class="flex items-center gap-2">
-            <p-checkbox formControlName="create_unit" [binary]="true" inputId="createUnit" />
-            <label for="createUnit" class="text-sm">Créer une nouvelle UE</label>
-        </div>
-        @if (form.controls.create_unit.value) {
-        <div>
-            <label class="block text-sm text-color-secondary mb-1">Code UE</label>
-            <input pInputText formControlName="unit_code" placeholder="UE-INFO-01" class="w-full" />
-        </div>
-        <div>
-            <label class="block text-sm text-color-secondary mb-1">Bloc</label>
-            <p-select formControlName="knowledge_skills_bloc" [options]="blocOptions" optionLabel="label"
-                optionValue="value" appendTo="body" class="w-full" />
-        </div>
-        } @else {
         <div>
             <label class="block text-sm text-color-secondary mb-1">Unité d’enseignement</label>
             <p-select formControlName="course_unit_id" [options]="unitOptions()" optionLabel="label" optionValue="value"
                 appendTo="body" class="w-full" placeholder="Choisir une UE" />
         </div>
-        }
         <div>
             <label class="block text-sm text-color-secondary mb-1">Code</label>
             <input pInputText formControlName="code" placeholder="INF-101" class="w-full" />

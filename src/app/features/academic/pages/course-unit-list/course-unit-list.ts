@@ -3,31 +3,27 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-import { InputNumber } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
-import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from '@/app/core/auth/services/auth.service';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { AcademicPermission } from '../../permissions/permission.model';
-import { Course } from '../../models/course.model';
-import { CourseUnit, UE_BLOC_OPTIONS } from '../../models/course-unit.model';
+import { CourseUnit, KnowledgeSkillsBloc, UE_BLOC_OPTIONS } from '../../models/course-unit.model';
 import { Faculty } from '../../models/faculty.model';
-import { CourseService } from '../../services/course.service';
 import { CourseUnitService } from '../../services/course-unit.service';
 import { FacultyService } from '../../services/faculty.service';
-import { DetailNavigationService } from '@/app/shared/navigation/detail-navigation.service';
 
 @Component({
-    selector: 'app-course-list',
+    selector: 'app-course-unit-list',
     standalone: true,
     imports: [
         CommonModule,
@@ -36,42 +32,51 @@ import { DetailNavigationService } from '@/app/shared/navigation/detail-navigati
         TableModule,
         ButtonModule,
         ToastModule,
+        ConfirmDialogModule,
         DialogModule,
         InputTextModule,
-        InputNumber,
-        TextareaModule,
         SelectModule,
         IconFieldModule,
         InputIconModule,
         ContentSubtopbar
     ],
-    templateUrl: './course-list.html',
-    providers: [MessageService]
+    templateUrl: './course-unit-list.html',
+    providers: [ConfirmationService, MessageService]
 })
-export class CourseListPage implements OnInit {
-    private readonly courseService = inject(CourseService);
+export class CourseUnitListPage implements OnInit {
     private readonly courseUnitService = inject(CourseUnitService);
     private readonly facultyService = inject(FacultyService);
     private readonly router = inject(Router);
     private readonly authService = inject(AuthService);
+    private readonly confirmationService = inject(ConfirmationService);
     private readonly messageService = inject(MessageService);
     private readonly permissionService = inject(PermissionService);
     private readonly fb = inject(FormBuilder);
 
-    readonly courses = signal<Course[]>([]);
-    readonly faculties = signal<Faculty[]>([]);
     readonly units = signal<CourseUnit[]>([]);
+    readonly faculties = signal<Faculty[]>([]);
     readonly selectedFacultyId = signal<string | null>(null);
     readonly scopedFacultyId = signal<string | null>(null);
     readonly loading = signal(false);
     readonly saving = signal(false);
     readonly dialogVisible = signal(false);
-    private readonly detailNavigation = inject(DetailNavigationService);
-    private readonly navigationScope = 'academic.courses';
+    readonly editingId = signal<string | null>(null);
+
+    readonly blocOptions = UE_BLOC_OPTIONS;
 
     readonly canReadAll = computed(() =>
-        this.permissionService.hasAnyPermission([AcademicPermission.CourseReadAll])
+        this.permissionService.hasAnyPermission([AcademicPermission.CourseUnitReadAll])
     );
+
+    readonly canUpdate = computed(() =>
+        this.permissionService.hasAnyPermission([AcademicPermission.CourseUnitUpdateAll])
+    );
+
+    readonly canDelete = computed(() =>
+        this.permissionService.hasAnyPermission([AcademicPermission.CourseUnitDeleteAll])
+    );
+
+    readonly dialogTitle = computed(() => (this.editingId() ? 'Modifier l’UE' : 'Nouvelle UE'));
 
     readonly facultyOptions = computed(() =>
         this.faculties().map((faculty) => ({
@@ -80,51 +85,28 @@ export class CourseListPage implements OnInit {
         }))
     );
 
-    readonly unitOptions = computed(() =>
-        this.units().map((unit) => ({
-            label: `${unit.code} — ${this.blocLabel(unit.knowledge_skills_bloc)}`,
-            value: unit.id
-        }))
-    );
-
     readonly form = this.fb.nonNullable.group({
         faculty_id: [null as string | null, Validators.required],
-        course_unit_id: [null as string | null, Validators.required],
         code: ['', Validators.required],
-        name: ['', Validators.required],
-        description: ['', Validators.required],
-        credits: [1, [Validators.required, Validators.min(1)]]
+        knowledge_skills_bloc: [null as KnowledgeSkillsBloc | null, Validators.required]
     });
 
     readonly actions = computed<SubtopbarAction[]>(() => [
         {
-            label: 'Nouveau cours',
+            label: 'Nouvelle UE',
             icon: 'pi pi-plus',
             severity: 'info',
-            outlined: false,
             command: () => this.openCreateDialog(),
-            permissions: [AcademicPermission.CourseCreateAll],
-            mode: 'any'
+            permissions: [AcademicPermission.CourseUnitCreateAll]
         }
     ]);
 
     ngOnInit(): void {
-        this.form.controls.faculty_id.valueChanges.subscribe((facultyId) => {
-            this.form.controls.course_unit_id.setValue(null);
-
-            if (facultyId) {
-                this.loadUnits(facultyId);
-            } else {
-                this.units.set([]);
-            }
-        });
-
         if (this.canReadAll()) {
             this.facultyService.getAll().subscribe({
                 next: (faculties) =>
                     this.faculties.set([...faculties].sort((a, b) => a.name.localeCompare(b.name)))
             });
-            this.load();
             return;
         }
 
@@ -140,30 +122,33 @@ export class CourseListPage implements OnInit {
         this.load();
     }
 
-    openDetail(course: Course): void {
-        void this.router.navigate(['/academic/courses', course.id]);
+    openDetail(unit: CourseUnit): void {
+        void this.router.navigate(['/academic/course-units', unit.id]);
     }
 
     openCreateDialog(): void {
-        const facultyId = this.scopedFacultyId() ?? this.selectedFacultyId();
+        this.editingId.set(null);
         this.form.reset({
-            faculty_id: facultyId,
-            course_unit_id: null,
+            faculty_id: this.scopedFacultyId() ?? this.selectedFacultyId(),
             code: '',
-            name: '',
-            description: '',
-            credits: 1
+            knowledge_skills_bloc: null
         });
+        this.dialogVisible.set(true);
+    }
 
-        if (facultyId) {
-            this.loadUnits(facultyId);
-        }
-
+    openEditDialog(unit: CourseUnit): void {
+        this.editingId.set(unit.id);
+        this.form.reset({
+            faculty_id: unit.faculty_id,
+            code: unit.code,
+            knowledge_skills_bloc: unit.knowledge_skills_bloc
+        });
         this.dialogVisible.set(true);
     }
 
     closeDialog(): void {
         this.dialogVisible.set(false);
+        this.editingId.set(null);
     }
 
     submit(): void {
@@ -173,31 +158,61 @@ export class CourseListPage implements OnInit {
         }
 
         const raw = this.form.getRawValue();
+        const payload = {
+            code: raw.code.trim(),
+            knowledge_skills_bloc: raw.knowledge_skills_bloc as KnowledgeSkillsBloc,
+            faculty_id: raw.faculty_id as string
+        };
+        const editingId = this.editingId();
         this.saving.set(true);
-        this.courseService
-            .create({
-                code: raw.code.trim(),
-                name: raw.name.trim(),
-                description: raw.description.trim(),
-                credits: raw.credits,
-                course_unit_id: raw.course_unit_id as string
-            })
-            .subscribe({
-                next: (course) => {
-                    this.saving.set(false);
-                    this.dialogVisible.set(false);
-                    this.load();
-                    this.showSuccess(`Cours ${course.code} créé.`);
-                },
-                error: (error: HttpErrorResponse) => {
-                    this.saving.set(false);
-                    this.showError(error.error?.detail ?? 'Impossible d’enregistrer le cours.');
-                }
-            });
+
+        const request$ = editingId
+            ? this.courseUnitService.update(editingId, payload)
+            : this.courseUnitService.create(payload);
+
+        request$.subscribe({
+            next: (unit) => {
+                this.saving.set(false);
+                this.dialogVisible.set(false);
+                this.editingId.set(null);
+                this.selectedFacultyId.set(unit.faculty_id);
+                this.load();
+                this.showSuccess(editingId ? `UE ${unit.code} modifiée.` : `UE ${unit.code} créée.`);
+            },
+            error: (error: HttpErrorResponse) => {
+                this.saving.set(false);
+                this.showError(error.error?.detail ?? 'Impossible d’enregistrer l’UE.');
+            }
+        });
     }
 
-    private blocLabel(bloc: string): string {
-        return UE_BLOC_OPTIONS.find((item) => item.value === bloc)?.label ?? bloc;
+    confirmDelete(unit: CourseUnit): void {
+        this.confirmationService.confirm({
+            header: 'Supprimer l’UE',
+            message: `Supprimer ${unit.code} ? Les cours rattachés doivent d’abord être déplacés.`,
+            icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Supprimer',
+            rejectLabel: 'Annuler',
+            acceptButtonStyleClass: 'p-button-danger',
+            rejectButtonStyleClass: 'p-button-text',
+            accept: () => this.delete(unit)
+        });
+    }
+
+    blocLabel(bloc: string): string {
+        return this.blocOptions.find((item) => item.value === bloc)?.label ?? bloc;
+    }
+
+    private delete(unit: CourseUnit): void {
+        this.courseUnitService.delete(unit.id).subscribe({
+            next: () => {
+                this.load();
+                this.showSuccess(`UE ${unit.code} supprimée.`);
+            },
+            error: (error: HttpErrorResponse) => {
+                this.showError(error.error?.detail ?? 'Impossible de supprimer cette UE.');
+            }
+        });
     }
 
     private resolveOwnFaculty(): void {
@@ -225,40 +240,24 @@ export class CourseListPage implements OnInit {
     }
 
     private load(): void {
-        this.loading.set(true);
         const facultyId = this.selectedFacultyId();
-        const request$ = facultyId ? this.courseService.getByFaculty(facultyId) : this.courseService.getAll();
 
-        request$.subscribe({
-            next: (courses) => {
-                const sorted = [...courses].sort((a, b) => a.code.localeCompare(b.code));
-                this.courses.set(sorted);
-                this.detailNavigation.setContext({
-                    scope: this.navigationScope,
-                    listRoute: ['/academic/courses'],
-                    page: 0,
-                    size: sorted.length,
-                    totalElements: sorted.length,
-                    totalPages: 1,
-                    items: sorted.map((course) => ({
-                        id: course.id,
-                        label: `${course.code} — ${course.name}`
-                    })),
-                    filters: { facultyId }
-                });
+        if (!facultyId) {
+            this.units.set([]);
+            return;
+        }
+
+        this.loading.set(true);
+        this.courseUnitService.getByFaculty(facultyId).subscribe({
+            next: (units) => {
+                this.units.set([...units].sort((a, b) => a.code.localeCompare(b.code)));
                 this.loading.set(false);
             },
             error: (error: HttpErrorResponse) => {
-                this.courses.set([]);
+                this.units.set([]);
                 this.loading.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de charger les cours.');
+                this.showError(error.error?.detail ?? 'Impossible de charger les UE.');
             }
-        });
-    }
-    private loadUnits(facultyId: string): void {
-        this.courseUnitService.getByFaculty(facultyId).subscribe({
-            next: (units) => this.units.set(units),
-            error: () => this.units.set([])
         });
     }
 

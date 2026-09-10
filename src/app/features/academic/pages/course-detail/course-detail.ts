@@ -7,9 +7,12 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
+import { InputNumber } from 'primeng/inputnumber';
+import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from '@/app/core/auth/services/auth.service';
 import { PermissionService } from '@/app/core/permissions/permission.service';
@@ -18,7 +21,7 @@ import { AcademicPermission } from '../../permissions/permission.model';
 import { AcademicYear } from '../../models/academic-year.model';
 import { Course } from '../../models/course.model';
 import { CourseAssignment, CourseAssignmentType } from '../../models/course-assignment.model';
-import { CourseUnit } from '../../models/course-unit.model';
+import { CourseUnit, UE_BLOC_OPTIONS } from '../../models/course-unit.model';
 import { Professor } from '../../models/professor.model';
 import { AcademicYearService } from '../../services/academic-year.service';
 import { CourseAssignmentService } from '../../services/course-assignment.service';
@@ -26,7 +29,10 @@ import { CourseService } from '../../services/course.service';
 import { CourseUnitService } from '../../services/course-unit.service';
 import { FacultyService } from '../../services/faculty.service';
 import { ProfessorService } from '../../services/professor.service';
-
+import {
+    DetailNavigationService,
+    DetailNavigationState
+} from '@/app/shared/navigation/detail-navigation.service';
 @Component({
     selector: 'app-course-detail',
     standalone: true,
@@ -38,6 +44,9 @@ import { ProfessorService } from '../../services/professor.service';
         ToastModule,
         ConfirmDialogModule,
         DialogModule,
+        InputTextModule,
+        InputNumber,
+        TextareaModule,
         SelectModule,
         TagModule,
         ContentSubtopbar
@@ -62,12 +71,23 @@ export class CourseDetailPage implements OnInit {
 
     readonly course = signal<Course | null>(null);
     readonly unit = signal<CourseUnit | null>(null);
+    readonly units = signal<CourseUnit[]>([]);
     readonly assignments = signal<CourseAssignment[]>([]);
     readonly professors = signal<Professor[]>([]);
     readonly years = signal<AcademicYear[]>([]);
     readonly loading = signal(false);
     readonly dialogVisible = signal(false);
+    readonly courseDialogVisible = signal(false);
     readonly saving = signal(false);
+    readonly savingCourse = signal(false);
+
+    private readonly detailNavigation = inject(DetailNavigationService);
+    private readonly navigationScope = 'academic.courses';
+
+    readonly navigationState = signal<DetailNavigationState | null>(null);
+
+    readonly canGoPrevious = computed(() => this.navigationState()?.hasPrevious ?? false);
+    readonly canGoNext = computed(() => this.navigationState()?.hasNext ?? false);
 
     readonly typeOptions: { label: string; value: CourseAssignmentType }[] = [
         { label: 'Titulaire', value: 'LEAD_INSTRUCTOR' },
@@ -86,18 +106,56 @@ export class CourseDetailPage implements OnInit {
 
     readonly title = computed(() => {
         const course = this.course();
-        return course ? `${course.code} — ${course.name}` : 'Cours';
+        const name = course ? `${course.code} — ${course.name}` : 'Cours';
+        const position = this.navigationState()?.label;
+
+        return position ? `${name} (${position})` : name;
     });
+
+    readonly unitOptions = computed(() =>
+        this.units().map((unit) => ({
+            label: `${unit.code} — ${this.blocLabel(unit.knowledge_skills_bloc)}`,
+            value: unit.id
+        }))
+    );
 
     readonly actions = computed<SubtopbarAction[]>(() => [
         {
-            label: 'Retour',
-            icon: 'pi pi-arrow-left',
+            label: 'Liste',
+            icon: 'pi pi-list',
             severity: 'secondary',
-            outlined: true,
-            command: () => void this.router.navigate(['/academic/courses'])
+            outlined: false,
+            command: () => this.goToList()
+        },
+        {
+            label: 'Précédent',
+            icon: 'pi pi-chevron-left',
+            severity: 'secondary',
+            disabled: !this.canGoPrevious() || this.loading(),
+            command: () => this.goToPreviousCourse()
+        },
+        {
+            label: 'Suivant',
+            icon: 'pi pi-chevron-right',
+            severity: 'secondary',
+            disabled: !this.canGoNext() || this.loading(),
+            command: () => this.goToNextCourse()
+        },
+        {
+            label: 'Modifier',
+            icon: 'pi pi-pencil',
+            command: () => this.openEditCourse(),
+            permissions: [AcademicPermission.CourseUpdateAll]
         }
     ]);
+
+    readonly courseForm = this.fb.nonNullable.group({
+        course_unit_id: [null as string | null, Validators.required],
+        code: ['', Validators.required],
+        name: ['', Validators.required],
+        description: ['', Validators.required],
+        credits: [1, [Validators.required, Validators.min(1)]]
+    });
 
     readonly professorOptions = computed(() =>
         this.professors().map((professor) => ({
@@ -117,20 +175,22 @@ export class CourseDetailPage implements OnInit {
     });
 
     ngOnInit(): void {
-        const id = this.route.snapshot.paramMap.get('id');
-
-        if (!id) {
-            void this.router.navigate(['/notfound']);
-            return;
-        }
-
         this.academicYearService.getAll().subscribe({
             next: (years) => this.years.set(years)
         });
 
-        this.loadCourse(id);
-    }
+        this.route.paramMap.subscribe((params) => {
+            const id = params.get('id');
 
+            if (!id) {
+                void this.router.navigate(['/notfound']);
+                return;
+            }
+
+            this.navigationState.set(this.detailNavigation.getState(this.navigationScope, id));
+            this.loadCourse(id);
+        });
+    }
     openAssign(): void {
         const currentYear = this.years().find((year) => year.status === 'ACTIVE');
         this.form.reset({
@@ -202,6 +262,66 @@ export class CourseDetailPage implements OnInit {
 
     professorLabel(professor: Professor): string {
         return [professor.last_name, professor.first_name].filter(Boolean).join(' ');
+    }
+
+    blocLabel(bloc: string): string {
+        return UE_BLOC_OPTIONS.find((item) => item.value === bloc)?.label ?? bloc;
+    }
+
+    openEditCourse(): void {
+        const course = this.course();
+
+        if (!course) {
+            return;
+        }
+
+        this.courseForm.reset({
+            course_unit_id: course.course_unit_id,
+            code: course.code,
+            name: course.name,
+            description: course.description,
+            credits: course.credits
+        });
+        this.courseDialogVisible.set(true);
+
+        const facultyId = this.unit()?.faculty_id ?? course.faculty_id;
+        if (facultyId) {
+            this.courseUnitService.getByFaculty(facultyId).subscribe({
+                next: (units) => this.units.set(units)
+            });
+        }
+    }
+
+    submitCourse(): void {
+        const course = this.course();
+
+        if (!course || this.courseForm.invalid) {
+            this.courseForm.markAllAsTouched();
+            return;
+        }
+
+        const raw = this.courseForm.getRawValue();
+        this.savingCourse.set(true);
+        this.courseService
+            .update(course.id, {
+                code: raw.code.trim(),
+                name: raw.name.trim(),
+                description: raw.description.trim(),
+                credits: raw.credits,
+                course_unit_id: raw.course_unit_id as string
+            })
+            .subscribe({
+                next: (updated) => {
+                    this.savingCourse.set(false);
+                    this.courseDialogVisible.set(false);
+                    this.afterCourse({ ...course, ...updated, id: course.id });
+                    this.showSuccess(`Cours ${updated.code} modifié.`);
+                },
+                error: (error: HttpErrorResponse) => {
+                    this.savingCourse.set(false);
+                    this.showError(error.error?.detail ?? 'Impossible de modifier le cours.');
+                }
+            });
     }
 
     private loadCourse(id: string): void {
@@ -304,5 +424,39 @@ export class CourseDetailPage implements OnInit {
 
     private showError(detail: string): void {
         this.messageService.add({ severity: 'error', summary: 'Erreur', detail, life: 5000 });
+    }
+
+
+    goToList(): void {
+        const route = this.navigationState()?.context.listRoute ?? ['/academic/courses'];
+        void this.router.navigate(route);
+    }
+
+    goToPreviousCourse(): void {
+        const state = this.navigationState();
+
+        if (!state?.hasPrevious) {
+            return;
+        }
+
+        const previous = state.context.items[state.localIndex - 1];
+
+        if (previous) {
+            void this.router.navigate(['/academic/courses', previous.id]);
+        }
+    }
+
+    goToNextCourse(): void {
+        const state = this.navigationState();
+
+        if (!state?.hasNext) {
+            return;
+        }
+
+        const next = state.context.items[state.localIndex + 1];
+
+        if (next) {
+            void this.router.navigate(['/academic/courses', next.id]);
+        }
     }
 }

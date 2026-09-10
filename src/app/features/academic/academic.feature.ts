@@ -2,9 +2,11 @@ import { AppFeature } from '@/app/core/modules/app-feature.model';
 import { AcademicPermission } from './permissions/permission.model';
 import { academicDashboardWidgets } from './dashboard/dashboard.widgets';
 
+
+
 export const academicFeature: AppFeature = {
-    key: 'academic',
-    label: 'Academic',
+    key: 'Academique',
+    label: 'Academique',
     order: 15,
     route: {
         path: 'academic',
@@ -12,7 +14,7 @@ export const academicFeature: AppFeature = {
     },
     menu: [
         {
-            label: 'Academic',
+            label: 'Academique',
             order: 15,
             items: [
                 {
@@ -29,6 +31,14 @@ export const academicFeature: AppFeature = {
                     routerLink: ['/academic/faculties'],
                     permissions: [AcademicPermission.FacultyReadAll],
                     order: 10
+                },
+                {
+                    label: 'Unités d’enseignement',
+                    icon: 'pi pi-fw pi-th-large',
+                    routerLink: ['/academic/course-units'],
+                    permissions: [AcademicPermission.CourseUnitReadAll, AcademicPermission.FacultyReadOwn],
+                    mode: 'any',
+                    order: 15
                 },
                 {
                     label: 'Cours',

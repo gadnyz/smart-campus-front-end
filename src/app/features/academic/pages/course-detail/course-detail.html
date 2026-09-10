@@ -1,7 +1,7 @@
 <p-toast />
 <p-confirmdialog [style]="{ width: '450px' }" />
 
-<app-content-subtopbar kicker="Academic" [title]="title()" [actions]="actions()" />
+<app-content-subtopbar kicker="Cours" [title]="title()" [actions]="actions()" />
 
 <div class="card mb-4">
     <div class="font-semibold text-xl mb-3">Informations</div>
@@ -9,7 +9,16 @@
         <div><span class="text-color-secondary">Code</span><div>{{ course()?.code }}</div></div>
         <div><span class="text-color-secondary">Nom</span><div>{{ course()?.name }}</div></div>
         <div><span class="text-color-secondary">Crédits</span><div>{{ course()?.credits }}</div></div>
-        <div><span class="text-color-secondary">UE</span><div>{{ unit()?.code || course()?.course_unit_code || '—' }}</div></div>
+        <div>
+            <span class="text-color-secondary">UE</span>
+            <div>
+                @if (unit(); as unit) {
+                    {{ unit.code }} — {{ blocLabel(unit.knowledge_skills_bloc) }}
+                } @else {
+                    {{ course()?.course_unit_code || '—' }}
+                }
+            </div>
+        </div>
         <div class="md:col-span-2">
             <span class="text-color-secondary">Description</span>
             <div>{{ course()?.description }}</div>
@@ -79,6 +88,38 @@
             <button pButton type="button" label="Annuler" severity="secondary" outlined
                 (click)="dialogVisible.set(false)"></button>
             <button pButton type="submit" label="Assigner" icon="pi pi-save" [loading]="saving()"></button>
+        </div>
+    </form>
+</p-dialog>
+
+<p-dialog header="Modifier le cours" [visible]="courseDialogVisible()"
+    (visibleChange)="courseDialogVisible.set($event)" [modal]="true" [style]="{ width: '36rem' }">
+    <form [formGroup]="courseForm" class="flex flex-col gap-4" (ngSubmit)="submitCourse()">
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Unité d’enseignement</label>
+            <p-select formControlName="course_unit_id" [options]="unitOptions()" optionLabel="label" optionValue="value"
+                appendTo="body" class="w-full" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Code</label>
+            <input pInputText formControlName="code" class="w-full" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Nom</label>
+            <input pInputText formControlName="name" class="w-full" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Description</label>
+            <textarea pTextarea formControlName="description" rows="3" class="w-full"></textarea>
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Crédits</label>
+            <p-inputnumber formControlName="credits" [min]="1" [showButtons]="true" class="w-full" />
+        </div>
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined
+                (click)="courseDialogVisible.set(false)"></button>
+            <button pButton type="submit" label="Enregistrer" icon="pi pi-save" [loading]="savingCourse()"></button>
         </div>
     </form>
 </p-dialog>

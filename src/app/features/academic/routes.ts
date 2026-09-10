@@ -7,6 +7,8 @@ import { FacultyListPage } from './pages/faculty-list/faculty-list';
 import { FacultyDetailPage } from './pages/faculty-detail/faculty-detail';
 import { CourseListPage } from './pages/course-list/course-list';
 import { CourseDetailPage } from './pages/course-detail/course-detail';
+import { CourseUnitListPage } from './pages/course-unit-list/course-unit-list';
+import { CourseUnitDetailPage } from './pages/course-unit-detail/course-unit-detail';
 
 
 export default [
@@ -33,6 +35,24 @@ export default [
         canActivate: [permissionGuard],
         data: {
             permissions: [AcademicPermission.FacultyReadAll, AcademicPermission.FacultyReadOwn],
+            mode: 'any'
+        }
+    },
+    {
+        path: 'course-units',
+        component: CourseUnitListPage,
+        canActivate: [permissionGuard],
+        data: {
+            permissions: [AcademicPermission.CourseUnitReadAll, AcademicPermission.FacultyReadOwn],
+            mode: 'any'
+        }
+    },
+    {
+        path: 'course-units/:id',
+        component: CourseUnitDetailPage,
+        canActivate: [permissionGuard],
+        data: {
+            permissions: [AcademicPermission.CourseUnitReadAll, AcademicPermission.FacultyReadOwn],
             mode: 'any'
         }
     },
