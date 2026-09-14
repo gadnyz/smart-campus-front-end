@@ -13,15 +13,6 @@
         </div>
 
         <h1>Candidature enregistrée</h1>
-        <p class="success-subtitle">
-            @if (documentsUploadWarning()) {
-            Votre dossier a été créé. Les documents sélectionnés seront à joindre après connexion,
-            depuis <strong>Admission → Mon dossier</strong> (l’envoi automatique n’est pas possible
-            sans être authentifié).
-            } @else {
-            Votre dossier a été transmis avec succès aux services académiques.
-            }
-        </p>
 
         <div class="success-card">
             <h3 class="success-card-title"><i class="pi pi-user mr-2"></i>Récapitulatif du candidat</h3>
@@ -51,14 +42,12 @@
             <h4><i class="pi pi-info-circle mr-2"></i>Suivi de votre dossier</h4>
             <ul>
                 <li>Consultez votre boîte mail : vos identifiants de connexion vous y ont été envoyés.</li>
-                <li>Connectez-vous pour suivre l’évolution de votre dossier.</li>
-                <li>Complétez les éléments manquants (documents ou informations) depuis
-                    <strong>Admission → Mon dossier</strong>.</li>
+                <li>Connectez-vous pour poursuivre votre candidature.</li>
             </ul>
         </div>
 
-        <button pButton type="button" label="Inscrire un autre candidat" icon="pi pi-plus"
-            class="w-full sm:w-auto" (click)="startAnotherApplication()"></button>
+        <button pButton type="button" label="Nouvelle inscription" class="w-full sm:w-auto"
+            (click)="startAnotherApplication()"></button>
     </section>
 </div>
 } @else {
@@ -89,8 +78,6 @@
                     <p-step [value]="1">Identité</p-step>
                     <p-step [value]="2" [disabled]="!canContinueStep(1)">Choix &amp; Scolarité</p-step>
                     <p-step [value]="3" [disabled]="!canContinueStep(1) || !canContinueStep(2)">Contacts</p-step>
-                    <p-step [value]="4"
-                        [disabled]="!canContinueStep(1) || !canContinueStep(2) || !canContinueStep(3)">Documents</p-step>
                 </p-step-list>
 
                 <p-step-panels>
@@ -509,64 +496,9 @@
                             <div class="step-actions">
                                 <button pButton type="button" label="Retour" severity="secondary" [outlined]="true"
                                     (click)="previousStep()" class="w-full sm:w-auto"></button>
-                                <button pButton type="button" label="Étape suivante" icon="pi pi-arrow-right"
-                                    iconPos="right" [disabled]="!canContinueStep(3)" (click)="nextStep()"
-                                    class="w-full sm:w-auto"></button>
-                            </div>
-                        </ng-template>
-                    </p-step-panel>
 
-                    <p-step-panel [value]="4">
-                        <ng-template #content>
-                            <div class="step-content-body">
-                                <h3 class="step-section-title"><i class="pi pi-cloud-upload"></i> Pièces jointes
-                                    requises</h3>
-                                <div class="grid grid-cols-12 gap-6 mb-8">
-                                    @for (document of documentUploads(); track document.type) {
-                                    <div class="col-span-12 md:col-span-6">
-                                        <input type="file" [id]="'document_' + document.type" hidden
-                                            accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*"
-                                            (change)="onDocumentSelected($event, document.type)" />
-
-                                        <div class="document-upload-row" [class.has-file]="!!document.file"
-                                            [class.has-error]="!!documentFieldError(document.type)">
-                                            <label [for]="'document_' + document.type" class="document-upload-card">
-                                                <div class="upload-icon-container">
-                                                    <i class="pi"
-                                                        [ngClass]="document.file ? fileIcon(document.file) : 'pi-cloud-upload'"></i>
-                                                </div>
-                                                <div class="upload-text">
-                                                    <strong class="doc-label">
-                                                        {{ document.label }}
-                                                        @if (document.required) {
-                                                        <span class="required-mark">*</span>
-                                                        }
-                                                    </strong>
-                                                    <span class="file-name">{{ document.file?.name || 'Cliquez pour
-                                                        sélectionner un fichier' }}</span>
-                                                </div>
-                                            </label>
-                                            @if (document.file) {
-                                            <button pButton type="button" size="small" severity="danger"
-                                                icon="pi pi-trash" [text]="true" class="delete-file-btn"
-                                                [attr.aria-label]="'Retirer ' + document.label"
-                                                (click)="removeDocument(document.type)"></button>
-                                            }
-                                        </div>
-                                        @if (documentFieldError(document.type); as docError) {
-                                        <small class="field-error">{{ docError }}</small>
-                                        }
-                                    </div>
-                                    }
-                                </div>
-                            </div>
-
-                            <div class="step-actions">
-                                <button pButton type="button" label="Retour" severity="secondary" [outlined]="true"
-                                    (click)="previousStep()" class="w-full sm:w-auto"></button>
-                                <button pButton type="submit" label="Soumettre ma candidature" icon="pi pi-send"
-                                    [loading]="submitting()"
-                                    [disabled]="submitting() || form.invalid || !areRequiredDocumentsAttached()"
+                                <button pButton type="submit" label="Envoyer" icon="pi pi-send"
+                                    [loading]="submitting()" [disabled]="submitting() || form.invalid"
                                     class="w-full sm:w-auto"></button>
                             </div>
                         </ng-template>
