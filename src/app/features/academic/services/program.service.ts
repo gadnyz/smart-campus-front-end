@@ -24,4 +24,8 @@ export class ProgramService {
     delete(id: string): Observable<void> {
         return this.http.delete<void>(`${this.baseUrl}/${id}`);
     }
+
+    getAll(): Observable<Program[]> {
+        return this.http.get<Program[]>(this.baseUrl);
+    }
 }

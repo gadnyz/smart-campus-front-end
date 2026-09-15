@@ -80,14 +80,14 @@ export class CourseUnitListPage implements OnInit {
 
     readonly facultyOptions = computed(() =>
         this.faculties().map((faculty) => ({
-            label: `${faculty.code} — ${faculty.name}`,
+            label: `${faculty.name}`,
             value: faculty.id
         }))
     );
 
     readonly programOptions = computed(() =>
         this.programs().map((program) => ({
-            label: `${program.code} — ${program.name}`,
+            label: `${program.name}`,
             value: program.id
         }))
     );
@@ -109,6 +109,7 @@ export class CourseUnitListPage implements OnInit {
             label: 'Nouvelle UE',
             icon: 'pi pi-plus',
             severity: 'info',
+            outlined: false,
             command: () => this.openCreateDialog(),
             permissions: [AcademicPermission.CourseUnitCreateAll]
         }

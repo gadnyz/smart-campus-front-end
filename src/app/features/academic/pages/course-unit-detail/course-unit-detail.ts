@@ -19,6 +19,12 @@ import { CourseUnitService } from '../../services/course-unit.service';
 import { ConfirmationService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
+import { forkJoin, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+import { Program } from '../../models/program.model';
+import { FacultyService } from '../../services/faculty.service';
+import { ProgramService } from '../../services/program.service';
+
 @Component({
     selector: 'app-course-unit-detail',
     standalone: true,
@@ -45,14 +51,21 @@ export class CourseUnitDetailPage implements OnInit {
     private readonly messageService = inject(MessageService);
     private readonly fb = inject(FormBuilder);
 
+    private readonly programService = inject(ProgramService);
+    private readonly facultyService = inject(FacultyService);
+
+    readonly programLabel = signal('—');
+    readonly levelLabel = signal('—');
+    readonly permuteDialogVisible = signal(false);
+    readonly permutingCourse = signal<Course | null>(null);
+    readonly otherUnits = signal<CourseUnit[]>([]);
+
     readonly unit = signal<CourseUnit | null>(null);
     readonly facultyCourses = signal<Course[]>([]);
     readonly loading = signal(false);
     readonly assignDialogVisible = signal(false);
-    readonly moveDialogVisible = signal(false);
     readonly saving = signal(false);
     readonly movingCourse = signal<Course | null>(null);
-    readonly otherUnits = signal<CourseUnit[]>([]);
 
     private readonly confirmationService = inject(ConfirmationService);
 
@@ -96,7 +109,7 @@ export class CourseUnitDetailPage implements OnInit {
         this.attachedCourses().reduce((sum, course) => sum + (course.credits ?? 0), 0)
     );
 
-    readonly canAssign = computed(() =>
+    readonly canPermute = computed(() =>
         this.permissionService.hasAnyPermission([AcademicPermission.CourseUpdateAll])
     );
 
@@ -105,21 +118,9 @@ export class CourseUnitDetailPage implements OnInit {
         return unit ? unit.code : 'UE';
     });
 
-
-    readonly assignForm = this.fb.nonNullable.group({
-        course_id: [null as string | null, Validators.required]
-    });
-
-    readonly moveForm = this.fb.nonNullable.group({
+    readonly permuteForm = this.fb.nonNullable.group({
         course_unit_id: [null as string | null, Validators.required]
     });
-
-    readonly availableCourseOptions = computed(() =>
-        this.availableCourses().map((course) => ({
-            label: `${course.code} — ${course.name} (${course.credits} cr.)`,
-            value: course.id
-        }))
-    );
 
     readonly otherUnitOptions = computed(() =>
         this.otherUnits().map((unit) => ({
@@ -143,59 +144,108 @@ export class CourseUnitDetailPage implements OnInit {
         return UE_BLOC_OPTIONS.find((item) => item.value === bloc)?.label ?? bloc;
     }
 
-    openAssign(): void {
-        this.assignForm.reset({ course_id: null });
-        this.assignDialogVisible.set(true);
-    }
+   
 
-    submitAssign(): void {
-        const unit = this.unit();
-        const course = this.facultyCourses().find((item) => item.id === this.assignForm.controls.course_id.value);
+   
 
-        if (!unit || !course || this.assignForm.invalid) {
-            this.assignForm.markAllAsTouched();
-            return;
-        }
-
-        this.saving.set(true);
-        this.courseService.update(course.id, this.toRequest(course, unit.id)).subscribe({
-            next: () => {
-                this.saving.set(false);
-                this.assignDialogVisible.set(false);
+    
+    private loadUnit(id: string): void {
+        this.loading.set(true);
+        this.courseUnitService.getById(id).subscribe({
+            next: (unit) => {
+                this.unit.set(unit);
+                this.loading.set(false);
+                this.resolveProgramAndLevel(unit);
                 this.loadProgramLevelCourses(unit.program_level_id);
-                this.showSuccess(`Cours ${course.code} affecté.`);
             },
-            error: (error: HttpErrorResponse) => {
-                this.saving.set(false);
-                this.showError(error.error?.detail ?? 'Impossible d’affecter ce cours.');
+            error: () => {
+                this.loading.set(false);
+                void this.router.navigate(['/notfound']);
             }
         });
     }
 
-    openMove(course: Course): void {
+    private resolveProgramAndLevel(unit: CourseUnit): void {
+        if (unit.program_code || unit.level_code) {
+            this.programLabel.set(
+                unit.program_name ? `${unit.program_name}` : (unit.program_code ?? '—')
+            );
+            this.levelLabel.set(
+                unit.level_name ? ` ${unit.level_name}` : (unit.level_code ?? '—')
+            );
+
+            if (unit.program_code && unit.level_code) {
+                return;
+            }
+        }
+
+        const apply = (programs: Program[]): void => {
+            for (const program of programs) {
+                const item = program.levels?.find((level) => level.id === unit.program_level_id);
+
+                if (item) {
+                    this.programLabel.set(`${program.name}`);
+                    this.levelLabel.set(
+                        item.is_common
+                            ? `${item.level.name} (commun)`
+                            : `${item.level.name}`
+                    );
+                    return;
+                }
+            }
+        };
+
+        if (unit.faculty_id) {
+            this.programService.getByFaculty(unit.faculty_id).subscribe({
+                next: apply,
+                error: () => undefined
+            });
+            return;
+        }
+
+        this.facultyService
+            .getAll()
+            .pipe(
+                switchMap((faculties) =>
+                    faculties.length
+                        ? forkJoin(faculties.map((faculty) => this.programService.getByFaculty(faculty.id)))
+                        : of([] as Program[][])
+                ),
+                map((groups) => groups.flat())
+            )
+            .subscribe({
+                next: apply,
+                error: () => undefined
+            });
+    }
+
+    openPermute(course: Course): void {
         const unit = this.unit();
 
         if (!unit) {
             return;
         }
 
-        this.movingCourse.set(course);
-        this.moveForm.reset({ course_unit_id: null });
+        this.permutingCourse.set(course);
+        this.permuteForm.reset({ course_unit_id: null });
         this.courseUnitService.getByProgramLevel(unit.program_level_id).subscribe({
             next: (units) => {
                 this.otherUnits.set(units.filter((item) => item.id !== unit.id));
-                this.moveDialogVisible.set(true);
-            }
+                this.permuteDialogVisible.set(true);
+            },
+            error: (error: HttpErrorResponse) =>
+                this.showError(error.error?.detail ?? 'Impossible de charger les UE du niveau.')
         });
     }
 
-    submitMove(): void {
-        const course = this.movingCourse();
-        const targetId = this.moveForm.controls.course_unit_id.value;
+    submitPermute(): void {
+        const course = this.permutingCourse();
+        const targetId = this.permuteForm.controls.course_unit_id.value;
         const unit = this.unit();
+        const target = this.otherUnits().find((item) => item.id === targetId);
 
-        if (!course || !targetId || !unit) {
-            this.moveForm.markAllAsTouched();
+        if (!course || !targetId || !unit || !target) {
+            this.permuteForm.markAllAsTouched();
             return;
         }
 
@@ -203,29 +253,14 @@ export class CourseUnitDetailPage implements OnInit {
         this.courseService.update(course.id, this.toRequest(course, targetId)).subscribe({
             next: () => {
                 this.saving.set(false);
-                this.moveDialogVisible.set(false);
-                this.movingCourse.set(null);
+                this.permuteDialogVisible.set(false);
+                this.permutingCourse.set(null);
                 this.loadProgramLevelCourses(unit.program_level_id);
-                this.showSuccess(`Cours ${course.code} retiré de cette UE.`);
+                this.showSuccess(`Cours ${course.code} permuté vers ${target.code}.`);
             },
             error: (error: HttpErrorResponse) => {
                 this.saving.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de retirer ce cours.');
-            }
-        });
-    }
-
-    private loadUnit(id: string): void {
-        this.loading.set(true);
-        this.courseUnitService.getById(id).subscribe({
-            next: (unit) => {
-                this.unit.set(unit);
-                this.loading.set(false);
-                this.loadProgramLevelCourses(unit.program_level_id);
-            },
-            error: () => {
-                this.loading.set(false);
-                void this.router.navigate(['/notfound']);
+                this.showError(error.error?.detail ?? 'Impossible de permuter ce cours.');
             }
         });
     }
