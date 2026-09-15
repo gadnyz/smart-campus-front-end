@@ -10,6 +10,8 @@ export interface PermissionCheck {
 export interface PermissionRouteData {
     permissions?: readonly PermissionValue[];
     mode?: PermissionMode;
+    hiddenWhenPermissions?: readonly PermissionValue[];
+    hiddenWhenMode?: PermissionMode;
 }
 
 export interface PermissionAwareItem {

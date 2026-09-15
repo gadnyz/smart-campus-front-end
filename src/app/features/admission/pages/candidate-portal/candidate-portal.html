@@ -12,8 +12,7 @@
     <div class="portal-empty">
         <h2>Espace étudiant</h2>
         <p>
-            Votre admission a été validée. L’espace étudiant n’est pas encore disponible.
-            Le formulaire d’admission n’est plus modifiable.
+           L’espace étudiant n’est pas encore disponible..
         </p>
     </div>
 </div>
@@ -33,26 +32,11 @@
     <div class="portal-header card">
         <div class="portal-header__status">
             <p-tag [value]="statusLabel()" [severity]="statusSeverity()" />
-            <p class="portal-hint">{{ statusHint() }}</p>
         </div>
 
         <div class="portal-meta">
             <span>Dernière modification : <strong>{{ lastUpdatedLabel() }}</strong></span>
-            @if (c.candidature.submitted_at) {
-            <span>Soumise le :
-                <strong>{{ c.candidature.submitted_at | date: 'dd/MM/yyyy HH:mm' }}</strong>
-            </span>
-            }
-            @if (academicLabels().academicYearLabel) {
-            <span>Année : <strong>{{ academicLabels().academicYearLabel }}</strong></span>
-            }
         </div>
-
-        @if (canEdit() && missingDocumentTypes().length) {
-        <p class="portal-missing">
-            Documents manquants : {{ missingDocumentsLabel() }}.
-        </p>
-        }
     </div>
 
     <form [formGroup]="form" class="portal-form card">
@@ -248,14 +232,11 @@
                 <strong>{{ documentLabel(doc.document_type) }}</strong>
                 <span>{{ doc.uploaded_at | date: 'dd/MM/yyyy HH:mm' }}</span>
             </li>
-            } @empty {
-            <li class="portal-docs__empty">Aucun document joint pour le moment.</li>
-            }
+            } 
         </ul>
 
         @if (canManageDocuments()) {
         <div class="portal-docs__upload">
-            <p class="portal-hint">Ajoutez les pièces manquantes pour finaliser votre dossier.</p>
             @for (doc of pendingDocs(); track doc.type) {
             <div class="portal-docs__row">
                 <label [for]="'portal_doc_' + doc.type">{{ doc.label }}</label>

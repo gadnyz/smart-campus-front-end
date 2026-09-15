@@ -124,22 +124,6 @@ export class CandidatePortal implements OnInit {
         return s ? candidateStatusSeverity(s) : 'secondary';
     });
 
-    readonly statusHint = computed(() => {
-        switch (this.status()) {
-            case 'DRAFT':
-                return 'Brouillon — des documents ou informations peuvent encore manquer. Vous pouvez modifier votre dossier.';
-            case 'PENDING':
-                return 'En attente — votre dossier est en cours d’examen. Modification impossible.';
-            case 'VALIDATED':
-                return 'Validée — votre dossier est accepté. Modification impossible.';
-            case 'REJECTED':
-                return 'Rejetée — votre dossier n’a pas été retenu. Modification impossible.';
-            case 'CANCELLED':
-                return 'Annulée — modification impossible.';
-            default:
-                return '';
-        }
-    });
 
     readonly lastUpdatedLabel = computed(() =>
         formatCandidateDateTime(this.candidate()?.updated_at)
@@ -274,9 +258,32 @@ export class CandidatePortal implements OnInit {
     load(): void {
         this.loading.set(true);
         this.notFound.set(false);
+        this.studentPlaceholder.set(false);
 
-        this.candidateService.getMine(true).subscribe({
+        if (this.permissionService.hasPermission(AcademicPermission.StudentReadOwn)) {
+            this.loading.set(false);
+            this.studentPlaceholder.set(true);
+            this.candidate.set(null);
+            return;
+        }
+
+        const userId = this.authService.getCurrentUser()?.id;
+
+        if (!userId) {
+            this.loading.set(false);
+            this.notFound.set(true);
+            return;
+        }
+
+        this.candidateService.getByUserId(userId, true).subscribe({
             next: (c) => {
+                if (c.candidature.status === 'VALIDATED') {
+                    this.studentPlaceholder.set(true);
+                    this.candidate.set(c);
+                    this.loading.set(false);
+                    return;
+                }
+
                 this.candidate.set(c);
                 this.patchFromCandidate(c);
                 this.form.disable();
@@ -285,19 +292,23 @@ export class CandidatePortal implements OnInit {
                 this.loadAcademicOptions(c.faculty_id, c.program_id);
                 this.loading.set(false);
             },
-            error: (error: HttpErrorResponse) => {
+            error: (error: unknown) => {
                 this.loading.set(false);
                 this.candidate.set(null);
 
-                if (error.status === 404 || error.status === 400) {
+                const httpError = error instanceof HttpErrorResponse ? error : null;
+                const status = httpError?.status ?? 0;
+
+                if (status === 404 || status === 400) {
                     this.notFound.set(true);
                     return;
                 }
 
+                this.notFound.set(true);
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Erreur',
-                    detail: error.error?.detail ?? 'Impossible de charger votre dossier.'
+                    detail: httpError?.error?.detail ?? 'Impossible de charger votre dossier.'
                 });
             }
         });

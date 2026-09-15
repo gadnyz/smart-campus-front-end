@@ -14,7 +14,14 @@ export const permissionGuard: CanActivateFn = (route) => {
         mode: data.mode
     });
 
-    if (canAccess) {
+    const hiddenByPermission =
+        !!data.hiddenWhenPermissions?.length &&
+        permissionService.canAccess({
+            permissions: data.hiddenWhenPermissions,
+            mode: data.hiddenWhenMode
+        });
+
+    if (canAccess && !hiddenByPermission) {
         return true;
     }
 

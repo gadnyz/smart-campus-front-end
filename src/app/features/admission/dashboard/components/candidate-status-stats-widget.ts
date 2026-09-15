@@ -11,10 +11,8 @@ import {
     DashboardStatCard
 } from '@/app/shared/ui/dashboard/dashboard-stat-card/dashboard-stat-card';
 
-import { CandidatureStatus } from '../../models/candidate.model';
 import { AdmissionPermission } from '../../permissions/permission.model';
 import { CandidateService } from '../../services/candidate.service';
-import { formatCandidatureStatus } from '../../utils/candidate-format';
 
 @Component({
     selector: 'app-candidate-status-stats-widget',
