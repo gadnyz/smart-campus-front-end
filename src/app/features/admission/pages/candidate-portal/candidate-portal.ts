@@ -276,8 +276,6 @@ export class CandidatePortal implements OnInit {
                 this.loading.set(false);
                 this.candidate.set(null);
 
-                // GET /me n'existe pas encore : l'API peut renvoyer 400 (id "me" invalide)
-                // plutôt que 404. Dans les deux cas, afficher l'état vide métier.
                 if (error.status === 404 || error.status === 400) {
                     this.notFound.set(true);
                     return;
