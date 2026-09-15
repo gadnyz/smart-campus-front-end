@@ -82,14 +82,14 @@ export class CourseListPage implements OnInit {
 
     readonly facultyOptions = computed(() =>
         this.faculties().map((faculty) => ({
-            label: `${faculty.code} — ${faculty.name}`,
+            label: `${faculty.name}`,
             value: faculty.id
         }))
     );
 
     readonly programOptions = computed(() =>
         this.programs().map((program) => ({
-            label: `${program.code} — ${program.name}`,
+            label: `${program.name}`,
             value: program.id
         }))
     );
@@ -344,7 +344,7 @@ export class CourseListPage implements OnInit {
             totalPages: 1,
             items: sorted.map((course) => ({
                 id: course.id,
-                label: `${course.code} — ${course.name}`
+                label: `${course.name}`
             })),
             filters: { programLevelId }
         });
