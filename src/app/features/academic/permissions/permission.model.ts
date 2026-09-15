@@ -54,7 +54,8 @@ export const AcademicPermission = {
     CourseAssignmentUpdateAll: 'academic:course-assignment:update:all',
 
     StudentReadAll: 'academic:student:read:all',
-    StudentUpdateAll: 'academic:student:update:all'
+    StudentUpdateAll: 'academic:student:update:all',
+    StudentReadOwn: 'academic:student:read:own', // placeholder — module étudiant pas encore branché
 } as const;
 
 export type AcademicPermission = (typeof AcademicPermission)[keyof typeof AcademicPermission];

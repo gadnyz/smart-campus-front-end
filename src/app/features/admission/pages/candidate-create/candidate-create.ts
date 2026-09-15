@@ -86,26 +86,15 @@ export class CandidateCreate implements OnInit {
     private readonly messageService = inject(MessageService);
     private readonly candidateService = inject(CandidateService);
     private readonly academicReferenceService = inject(AdmissionAcademicReferenceService);
-    private readonly authService = inject(AuthService);
     private readonly coreSettingsStore = inject(CoreSettingsStore);
     private readonly admissionSettingsStore = inject(AdmissionSettingsStore);
 
-    private readonly MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
-    private readonly ALLOWED_MIME_TYPES = new Set([
-        'application/pdf',
-        'image/jpeg',
-        'image/png',
-        'image/webp'
-    ]);
-    private readonly ALLOWED_EXTENSIONS = new Set(['.pdf', '.jpg', '.jpeg', '.png', '.webp']);
+ 
 
-    readonly documentUploads = signal<CandidateDocumentDraft[]>(this.initialDocumentUploads());
-    readonly documentFieldErrors = signal<Partial<Record<CandidateDocumentType, string>>>({});
     readonly submitting = signal(false);
     readonly loadingFaculties = signal(false);
     readonly loadingPrograms = signal(false);
     readonly validationErrors = signal<Record<string, string>>({});
-    readonly documentsUploadWarning = signal(false);
 
     readonly faculties = signal<SelectOption[]>([]);
     readonly programs = signal<ProgramOption[]>([]);
@@ -250,29 +239,9 @@ export class CandidateCreate implements OnInit {
         return this.validationErrors()[field] ?? '';
     }
 
-    documentFieldError(type: CandidateDocumentType): string {
-        return this.documentFieldErrors()[type] ?? '';
-    }
-
-    fileIcon(file: File): string {
-        const extension = this.fileExtension(file.name).toLowerCase();
-
-        if (extension === '.pdf' || file.type === 'application/pdf') {
-            return 'pi-file-pdf';
-        }
-
-        return 'pi-image';
-    }
-
-    areRequiredDocumentsAttached(): boolean {
-        return this.documentUploads()
-            .filter((document) => document.required)
-            .every((document) => !!document.file);
-    }
 
     submit(): void {
         this.validationErrors.set({});
-        this.documentsUploadWarning.set(false);
 
         if (this.form.invalid) {
             this.form.markAllAsTouched();
@@ -280,96 +249,51 @@ export class CandidateCreate implements OnInit {
             return;
         }
 
-        if (!this.areRequiredDocumentsAttached()) {
-            this.markMissingDocumentErrors();
-            this.showWarning('Veuillez joindre tous les documents obligatoires.');
-            return;
-        }
-
         this.submitting.set(true);
 
-        this.candidateService.submit(this.buildPayload(), { publicRequest: this.publicMode() }).pipe(
-            switchMap((candidate) => {
-                const hasFiles = this.documentUploads().some((d) => !!d.file);
-                const hasToken = !!this.authService.getAccessToken();
+        this.candidateService
+            .submit(this.buildPayload(), { publicRequest: this.publicMode() })
+            .subscribe({
+                next: (candidate) => {
+                    this.submitting.set(false);
+                    this.submittedCandidate.set(candidate);
+                },
+                error: (error: HttpErrorResponse) => {
+                    this.submitting.set(false);
 
-                // Dépôt public sans session : l'API refuse upload-url → reporter vers Mon dossier
-                if (this.publicMode() && !hasToken) {
-                    if (hasFiles) {
-                        console.warn('[apply] documents deferred: no session token; upload-url requires auth', {
-                            candidateId: candidate.id,
-                            types: this.documentUploads()
-                                .filter((d) => !!d.file)
-                                .map((d) => d.type)
-                        });
+                    if (error.status === 400 && error.error?.invalid_fields) {
+                        this.validationErrors.set(error.error.invalid_fields);
+                        this.showError(this.toPublicErrorMessage(error));
+                        return;
                     }
 
-                    return of({
-                        candidate,
-                        uploadFailures: false,
-                        documentsDeferred: hasFiles
-                    });
-                }
+                    if (error.status === 401) {
+                        this.showError(
+                            this.publicMode()
+                                ? 'La soumission n’a pas pu aboutir. Veuillez réessayer dans quelques instants.'
+                                : 'Session expirée ou non authentifiée.'
+                        );
+                        return;
+                    }
 
-                return this.uploadSelectedDocuments(candidate.id).pipe(
-                    map((results) => ({
-                        candidate,
-                        uploadFailures: results.some((result) => result === null),
-                        documentsDeferred: false
-                    }))
-                );
-            })
-        ).subscribe({
-            next: ({ candidate, uploadFailures, documentsDeferred }) => {
-                this.submitting.set(false);
-                this.submittedCandidate.set(candidate);
+                    if (error.status === 403) {
+                        this.showError('Vous n’êtes pas autorisé à déposer une candidature.');
+                        return;
+                    }
 
-                if (uploadFailures || documentsDeferred) {
-                    this.documentsUploadWarning.set(true);
-                    this.showWarning(
-                        documentsDeferred
-                            ? 'Candidature enregistrée. Connectez-vous puis joignez vos documents depuis Mon dossier.'
-                            : 'Votre candidature a été enregistrée, mais certains documents n’ont pas pu être joints. Complétez-les depuis Mon dossier.',
-                        8000
-                    );
-                }
-            },
-            error: (error: HttpErrorResponse) => {
-                this.submitting.set(false);
+                    if (error.status === 404) {
+                        this.showError(error.error?.detail ?? 'Une référence académique est introuvable.');
+                        return;
+                    }
 
-                if (error.status === 400 && error.error?.invalid_fields) {
-                    this.validationErrors.set(error.error.invalid_fields);
+                    if (error.status === 409) {
+                        this.showError(this.toPublicConflictMessage(error));
+                        return;
+                    }
+
                     this.showError(this.toPublicErrorMessage(error));
-                    return;
                 }
-
-                if (error.status === 401) {
-                    this.showError(
-                        this.publicMode()
-                            ? 'La soumission n’a pas pu aboutir. Veuillez réessayer dans quelques instants.'
-                            : 'Session expirée ou non authentifiée.'
-                    );
-                    return;
-                }
-
-                if (error.status === 403) {
-                    this.showError('Vous n’êtes pas autorisé à déposer une candidature.');
-                    return;
-                }
-
-                if (error.status === 404) {
-                    this.showError(error.error?.detail ?? 'Une référence académique est introuvable.');
-                    return;
-                }
-
-                if (error.status === 409) {
-                    this.showError(this.toPublicConflictMessage(error));
-                    return;
-                }
-
-                this.showError(this.toPublicErrorMessage(error));
-            }
-        });
+            });
     }
 
     private loadFaculties(): void {
@@ -417,11 +341,6 @@ export class CandidateCreate implements OnInit {
         if (step === 2) {
             return this.isStepValid(2) && !this.loadingPrograms() && !this.programMessage() && !this.levelMessage();
         }
-
-        if (step === 4) {
-            return this.areRequiredDocumentsAttached();
-        }
-
         return this.isStepValid(step);
     }
 
@@ -622,24 +541,17 @@ export class CandidateCreate implements OnInit {
         3: [
             'tutor_full_name', 'tutor_phone', 'tutor_email',
             'emergency_full_name', 'emergency_phone', 'emergency_email'
-        ],
-        4: []
+        ]
     };
 
     isStepValid(step: number): boolean {
-        if (step === 4) {
-            return this.areRequiredDocumentsAttached();
-        }
-
         return (this.stepFields[step] ?? []).every((field) => this.form.get(field)?.valid);
     }
-
     nextStep(): void {
         if (!this.validateStep(this.activeStep())) {
             return;
         }
-
-        this.activeStep.update((step) => Math.min(step + 1, 4));
+        this.activeStep.update((step) => Math.min(step + 1, 3));
     }
 
     previousStep(): void {
@@ -648,28 +560,17 @@ export class CandidateCreate implements OnInit {
 
     private validateStep(step: number): boolean {
         const fields = this.stepFields[step] ?? [];
-
         fields.forEach((field) => this.form.get(field)?.markAsTouched());
-
-        if (step === 4 && !this.areRequiredDocumentsAttached()) {
-            this.markMissingDocumentErrors();
-            this.showWarning('Veuillez joindre tous les documents obligatoires.');
-            return false;
-        }
-
         if (!this.isStepValid(step)) {
             this.showWarning('Veuillez compléter correctement cette étape.');
             return false;
         }
-
         return true;
     }
 
     startAnotherApplication(): void {
         this.submittedCandidate.set(null);
-        this.documentsUploadWarning.set(false);
         this.validationErrors.set({});
-        this.documentFieldErrors.set({});
         this.programMessage.set('');
         this.levelMessage.set('');
         this.programs.set([]);
@@ -716,170 +617,6 @@ export class CandidateCreate implements OnInit {
 
         this.form.controls.program_id.disable();
         this.form.controls.level_id.disable();
-        this.documentUploads.set(this.initialDocumentUploads());
-    }
-
-    onDocumentSelected(event: Event, type: CandidateDocumentType): void {
-        const input = event.target as HTMLInputElement;
-        const file = input.files?.[0] ?? null;
-
-        input.value = '';
-
-        if (!file) {
-            return;
-        }
-
-        const rejection = this.validateDocumentFile(file);
-
-        if (rejection) {
-            this.showWarning(rejection);
-            return;
-        }
-
-        this.documentUploads.update((documents) =>
-            documents.map((document) => (document.type === type ? { ...document, file } : document))
-        );
-
-        this.documentFieldErrors.update((errors) => {
-            const next = { ...errors };
-            delete next[type];
-            return next;
-        });
-    }
-
-    removeDocument(type: CandidateDocumentType): void {
-        this.documentUploads.update((documents) =>
-            documents.map((document) => (document.type === type ? { ...document, file: null } : document))
-        );
-
-        this.documentFieldErrors.update((errors) => {
-            const next = { ...errors };
-            delete next[type];
-            return next;
-        });
-    }
-
-    private initialDocumentUploads(): CandidateDocumentDraft[] {
-        return [
-            { type: 'ID_CARD', label: 'Pièce d’identité', required: false, file: null },
-            { type: 'DIPLOMA', label: 'Diplôme', required: false, file: null },
-            { type: 'TRANSCRIPT', label: 'Bulletins / Relevés de notes ', required: false, file: null },
-            { type: 'PAYMENT_SLIP', label: 'Preuve de paiement', required: false, file: null }
-        ];
-    }
-
-    private uploadSelectedDocuments(candidateId: string) {
-        const documents = this.documentUploads().filter((document) => document.file);
-
-        if (!documents.length) {
-            return of([] as (ConfirmDocumentResponse | null)[]);
-        }
-
-        return forkJoin(
-            documents.map((document) => {
-                const file = document.file as File;
-                const extension = this.fileExtension(file.name);
-
-                return this.uploadDocumentWithUrlRefresh(
-                    candidateId,
-                    document.type,
-                    file,
-                    extension
-                ).pipe(
-                    catchError((error: unknown) => {
-                        const status = error instanceof HttpErrorResponse ? error.status : 0;
-                        console.warn('[apply] document upload failed (outer)', {
-                            type: document.type,
-                            status,
-                            error
-                        });
-                        return of(null);
-                    })
-                );
-            })
-        );
-    }
-
-    /** Upload authentifié : ne jamais forcer publicRequest (sinon 401 sur upload-url). */
-    private uploadDocumentWithUrlRefresh(
-        candidateId: string,
-        type: CandidateDocumentType,
-        file: File,
-        extension: string
-    ): Observable<ConfirmDocumentResponse | null> {
-        const runOnce = (): Observable<ConfirmDocumentResponse> =>
-            this.candidateService.requestDocumentUploadUrl(candidateId, type, extension).pipe(
-                switchMap((upload) =>
-                    this.candidateService.uploadDocument(upload.upload_url, file).pipe(
-                        switchMap(() =>
-                            this.candidateService.confirmDocumentUpload(candidateId, {
-                                object_path: upload.object_path,
-                                type
-                            })
-                        )
-                    )
-                )
-            );
-
-        return runOnce().pipe(
-            catchError((error: unknown) => {
-                const status = error instanceof HttpErrorResponse ? error.status : 0;
-
-                // Retry seulement si l’URL S3 / réseau a lâchement échoué (pas un vrai 401 auth API).
-                const maybeExpiredUrl = status === 0;
-
-                console.warn('[apply] document upload failed', { type, status, error });
-
-                if (!maybeExpiredUrl) {
-                    return of(null);
-                }
-
-                return runOnce().pipe(
-                    catchError((retryError: unknown) => {
-                        const retryStatus =
-                            retryError instanceof HttpErrorResponse ? retryError.status : 0;
-                        console.warn('[apply] document upload failed', {
-                            type,
-                            status: retryStatus,
-                            error: retryError
-                        });
-                        return of(null);
-                    })
-                );
-            })
-        );
-    }
-
-    private validateDocumentFile(file: File): string | null {
-        if (file.size > this.MAX_FILE_SIZE_BYTES) {
-            return 'Le fichier ne doit pas dépasser 5 Mo.';
-        }
-
-        const extension = this.fileExtension(file.name).toLowerCase();
-        const mimeAllowed = this.ALLOWED_MIME_TYPES.has(file.type);
-        const extensionAllowed = this.ALLOWED_EXTENSIONS.has(extension);
-
-        if (!mimeAllowed && !extensionAllowed) {
-            return 'Format non accepté. Utilisez PDF, JPEG, PNG ou WebP.';
-        }
-
-        return null;
-    }
-
-    private markMissingDocumentErrors(): void {
-        const errors: Partial<Record<CandidateDocumentType, string>> = {};
-
-        for (const document of this.documentUploads()) {
-            if (document.required && !document.file) {
-                errors[document.type] = 'Ce document est obligatoire.';
-            }
-        }
-
-        this.documentFieldErrors.set(errors);
-    }
-
-    private fileExtension(fileName: string): string {
-        return fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')) : '';
     }
 
     private formatDate(date: unknown): string {

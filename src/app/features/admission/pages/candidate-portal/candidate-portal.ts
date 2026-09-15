@@ -24,6 +24,11 @@ import {
     MaritalStatus,
     UpdateOwnCandidatureRequest
 } from '../../models/candidate.model';
+
+import { AuthService } from '@/app/core/auth/services/auth.service';
+import { PermissionService } from '@/app/core/permissions/permission.service';
+import { AcademicPermission } from '@/app/features/academic/permissions/permission.model';
+
 import { AdmissionAcademicReferenceService, SelectOption } from '../../services/admission-academic-reference.service';
 import { CandidateService } from '../../services/candidate.service';
 import {
@@ -45,7 +50,6 @@ type DocDraft = {
     imports: [
         CommonModule,
         ReactiveFormsModule,
-        RouterLink,
         ButtonModule,
         DatePicker,
         InputTextModule,
@@ -65,6 +69,15 @@ export class CandidatePortal implements OnInit {
     private readonly candidateService = inject(CandidateService);
     private readonly academicRefs = inject(AdmissionAcademicReferenceService);
     private readonly messageService = inject(MessageService);
+
+    private readonly authService = inject(AuthService);
+    private readonly permissionService = inject(PermissionService);
+
+    readonly studentPlaceholder = signal(false);
+
+    readonly canManageDocuments = computed(
+        () => this.canEdit() && this.status() !== 'PENDING'
+    );
 
     readonly loading = signal(true);
     readonly saving = signal(false);
@@ -194,12 +207,12 @@ export class CandidatePortal implements OnInit {
     ];
 
     private optionalEmailValidator() {
-    return (control: AbstractControl) => {
-        const value = String(control.value ?? '').trim();
-        if (!value) return null;
-        return Validators.email(control);
-    };
-}
+        return (control: AbstractControl) => {
+            const value = String(control.value ?? '').trim();
+            if (!value) return null;
+            return Validators.email(control);
+        };
+    }
 
     readonly form = this.fb.nonNullable.group({
         faculty_id: ['', Validators.required],

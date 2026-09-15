@@ -7,9 +7,8 @@
             <img [src]="brand().logos.large" [alt]="brand().appName" class="apply-logo" />
         </header>
 
-        <div class="success-icon" [class.success-icon--warn]="documentsUploadWarning()">
-            <i class="pi" [class.pi-check]="!documentsUploadWarning()"
-                [class.pi-exclamation-triangle]="documentsUploadWarning()"></i>
+        <div class="success-icon">
+            <i class="pi pi-check"></i>
         </div>
 
         <h1>Candidature enregistrée</h1>
@@ -497,9 +496,8 @@
                                 <button pButton type="button" label="Retour" severity="secondary" [outlined]="true"
                                     (click)="previousStep()" class="w-full sm:w-auto"></button>
 
-                                <button pButton type="submit" label="Envoyer" icon="pi pi-send"
-                                    [loading]="submitting()" [disabled]="submitting() || form.invalid"
-                                    class="w-full sm:w-auto"></button>
+                                <button pButton type="submit" label="Envoyer" icon="pi pi-send" [loading]="submitting()"
+                                    [disabled]="submitting() || form.invalid" class="w-full sm:w-auto"></button>
                             </div>
                         </ng-template>
                     </p-step-panel>

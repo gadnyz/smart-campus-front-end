@@ -374,21 +374,44 @@ export class CandidateService {
         };
     }
 
-    getMine(force = false): Observable<CandidateResponse> {
-        const cached = this.detailCache.get('me');
+    getByUserId(
+        userId: string,
+        force = false
+    ): Observable<CandidateResponse> {
+        const cacheKey = `user:${userId}`;
+        const cached = this.detailCache.get(cacheKey);
 
         if (cached && !force) {
             return of(cached);
         }
 
-        return this.http.get<CandidateResponseApi>(`${this.baseUrl}/me`).pipe(
-            map((c) => this.normalizeCandidate(c)),
-            tap((c) => {
-                this.detailCache.set(c.id, c);
-                this.detailCache.set('me', c);
-            })
-        );
+        return this.http
+            .get<CandidateResponseApi>(`${this.baseUrl}/users/${userId}`)
+            .pipe(
+                map((c) => this.normalizeCandidate(c)),
+                tap((c) => {
+                    this.detailCache.set(c.id, c);
+                    this.detailCache.set(cacheKey, c);
+                    this.detailCache.set('me', c);
+                })
+            );
     }
+
+    getMine(force = false): Observable<CandidateResponse> {
+        const userId = this.authService.getCurrentUser()?.id;
+
+        if (!userId) {
+            return throwError(() => new Error('Utilisateur non authentifié.'));
+        }
+
+        return this.getByUserId(userId, force);
+    }
+
+    /** Helper métier UI — DRAFT seul éditable. PENDING+ = lecture seule. */
+    canEditOwn(status: CandidatureStatus | null | undefined): boolean {
+        return status === 'DRAFT';
+    }
+
     // lire / mettre à jour « mon » dossier
     updateMine(payload: UpdateOwnCandidatureRequest): Observable<CandidateResponse> {
         return this.http
@@ -402,10 +425,6 @@ export class CandidateService {
             );
     }
 
-    /** Helper métier UI */
-    canEditOwn(status: CandidatureStatus | null | undefined): boolean {
-        return status === 'DRAFT';
-    }
 
     uploadDocuments(
         candidateId: string,

@@ -5,6 +5,18 @@
     <p-skeleton height="3rem" styleClass="mb-3" />
     <p-skeleton height="14rem" />
 </div>
+
+} @else if (studentPlaceholder()) {
+<div class="portal-shell">
+    <app-content-subtopbar kicker="Admission" title="Mon dossier" [actions]="[]" />
+    <div class="portal-empty">
+        <h2>Espace étudiant</h2>
+        <p>
+            Votre admission a été validée. L’espace étudiant n’est pas encore disponible.
+            Le formulaire d’admission n’est plus modifiable.
+        </p>
+    </div>
+</div>
 } @else if (notFound()) {
 <div class="portal-shell">
     <app-content-subtopbar kicker="Admission" title="Mon dossier" [actions]="[]" />
@@ -241,7 +253,7 @@
             }
         </ul>
 
-        @if (canEdit()) {
+        @if (canManageDocuments()) {
         <div class="portal-docs__upload">
             <p class="portal-hint">Ajoutez les pièces manquantes pour finaliser votre dossier.</p>
             @for (doc of pendingDocs(); track doc.type) {
