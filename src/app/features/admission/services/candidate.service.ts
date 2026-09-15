@@ -4,7 +4,9 @@ import {
     HttpParams
 } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map, of, switchMap, tap } from 'rxjs';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { Observable, forkJoin, of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { PUBLIC_API_REQUEST } from '@/app/core/auth/interceptors/public-api.context';
 import { environment } from '@/environments/environment';
@@ -22,8 +24,10 @@ import {
     DocumentUploadUrlResponse,
     PagedResponse,
     RejectCandidatureRequest,
-    SubmitCandidatureRequest
+    SubmitCandidatureRequest,
+    UpdateOwnCandidatureRequest
 } from '../models/candidate.model';
+import { AuthService } from '@/app/core/auth/services/auth.service';
 
 type CandidateDocumentApi = Omit<CandidateDocument, 'document_type'> & {
     document_type?: CandidateDocumentType;
@@ -60,6 +64,8 @@ export class CandidateService {
 
     private readonly detailCache =
         new Map<string, CandidateResponse>();
+
+    private readonly authService = inject(AuthService);
 
     getAll(
         query: CandidateQuery = {}
@@ -306,7 +312,7 @@ export class CandidateService {
             submitted_at:
                 candidate.submitted_at ??
                 candidate.candidature?.submitted_at ??
-                candidate.created_at
+                ''
         };
     }
 
@@ -366,6 +372,113 @@ export class CandidateService {
             ...document,
             document_type: documentType
         };
+    }
+
+    getByUserId(
+        userId: string,
+        force = false
+    ): Observable<CandidateResponse> {
+        const cacheKey = `user:${userId}`;
+        const cached = this.detailCache.get(cacheKey);
+
+        if (cached && !force) {
+            return of(cached);
+        }
+
+        return this.http
+            .get<CandidateResponseApi>(`${this.baseUrl}/users/${userId}`)
+            .pipe(
+                map((c) => this.normalizeCandidate(c)),
+                tap((c) => {
+                    this.detailCache.set(c.id, c);
+                    this.detailCache.set(cacheKey, c);
+                    this.detailCache.set('me', c);
+                })
+            );
+    }
+
+    getMine(force = false): Observable<CandidateResponse> {
+        const userId = this.authService.getCurrentUser()?.id;
+
+        if (!userId) {
+            return throwError(() => new Error('Utilisateur non authentifié.'));
+        }
+
+        return this.getByUserId(userId, force);
+    }
+
+    /** Éditable tant que le dossier n’est ni validé ni rejeté. */
+    canEditOwn(status: CandidatureStatus | null | undefined): boolean {
+        return status === 'DRAFT' || status === 'PENDING';
+    }
+
+    // lire / mettre à jour « mon » dossier
+    updateMine(payload: UpdateOwnCandidatureRequest): Observable<CandidateResponse> {
+        return this.http
+            .put<CandidateResponseApi>(`${this.baseUrl}/me`, payload)
+            .pipe(
+                map((c) => this.normalizeCandidate(c)),
+                tap((c) => {
+                    this.detailCache.set(c.id, c);
+                    this.detailCache.set('me', c);
+                    const userId = this.authService.getCurrentUser()?.id;
+                    if (userId) {
+                        this.detailCache.set(`user:${userId}`, c);
+                    }
+                })
+            );
+    }
+
+
+    uploadDocuments(
+        candidateId: string,
+        files: Array<{ type: CandidateDocumentType; file: File }>
+    ): Observable<Array<ConfirmDocumentResponse | null>> {
+        if (!files.length) {
+            return of([]);
+        }
+        return forkJoin(
+            files.map(({ type, file }) => {
+                const extension = this.fileExtension(file.name);
+                return this.uploadDocumentWithUrlRefresh(candidateId, type, file, extension).pipe(
+                    catchError(() => of(null))
+                );
+            })
+        );
+    }
+    private uploadDocumentWithUrlRefresh(
+        candidateId: string,
+        type: CandidateDocumentType,
+        file: File,
+        extension: string
+    ): Observable<ConfirmDocumentResponse | null> {
+        const runOnce = () =>
+            this.requestDocumentUploadUrl(candidateId, type, extension).pipe(
+                switchMap((upload) =>
+                    this.uploadDocument(upload.upload_url, file).pipe(
+                        switchMap(() =>
+                            this.confirmDocumentUpload(candidateId, {
+                                object_path: upload.object_path,
+                                type
+                            })
+                        )
+                    )
+                )
+            );
+        return runOnce().pipe(
+            catchError((error: unknown) => {
+                const status = error instanceof HttpErrorResponse ? error.status : 0;
+                if (status !== 403 && status !== 401 && status !== 0) {
+                    return of(null);
+                }
+                return runOnce().pipe(catchError(() => of(null)));
+            })
+        );
+    }
+    private fileExtension(fileName: string): string {
+        const parts = fileName.split('.');
+        const ext = parts.length > 1 ? parts.pop()! : 'bin';
+        return ext.startsWith('.') ? ext : `.${ext}`;
     }
 }
 

@@ -35,10 +35,6 @@ export interface PrivilegeResponse {
     updated_at: string | null;
 }
 
-export interface CreatePrivilegeRequest {
-    name: string;
-}
-
 export interface UserProfileResponse {
     id: string;
     name: string;

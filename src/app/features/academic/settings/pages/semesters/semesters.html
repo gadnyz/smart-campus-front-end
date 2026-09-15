@@ -1,0 +1,136 @@
+<p-toast />
+<p-confirmdialog [style]="{ width: '450px' }" />
+
+<app-content-subtopbar kicker="Paramètres Academic" title="Semestres" [actions]="actions()" />
+
+<div class="card">
+    <p-table #dt [value]="semesters()" [loading]="loading()" [paginator]="true" [rows]="10"
+        [rowsPerPageOptions]="[10, 20, 50]" [globalFilterFields]="['code', 'name']" [rowHover]="true" dataKey="id"
+        responsiveLayout="scroll" currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} semestres"
+        [showCurrentPageReport]="true" [tableStyle]="{ 'min-width': '50rem' }">
+        <ng-template pTemplate="caption">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div class="font-semibold text-xl">Liste des semestres</div>
+                <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                    <p-select [options]="yearFilterOptions()" optionLabel="label" optionValue="value"
+                        [ngModel]="selectedYearId()" (ngModelChange)="onYearFilterChange($event)" [showClear]="true"
+                        placeholder="Filtrer par année" appendTo="body" class="w-full md:w-16rem" />
+                    <p-iconfield>
+                        <p-inputicon styleClass="pi pi-search" />
+                        <input pInputText type="text" placeholder="Rechercher..."
+                            (input)="onGlobalFilter(dt, $event)" />
+                    </p-iconfield>
+                </div>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="code">Code <p-sortIcon field="code" /></th>
+                <th pSortableColumn="name">Nom <p-sortIcon field="name" /></th>
+                <th pSortableColumn="semester_order">Ordre <p-sortIcon field="semester_order" /></th>
+                <th>Année</th>
+                <th pSortableColumn="start_date">Début <p-sortIcon field="start_date" /></th>
+                <th pSortableColumn="end_date">Fin <p-sortIcon field="end_date" /></th>
+                <th style="width: 8rem">Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-semester>
+            <tr>
+                <td>{{ semester.code }}</td>
+                <td>{{ semester.name }}</td>
+                <td>{{ semester.semester_order }}</td>
+                <td>{{ yearLabel(semester.academic_year_id) }}</td>
+                <td>{{ semester.start_date | date: 'dd/MM/yyyy' }}</td>
+                <td>{{ semester.end_date | date: 'dd/MM/yyyy' }}</td>
+                <td>
+                    <div class="flex gap-2">
+                        @if (canUpdate()) {
+                        <button pButton type="button" icon="pi pi-pencil" rounded outlined severity="info"
+                            [attr.aria-label]="'Modifier ' + semester.code" (click)="openEditDialog(semester)"></button>
+                        }
+                        @if (canDelete()) {
+                        <button pButton type="button" icon="pi pi-trash" rounded outlined severity="danger"
+                            [attr.aria-label]="'Supprimer ' + semester.code" (click)="confirmDelete(semester)"></button>
+                        }
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="7">Aucun semestre pour cette sélection.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog [header]="dialogTitle()" [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)"
+    [modal]="true" [style]="{ width: '32rem' }" [breakpoints]="{ '640px': '95vw' }">
+    <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="submit()">
+        <div>
+            <label for="semesterYear" class="block text-sm text-color-secondary mb-1">Année académique</label>
+            <p-select inputId="semesterYear" formControlName="academic_year_id" [options]="yearFormOptions()"
+                optionLabel="label" optionValue="value" appendTo="body" class="w-full" placeholder="Sélectionner" />
+            @if (isInvalid('academic_year_id')) {
+            <small class="text-red-500 block mt-1">L’année académique est obligatoire.</small>
+            }
+        </div>
+
+        <div>
+            <label for="semesterCode" class="block text-sm text-color-secondary mb-1">Code</label>
+            <input pInputText id="semesterCode" formControlName="code" placeholder="S1-2028" class="w-full" />
+            @if (isInvalid('code')) {
+            <small class="text-red-500 block mt-1">Le code est obligatoire.</small>
+            }
+        </div>
+
+        <div>
+            <label for="semesterName" class="block text-sm text-color-secondary mb-1">Nom</label>
+            <input pInputText id="semesterName" formControlName="name" placeholder="Semestre 1 2028-2029"
+                class="w-full" />
+            @if (isInvalid('name')) {
+            <small class="text-red-500 block mt-1">Le nom est obligatoire.</small>
+            }
+        </div>
+
+        <div>
+            <label for="semesterOrder" class="block text-sm text-color-secondary mb-1">Ordre</label>
+            <p-inputnumber inputId="semesterOrder" formControlName="semester_order" [min]="1" [showButtons]="true"
+                class="w-full" />
+            @if (isInvalid('semester_order')) {
+            <small class="text-red-500 block mt-1">L’ordre doit être un entier ≥ 1.</small>
+            }
+        </div>
+
+        <div>
+            <label for="semesterStart" class="block text-sm text-color-secondary mb-1">Date de début</label>
+            <p-datepicker inputId="semesterStart" formControlName="start_date" dateFormat="yy-mm-dd" [showIcon]="true"
+                appendTo="body" class="w-full" />
+            @if (isInvalid('start_date')) {
+            <small class="text-red-500 block mt-1">La date de début est obligatoire.</small>
+            }
+        </div>
+
+        <div>
+            <label for="semesterEnd" class="block text-sm text-color-secondary mb-1">Date de fin</label>
+            <p-datepicker inputId="semesterEnd" formControlName="end_date" dateFormat="yy-mm-dd" [showIcon]="true"
+                appendTo="body" class="w-full" />
+            @if (isInvalid('end_date')) {
+            <small class="text-red-500 block mt-1">La date de fin est obligatoire.</small>
+            }
+            @if (form.errors?.['dateRange'] && form.touched) {
+            <small class="text-red-500 block mt-1">La date de fin doit être postérieure au début.</small>
+            }
+        </div>
+
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined
+                (click)="closeDialog()"></button>
+            <button pButton type="submit" label="Enregistrer" icon="pi pi-save" [loading]="saving()"
+                [disabled]="saving()"></button>
+        </div>
+    </form>
+</p-dialog>

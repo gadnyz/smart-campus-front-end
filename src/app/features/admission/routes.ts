@@ -15,6 +15,17 @@ export default [
         }
     },
     {
+        path: 'my-application',
+        loadComponent: () =>
+            import('./pages/candidate-portal/candidate-portal').then((m) => m.CandidatePortal),
+        canActivate: [permissionGuard],
+        data: {
+            permissions: [AdmissionPermission.AdmissionCandidateReadOwn],
+            mode: 'any',
+            hiddenWhenPermissions: [AdmissionPermission.AdmissionCandidateReadAll]
+        }
+    },
+    {
         path: 'candidates/:id',
         component: CandidateDetail,
         canActivate: [permissionGuard],

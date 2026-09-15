@@ -128,26 +128,95 @@ export class UserCreate implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.submitting.set(false);
-
-                if (error.status === 400 && error.error?.invalid_fields) {
-                    this.validationErrors.set(error.error.invalid_fields);
-                    this.showError(error.error?.detail ?? 'La requête contient des champs non valides.');
-                    return;
-                }
-
-                if (error.status === 409) {
-                    this.showError(error.error?.detail ?? 'Un utilisateur avec ces informations existe déjà.');
-                    return;
-                }
-
-                if (error.status === 403) {
-                    this.showError(error.error?.detail ?? 'Tu n’as pas les privilèges nécessaires pour créer un utilisateur.');
-                    return;
-                }
-
-                this.showError(error.error?.detail ?? 'Une erreur est survenue lors de la création de l’utilisateur.');
+                this.handleCreateError(error);
             }
         });
+    }
+
+    private handleCreateError(error: HttpErrorResponse): void {
+        if (error.status === 400 && error.error?.invalid_fields) {
+            this.validationErrors.set(error.error.invalid_fields);
+            this.showError(error.error?.detail ?? 'La requête contient des champs non valides.');
+            return;
+        }
+
+        if (error.status === 403) {
+            this.showError(
+                error.error?.detail ??
+                    'Tu n’as pas les privilèges nécessaires pour créer un utilisateur.'
+            );
+            return;
+        }
+
+        const conflict = this.resolveUniqueConstraintConflict(error);
+        if (conflict || error.status === 409) {
+            if (conflict?.field) {
+                this.validationErrors.set({ [conflict.field]: conflict.fieldMessage });
+            }
+            this.showError(
+                conflict?.toastMessage ??
+                    error.error?.detail ??
+                    'Un utilisateur avec ces informations existe déjà.'
+            );
+            return;
+        }
+
+        this.showError(
+            error.error?.detail ?? 'Une erreur est survenue lors de la création de l’utilisateur.'
+        );
+    }
+
+    /**
+     * Mappe les erreurs SQL / contraintes uniques (ex. compte soft-deleted
+     * dont l’email reste unique) vers un message métier lisible.
+     */
+    private resolveUniqueConstraintConflict(
+        error: HttpErrorResponse
+    ): { field?: 'email' | 'username'; fieldMessage: string; toastMessage: string } | null {
+        const detail = String(error.error?.detail ?? error.message ?? '').toLowerCase();
+
+        const isDuplicate =
+            detail.includes('duplicate key') ||
+            detail.includes('unique constraint') ||
+            detail.includes('already exists') ||
+            error.status === 409;
+
+        if (!isDuplicate) {
+            return null;
+        }
+
+        if (
+            detail.includes('uc_users_email') ||
+            detail.includes('key (email)') ||
+            detail.includes('(email)=')
+        ) {
+            return {
+                field: 'email',
+                fieldMessage:
+                    'Un utilisateur avec ces informations existe déjà.',
+                toastMessage:
+                    'Un utilisateur avec ces informations existe déjà.'
+            };
+        }
+
+        if (
+            detail.includes('uc_users_username') ||
+            detail.includes('key (username)') ||
+            detail.includes('(username)=')
+        ) {
+            return {
+                field: 'username',
+                fieldMessage: 'Ce nom d’utilisateur est déjà pris.',
+                toastMessage:
+                    'Ce nom d’utilisateur est déjà utilisé. Choisissez-en un autre.'
+            };
+        }
+
+        return {
+            fieldMessage: 'Ces informations existent déjà.',
+            toastMessage:
+                'Un utilisateur avec ces informations existe déjà.'
+        };
     }
 
     goBack(): void {

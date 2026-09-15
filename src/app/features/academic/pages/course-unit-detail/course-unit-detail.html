@@ -1,0 +1,86 @@
+<p-toast />
+
+<app-content-subtopbar kicker="Academic" [title]="title()" [actions]="actions()" />
+
+<div class="card mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div><span class="text-color-secondary">Code</span>
+            <div>{{ unit()?.code }}</div>
+        </div>
+        <div>
+            <span class="text-color-secondary">UE</span>
+            <div>{{ unit()?.code }} @if (unit()) { — {{ blocLabel(unit()!.knowledge_skills_bloc) }} }</div>
+        </div>
+        <div><span class="text-color-secondary">Total crédits</span>
+            <div class="font-semibold">{{ totalCredits() }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="font-semibold text-xl">Cours de l’UE</div>
+        @if (canAssign()) {
+        <button pButton type="button" label="Affecter un cours" icon="pi pi-plus" size="small"
+            (click)="openAssign()"></button>
+        }
+    </div>
+    <p-table [value]="attachedCourses()" dataKey="id" [rowHover]="true" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Code</th>
+                <th>Nom</th>
+                <th>Crédits</th>
+                @if (canAssign()) {
+                <th style="width: 6rem">Actions</th>
+                }
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-course>
+            <tr>
+                <td>{{ course.code }}</td>
+                <td>{{ course.name }}</td>
+                <td>{{ course.credits }}</td>
+                @if (canAssign()) {
+                <td>
+                    <button pButton type="button" icon="pi pi-times" rounded outlined severity="danger"
+                        (click)="openMove(course)"></button>
+                </td>
+                }
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td [attr.colspan]="canAssign() ? 4 : 3">Aucun cours dans cette UE.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog header="Affecter un cours" [visible]="assignDialogVisible()" (visibleChange)="assignDialogVisible.set($event)"
+    [modal]="true" [style]="{ width: '32rem' }">
+    <form [formGroup]="assignForm" class="flex flex-col gap-4" (ngSubmit)="submitAssign()">
+        <p-select formControlName="course_id" [options]="availableCourseOptions()" optionLabel="label"
+            optionValue="value" [filter]="true" appendTo="body" class="w-full" placeholder="Cours de la faculté" />
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined
+                (click)="assignDialogVisible.set(false)"></button>
+            <button pButton type="submit" label="Affecter" icon="pi pi-save" [loading]="saving()"></button>
+        </div>
+    </form>
+</p-dialog>
+
+<p-dialog header="Retirer le cours" [visible]="moveDialogVisible()" (visibleChange)="moveDialogVisible.set($event)"
+    [modal]="true" [style]="{ width: '32rem' }">
+    <p class="mb-3 text-sm text-color-secondary">Un cours doit rester rattaché à une UE. Choisissez l’UE de destination.
+    </p>
+    <form [formGroup]="moveForm" class="flex flex-col gap-4" (ngSubmit)="submitMove()">
+        <p-select formControlName="course_unit_id" [options]="otherUnitOptions()" optionLabel="label"
+            optionValue="value" appendTo="body" class="w-full" placeholder="Autre UE" />
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined
+                (click)="moveDialogVisible.set(false)"></button>
+            <button pButton type="submit" label="Retirer" icon="pi pi-save" [loading]="saving()"></button>
+        </div>
+    </form>
+</p-dialog>

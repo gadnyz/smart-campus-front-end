@@ -209,7 +209,7 @@ export class ProfileManagement implements OnInit {
         });
     }
 
-    confirmDelete(profile: ProfileTableRow): void {
+    confirmDelete(profile: ProfileTableRow | UserProfileResponse): void {
         this.confirmationService.confirm({
             message: `Voulez-vous vraiment supprimer le profil ${profile.name} ?`,
             header: 'Confirmation',
@@ -222,7 +222,7 @@ export class ProfileManagement implements OnInit {
         });
     }
 
-    private deleteProfile(profile: ProfileTableRow): void {
+    private deleteProfile(profile: ProfileTableRow | UserProfileResponse): void {
         if (this.deletingId()) {
             return;
         }
@@ -233,6 +233,7 @@ export class ProfileManagement implements OnInit {
             next: () => {
                 this.profiles.set(this.profiles().filter((item) => item.id !== profile.id));
                 this.deletingId.set(null);
+                this.closeDetail();
                 this.showSuccess('Profil supprimé avec succès.');
             },
             error: (error: HttpErrorResponse) => {

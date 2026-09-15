@@ -99,14 +99,7 @@ const requiredSeedEndpoints = [
     ['get', '/api/v1/timetables'],
     ['post', '/api/v1/timetables'],
     ['post', '/api/v1/timetable-entries'],
-    ['get', '/api/v1/privileges'],
-    ['post', '/api/v1/privileges'],
-    ['get', '/api/v1/roles'],
-    ['post', '/api/v1/roles'],
-    ['post', '/api/v1/roles/{roleId}/privileges'],
     ['get', '/api/v1/profiles'],
-    ['post', '/api/v1/profiles'],
-    ['post', '/api/v1/profiles/{profileId}/roles'],
     ['get', '/api/v1/users'],
     ['post', '/api/v1/auth/register'],
     ['get', '/api/v1/candidates'],
@@ -368,106 +361,6 @@ const seedCatalog = {
         { code: 'ASS', name: 'Assistant' },
         { code: 'CT', name: 'Chef de travaux' },
         { code: 'PROF', name: 'Professeur' }
-    ],
-    privileges: [
-        'identity:user:read:all',
-        'identity:user:create:all',
-        'identity:user:update:all',
-        'identity:user:delete:all',
-        'identity:user:read:own',
-        'identity:user:update:own',
-        'identity:profile:read:all',
-        'identity:profile:create:all',
-        'identity:profile:update:all',
-        'identity:profile:delete:all',
-        'identity:role:read:all',
-        'identity:role:create:all',
-        'identity:role:update:all',
-        'identity:role:delete:all',
-        'identity:privilege:read:all',
-        'identity:privilege:create:all',
-        'identity:privilege:update:all',
-        'identity:privilege:delete:all',
-        'identity:api:manage',
-        'admission:candidate:read:all',
-        'admission:candidate:create:all',
-        'admission:candidate:update:all',
-        'admission:candidate:delete:all',
-        'admission:candidate:read:own',
-        'admission:candidate:update:own'
-    ],
-    roles: [
-        {
-            name: 'IDENTITY_ADMIN',
-            privileges: [
-                'identity:user:read:all',
-                'identity:user:create:all',
-                'identity:user:update:all',
-                'identity:user:delete:all',
-                'identity:user:read:own',
-                'identity:user:update:own',
-                'identity:profile:read:all',
-                'identity:profile:create:all',
-                'identity:profile:update:all',
-                'identity:profile:delete:all',
-                'identity:role:read:all',
-                'identity:role:create:all',
-                'identity:role:update:all',
-                'identity:role:delete:all',
-                'identity:privilege:read:all',
-                'identity:privilege:create:all',
-                'identity:privilege:update:all',
-                'identity:privilege:delete:all',
-                'identity:api:manage'
-            ]
-        },
-        {
-            name: 'ADMISSION_OFFICER',
-            privileges: [
-                'admission:candidate:read:all',
-                'admission:candidate:create:all',
-                'admission:candidate:update:all',
-                'admission:candidate:delete:all',
-                'identity:user:read:own',
-                'identity:user:update:own'
-            ]
-        },
-        {
-            name: 'PROFESSOR',
-            privileges: [
-                'identity:user:read:own',
-                'identity:user:update:own',
-                'admission:candidate:read:all'
-            ]
-        },
-        {
-            name: 'STUDENT',
-            privileges: [
-                'identity:user:read:own',
-                'identity:user:update:own',
-                'admission:candidate:read:own',
-                'admission:candidate:update:own',
-                'admission:candidate:create:all'
-            ]
-        }
-    ],
-    profiles: [
-        {
-            name: 'ADMIN',
-            roles: ['IDENTITY_ADMIN', 'ADMISSION_OFFICER']
-        },
-        {
-            name: 'PROFESSOR',
-            roles: ['PROFESSOR']
-        },
-        {
-            name: 'STUDENT',
-            roles: ['STUDENT']
-        },
-        {
-            name: 'ACADEMIC_SECRETARY',
-            roles: ['ADMISSION_OFFICER', 'IDENTITY_ADMIN']
-        }
     ],
     users: [
         {
@@ -929,9 +822,6 @@ async function seed(api) {
         rooms: [],
         timetables: [],
         timetableEntries: [],
-        privileges: [],
-        roles: [],
-        profiles: [],
         users: [],
         candidates: [],
         validatedCandidates: []
@@ -1019,90 +909,10 @@ async function seed(api) {
 
     const gradesByCode = indexBy(context.professorGrades, 'code');
 
-    try {
-        const existingPrivileges = await listAll(api, '/api/v1/privileges');
-        const privilegesByName = {};
-
-        for (const privilegeName of seedCatalog.privileges) {
-            const ensured = await ensurePrivilege(api, privilegeName, existingPrivileges);
-            context.privileges.push(ensured);
-            privilegesByName[ensured.name] = ensured;
-
-            if (!existingPrivileges.some((item) => equals(item.name, privilegeName))) {
-                existingPrivileges.push(ensured);
-            }
-        }
-
-        const existingRoles = await listAll(api, '/api/v1/roles');
-        const rolesByName = {};
-
-        for (const role of seedCatalog.roles) {
-            const ensuredRole = await ensureRole(
-                api,
-                role.name,
-                role.privileges.map((name) => ({
-                    id: mustGet(privilegesByName, name, 'privilege').id,
-                    name
-                })),
-                existingRoles
-            );
-            context.roles.push(ensuredRole);
-            rolesByName[ensuredRole.name] = ensuredRole;
-
-            if (!existingRoles.some((item) => equals(item.name, role.name))) {
-                existingRoles.push(ensuredRole);
-            }
-        }
-
-        const existingProfiles = await listAll(api, '/api/v1/profiles');
-        const profilesByName = {};
-
-        for (const profile of seedCatalog.profiles) {
-            const ensuredProfile = await ensureProfileWithRoles(
-                api,
-                profile.name,
-                profile.roles.map((roleName) => ({
-                    id: mustGet(rolesByName, roleName, 'role').id,
-                    name: roleName
-                })),
-                existingProfiles
-            );
-            context.profiles.push(ensuredProfile);
-            profilesByName[ensuredProfile.name] = ensuredProfile;
-
-            if (!existingProfiles.some((item) => equals(item.name, profile.name))) {
-                existingProfiles.push(ensuredProfile);
-            }
-        }
-
-        Object.assign(context, { _profilesByName: profilesByName });
-    } catch (error) {
-        if (!(error instanceof HttpError && [401, 403].includes(error.status))) {
-            throw error;
-        }
-
-        console.warn(
-            `[warn] RBAC seed partially skipped (${error.status}): privilege/role APIs denied for current user. Falling back to profile names only.`
-        );
-
-        const existingProfiles = await listAll(api, '/api/v1/profiles');
-        const profilesByName = {};
-
-        for (const profile of seedCatalog.profiles) {
-            const ensuredProfile = await ensureProfile(api, profile.name, existingProfiles);
-            context.profiles.push(ensuredProfile);
-            profilesByName[ensuredProfile.name] = ensuredProfile;
-
-            if (!existingProfiles.some((item) => equals(item.name, profile.name))) {
-                existingProfiles.push(ensuredProfile);
-            }
-        }
-
-        Object.assign(context, { _profilesByName: profilesByName });
-    }
-
-    const profilesByName = context._profilesByName;
-    delete context._profilesByName;
+    // Identity: only create users and attach existing backend profiles (no privilege/role/profile creation).
+    const existingProfiles = await listAll(api, '/api/v1/profiles');
+    const profilesByName = indexProfilesByName(existingProfiles);
+    console.log(`[identity] loaded ${existingProfiles.length} existing profile(s) for user association`);
 
     for (const user of seedCatalog.users) {
         const faculty = mustGet(facultiesByCode, user.facultyCode, 'faculty');
@@ -1110,7 +920,9 @@ async function seed(api) {
             await ensureUser(api, {
                 username: user.username,
                 email: user.email,
-                profiles: user.profiles.map((profileName) => mustGet(profilesByName, profileName, 'profile').id),
+                profiles: user.profiles.map(
+                    (profileName) => mustGetProfile(profilesByName, profileName).id
+                ),
                 faculty_id: faculty.id
             })
         );
@@ -1389,128 +1201,6 @@ async function ensureCourseUnit(api, payload) {
     }
 
     return create(api, 'course unit', '/api/v1/course-units', payload);
-}
-
-async function ensurePrivilege(api, privilegeName, knownPrivileges = null) {
-    const privileges = knownPrivileges ?? (await listAll(api, '/api/v1/privileges'));
-    const existing = privileges.find((privilege) => equals(privilege.name, privilegeName));
-
-    if (existing) {
-        return found('privilege', privilegeName, existing);
-    }
-
-    return create(api, 'privilege', '/api/v1/privileges', { name: privilegeName });
-}
-
-async function ensureRole(api, roleName, privileges, knownRoles = null) {
-    const roles = knownRoles ?? (await listAll(api, '/api/v1/roles'));
-    let role = roles.find((item) => equals(item.name, roleName));
-
-    if (!role) {
-        role = await create(api, 'role', '/api/v1/roles', { name: roleName });
-    } else {
-        found('role', roleName, role);
-    }
-
-    const existingKeys = new Set();
-
-    for (const privilege of role.privileges || []) {
-        if (typeof privilege === 'string') {
-            existingKeys.add(String(privilege).toLowerCase());
-            continue;
-        }
-
-        if (privilege?.id) {
-            existingKeys.add(String(privilege.id).toLowerCase());
-        }
-
-        if (privilege?.name) {
-            existingKeys.add(String(privilege.name).toLowerCase());
-        }
-    }
-
-    const missingPrivilegeIds = privileges
-        .filter((privilege) => {
-            const idKey = String(privilege.id).toLowerCase();
-            const nameKey = String(privilege.name).toLowerCase();
-            return !existingKeys.has(idKey) && !existingKeys.has(nameKey);
-        })
-        .map((privilege) => privilege.id);
-
-    if (missingPrivilegeIds.length) {
-        if (checkOnly) {
-            console.log(`[check] would attach ${missingPrivilegeIds.length} privilege(s) to role ${roleName}`);
-        } else {
-            await api.request(`/api/v1/roles/${role.id}/privileges`, {
-                method: 'POST',
-                body: { privilege_ids: missingPrivilegeIds }
-            });
-            console.log(`[post] attached ${missingPrivilegeIds.length} privilege(s) to role ${roleName}`);
-            role = {
-                ...role,
-                privileges: [...(role.privileges || []), ...missingPrivilegeIds]
-            };
-        }
-    }
-
-    return role;
-}
-
-async function ensureProfile(api, profileName, knownProfiles = null) {
-    const profiles = knownProfiles ?? (await listAll(api, '/api/v1/profiles'));
-    const existing = profiles.find((profile) => equals(profile.name, profileName));
-
-    if (existing) {
-        return found('profile', profileName, existing);
-    }
-
-    return create(api, 'profile', '/api/v1/profiles', { name: profileName });
-}
-
-async function ensureProfileWithRoles(api, profileName, roles, knownProfiles = null) {
-    let profile = await ensureProfile(api, profileName, knownProfiles);
-    const existingKeys = new Set();
-
-    for (const role of profile.roles || []) {
-        if (typeof role === 'string') {
-            existingKeys.add(String(role).toLowerCase());
-            continue;
-        }
-
-        if (role?.id) {
-            existingKeys.add(String(role.id).toLowerCase());
-        }
-
-        if (role?.name) {
-            existingKeys.add(String(role.name).toLowerCase());
-        }
-    }
-
-    const missingRoleIds = roles
-        .filter((role) => {
-            const idKey = String(role.id).toLowerCase();
-            const nameKey = String(role.name).toLowerCase();
-            return !existingKeys.has(idKey) && !existingKeys.has(nameKey);
-        })
-        .map((role) => role.id);
-
-    if (missingRoleIds.length) {
-        if (checkOnly) {
-            console.log(`[check] would attach ${missingRoleIds.length} role(s) to profile ${profileName}`);
-        } else {
-            await api.request(`/api/v1/profiles/${profile.id}/roles`, {
-                method: 'POST',
-                body: { role_ids: missingRoleIds }
-            });
-            console.log(`[post] attached ${missingRoleIds.length} role(s) to profile ${profileName}`);
-            profile = {
-                ...profile,
-                roles: [...(profile.roles || []), ...missingRoleIds]
-            };
-        }
-    }
-
-    return profile;
 }
 
 function buildProtectedUserEmails(primaryUsername) {
@@ -2050,9 +1740,6 @@ function printSummary(context) {
         ['rooms', context.rooms.length],
         ['timetables', context.timetables.length],
         ['timetableEntries', context.timetableEntries.length],
-        ['privileges', context.privileges.length],
-        ['roles', context.roles.length],
-        ['profiles', context.profiles.length],
         ['users', context.users.length],
         ['candidates', context.candidates.filter((candidate) => !candidate.skipped).length],
         ['validatedCandidates', context.validatedCandidates.length],
@@ -2081,6 +1768,28 @@ function parseResponse(text, contentType) {
 
 function indexBy(items, fieldName) {
     return Object.fromEntries(items.map((item) => [item[fieldName], item]));
+}
+
+function indexProfilesByName(profiles) {
+    const index = {};
+
+    for (const profile of profiles) {
+        index[String(profile.name || '').toLowerCase()] = profile;
+    }
+
+    return index;
+}
+
+function mustGetProfile(index, profileName) {
+    const profile = index[String(profileName || '').toLowerCase()];
+
+    if (!profile) {
+        throw new Error(
+            `Missing profile "${profileName}" — seed does not create profiles; ensure it exists in the backend.`
+        );
+    }
+
+    return profile;
 }
 
 function mustGet(index, key, label) {

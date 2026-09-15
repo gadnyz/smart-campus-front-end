@@ -672,11 +672,17 @@ export class CandidateDetail implements OnInit {
             return;
         }
 
+        const isDraft = candidate.candidature.status === 'DRAFT';
+        const draftWarning = isDraft
+            ? ` Attention : ce dossier est encore en brouillon (documents éventuellement incomplets).`
+            : '';
+
         this.confirmationService.confirm({
             header: 'Confirmation',
             message:
                 `Voulez-vous vraiment valider la candidature de ` +
-                `${this.fullName(candidate)} ?`,
+                `${this.fullName(candidate)} ?` +
+                draftWarning,
             icon: 'pi pi-exclamation-triangle',
             acceptLabel: 'Valider',
             rejectLabel: 'Annuler',

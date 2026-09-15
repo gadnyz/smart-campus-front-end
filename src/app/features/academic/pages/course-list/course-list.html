@@ -1,0 +1,115 @@
+<p-toast />
+
+<app-content-subtopbar kicker="Academc" title="Cours" [actions]="actions()" />
+
+<div class="card">
+    <p-table
+        #dt
+        [value]="courses()"
+        [loading]="loading()"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 20, 50]"
+        [globalFilterFields]="['code', 'name']"
+        [rowHover]="true"
+        dataKey="id"
+        responsiveLayout="scroll"
+        currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} cours"
+        [showCurrentPageReport]="true"
+        [tableStyle]="{ 'min-width': '40rem' }"
+    >
+        <ng-template pTemplate="caption">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div class="font-semibold text-xl">Liste des cours</div>
+                <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                    @if (canReadAll()) {
+                    <p-select
+                        [options]="facultyOptions()"
+                        optionLabel="label"
+                        optionValue="value"
+                        [ngModel]="selectedFacultyId()"
+                        (ngModelChange)="onFacultyFilterChange($event)"
+                        [showClear]="true"
+                        placeholder="Filtrer par faculté"
+                        appendTo="body"
+                        class="w-full md:w-16rem"
+                    />
+                    }
+                    <p-iconfield>
+                        <p-inputicon styleClass="pi pi-search" />
+                        <input pInputText type="text" placeholder="Rechercher..." (input)="onGlobalFilter(dt, $event)" />
+                    </p-iconfield>
+                </div>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="code">Code <p-sortIcon field="code" /></th>
+                <th pSortableColumn="name">Nom <p-sortIcon field="name" /></th>
+                <th pSortableColumn="credits">Crédits <p-sortIcon field="credits" /></th>
+                <th style="width: 6rem">Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-course>
+            <tr>
+                <td>{{ course.code }}</td>
+                <td>{{ course.name }}</td>
+                <td>{{ course.credits }}</td>
+                <td>
+                    <button pButton type="button" icon="pi pi-arrow-right" rounded outlined severity="info"
+                        [attr.aria-label]="'Détail ' + course.code" (click)="openDetail(course)"></button>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="4">Aucun cours.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog
+    header="Nouveau cours"
+    [visible]="dialogVisible()"
+    (visibleChange)="dialogVisible.set($event)"
+    [modal]="true"
+    [style]="{ width: '36rem' }"
+    [breakpoints]="{ '640px': '95vw' }"
+>
+    <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="submit()">
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Faculté</label>
+            <p-select formControlName="faculty_id" [options]="facultyOptions()" optionLabel="label" optionValue="value"
+                [disabled]="!canReadAll() && !!scopedFacultyId()" appendTo="body" class="w-full" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Unité d’enseignement</label>
+            <p-select formControlName="course_unit_id" [options]="unitOptions()" optionLabel="label" optionValue="value"
+                appendTo="body" class="w-full" placeholder="Choisir une UE" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Code</label>
+            <input pInputText formControlName="code" placeholder="INF-101" class="w-full" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Nom</label>
+            <input pInputText formControlName="name" placeholder="Algorithmique" class="w-full" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Description</label>
+            <textarea pTextarea formControlName="description" rows="3" class="w-full"></textarea>
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Crédits</label>
+            <p-inputnumber formControlName="credits" [min]="1" [showButtons]="true" class="w-full" />
+        </div>
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined (click)="closeDialog()"></button>
+            <button pButton type="submit" label="Enregistrer" icon="pi pi-save" [loading]="saving()" [disabled]="saving()"></button>
+        </div>
+    </form>
+</p-dialog>

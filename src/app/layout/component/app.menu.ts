@@ -91,6 +91,17 @@ export class AppMenu implements OnInit {
                 return visibleItems;
             }
 
+            const hiddenByPermission =
+                !!item.hiddenWhenPermissions?.length &&
+                this.permissionService.canAccess({
+                    permissions: item.hiddenWhenPermissions,
+                    mode: item.hiddenWhenMode
+                });
+
+            if (hiddenByPermission) {
+                return visibleItems;
+            }
+
             const filteredChildren = item.items ? this.filterMenu(item.items) : undefined;
 
             if (item.items && !filteredChildren?.length) {

@@ -9,6 +9,7 @@ export interface AuthenticatedUser {
     last_connected_at: string | null;
     avatar_url: string | null;
     authorities: string[];
+    faculty_id?: string | null;
 }
 
 export interface AuthResponse {

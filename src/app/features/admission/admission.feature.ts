@@ -21,8 +21,16 @@ export const admissionFeature: AppFeature = {
                     routerLink: ['/admission/candidates'],
                     permissions: [AdmissionPermission.AdmissionCandidateReadAll],
                     order: 10
+                },
+                {
+                    label: 'Mon dossier',
+                    icon: 'pi pi-fw pi-folder-open',
+                    routerLink: ['/admission/my-application'],
+                    permissions: [AdmissionPermission.AdmissionCandidateReadOwn],
+                    hiddenWhenPermissions: [AdmissionPermission.AdmissionCandidateReadAll],
+                    order: 5
                 }
-            ]
+            ],
         }
     ],
     settingsTab: {

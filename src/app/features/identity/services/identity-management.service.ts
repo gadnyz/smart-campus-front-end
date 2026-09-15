@@ -6,7 +6,6 @@ import { environment } from '@/environments/environment';
 import {
     AddPrivilegesRequest,
     AddRolesRequest,
-    CreatePrivilegeRequest,
     CreateProfileRequest,
     CreateRoleRequest,
     PageableQuery,
@@ -66,18 +65,6 @@ export class IdentityManagementService {
             );
 
         return fetchPage(0, []);
-    }
-
-    getPrivilegeById(privilegeId: string): Observable<PrivilegeResponse> {
-        return this.http.get<PrivilegeResponse>(`${this.baseUrl}/privileges/${privilegeId}`);
-    }
-
-    createPrivilege(payload: CreatePrivilegeRequest): Observable<PrivilegeResponse> {
-        return this.http.post<PrivilegeResponse>(`${this.baseUrl}/privileges`, payload);
-    }
-
-    deletePrivilege(privilegeId: string): Observable<void> {
-        return this.http.delete<void>(`${this.baseUrl}/privileges/${privilegeId}`);
     }
 
     getProfiles(query: PageableQuery = { page: 0, size: 100, sort: ['name,asc'] }): Observable<PagedResponse<UserProfileResponse>> {
