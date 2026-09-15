@@ -1,5 +1,4 @@
 <p-toast />
-<p-confirmdialog [style]="{ width: '450px' }" />
 
 <div class="card">
     <p-table
@@ -77,20 +76,6 @@
                             severity="info"
                             [attr.aria-label]="'Voir ' + user.username"
                         ></a>
-                        @if (canDeleteUsers()) {
-                        <button
-                            pButton
-                            type="button"
-                            icon="pi pi-trash"
-                            rounded
-                            outlined
-                            severity="danger"
-                            [attr.aria-label]="'Supprimer ' + user.username"
-                            [loading]="deletingUserId() === user.id"
-                            [disabled]="deletingUserId() === user.id"
-                            (click)="confirmDelete(user)"
-                        ></button>
-                        }
                     </div>
                 </td>
             </tr>

@@ -1,12 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { PermissionService } from '@/app/core/permissions/permission.service';
-import { IdentityPermission } from '@/app/features/identity/permissions/permission.model';
 import { DetailNavigationService } from '@/app/shared/navigation/detail-navigation.service';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
@@ -23,16 +20,14 @@ type UserTableRow = User & {
 @Component({
     selector: 'app-user-list',
     standalone: true,
-    imports: [CommonModule, RouterModule, TableModule, ButtonModule, ToastModule, ConfirmDialogModule, InputTextModule, IconFieldModule, InputIconModule],
+    imports: [CommonModule, RouterModule, TableModule, ButtonModule, ToastModule, InputTextModule, IconFieldModule, InputIconModule],
     templateUrl: './user-list.html',
     styleUrl: './user-list.scss',
-    providers: [ConfirmationService, MessageService]
+    providers: [MessageService]
 })
 export class UserList implements OnInit {
     private readonly usersService = inject(UsersService);
-    private readonly confirmationService = inject(ConfirmationService);
     private readonly messageService = inject(MessageService);
-    private readonly permissionService = inject(PermissionService);
     private readonly detailNavigation = inject(DetailNavigationService);
 
     private readonly navigationScope = 'identity.users';
@@ -40,11 +35,6 @@ export class UserList implements OnInit {
 
     readonly users = signal<User[]>([]);
     readonly loading = signal(false);
-    readonly deletingUserId = signal<string | null>(null);
-
-    readonly canDeleteUsers = computed(() =>
-        this.permissionService.hasAnyPermission([IdentityPermission.UserDeleteAll])
-    );
 
     readonly rows = computed<UserTableRow[]>(() =>
         this.users().map((user) => ({
@@ -100,48 +90,4 @@ export class UserList implements OnInit {
         table.filterGlobal(value, 'contains');
     }
 
-    confirmDelete(user: UserTableRow): void {
-        this.confirmationService.confirm({
-            message: `Voulez-vous vraiment supprimer l'utilisateur ${user.username} ?`,
-            header: 'Confirmation',
-            icon: 'pi pi-exclamation-triangle',
-            acceptLabel: 'Supprimer',
-            rejectLabel: 'Annuler',
-            acceptButtonStyleClass: 'p-button-danger',
-            rejectButtonStyleClass: 'p-button-text',
-            accept: () => this.deleteUser(user)
-        });
-    }
-
-    private deleteUser(user: UserTableRow): void {
-        if (this.deletingUserId()) {
-            return;
-        }
-
-        this.deletingUserId.set(user.id);
-
-        this.usersService.deleteUser(user.id).subscribe({
-            next: () => {
-                this.users.set(this.users().filter((item) => item.id !== user.id));
-                this.deletingUserId.set(null);
-
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Succès',
-                    detail: 'Utilisateur supprimé avec succès.',
-                    life: 3000
-                });
-            },
-            error: (error) => {
-                this.deletingUserId.set(null);
-
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Erreur',
-                    detail: error.error?.detail ?? 'Une erreur est survenue lors de la suppression.',
-                    life: 3000
-                });
-            }
-        });
-    }
 }
