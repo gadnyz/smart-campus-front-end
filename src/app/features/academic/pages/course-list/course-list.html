@@ -1,6 +1,6 @@
 <p-toast />
 
-<app-content-subtopbar kicker="Academc" title="Cours" [actions]="actions()" />
+<app-content-subtopbar kicker="Academic" title="Cours" [actions]="actions()" />
 
 <div class="card">
     <p-table
@@ -30,11 +30,33 @@
                         [ngModel]="selectedFacultyId()"
                         (ngModelChange)="onFacultyFilterChange($event)"
                         [showClear]="true"
-                        placeholder="Filtrer par faculté"
+                        placeholder="Faculté"
                         appendTo="body"
-                        class="w-full md:w-16rem"
+                        class="w-full md:w-14rem"
                     />
                     }
+                    <p-select
+                        [options]="programOptions()"
+                        optionLabel="label"
+                        optionValue="value"
+                        [ngModel]="selectedProgramId()"
+                        (ngModelChange)="onProgramFilterChange($event)"
+                        placeholder="Programme"
+                        appendTo="body"
+                        class="w-full md:w-14rem"
+                        [disabled]="!selectedFacultyId()"
+                    />
+                    <p-select
+                        [options]="programLevelOptions()"
+                        optionLabel="label"
+                        optionValue="value"
+                        [ngModel]="selectedProgramLevelId()"
+                        (ngModelChange)="onProgramLevelFilterChange($event)"
+                        placeholder="Niveau"
+                        appendTo="body"
+                        class="w-full md:w-12rem"
+                        [disabled]="!selectedProgramId()"
+                    />
                     <p-iconfield>
                         <p-inputicon styleClass="pi pi-search" />
                         <input pInputText type="text" placeholder="Rechercher..." (input)="onGlobalFilter(dt, $event)" />
@@ -66,7 +88,7 @@
 
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="4">Aucun cours.</td>
+                <td colspan="4">{{ selectedProgramLevelId() || (canReadAll() && !selectedFacultyId()) ? 'Aucun cours.' : 'Choisissez un niveau de programme.' }}</td>
             </tr>
         </ng-template>
     </p-table>
@@ -84,7 +106,17 @@
         <div>
             <label class="block text-sm text-color-secondary mb-1">Faculté</label>
             <p-select formControlName="faculty_id" [options]="facultyOptions()" optionLabel="label" optionValue="value"
-                [disabled]="!canReadAll() && !!scopedFacultyId()" appendTo="body" class="w-full" />
+                appendTo="body" class="w-full" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Programme</label>
+            <p-select formControlName="program_id" [options]="programOptions()" optionLabel="label" optionValue="value"
+                appendTo="body" class="w-full" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Niveau</label>
+            <p-select formControlName="program_level_id" [options]="dialogProgramLevelOptions()" optionLabel="label"
+                optionValue="value" appendTo="body" class="w-full" />
         </div>
         <div>
             <label class="block text-sm text-color-secondary mb-1">Unité d’enseignement</label>

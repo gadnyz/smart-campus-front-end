@@ -1,15 +1,16 @@
 <p-toast />
-
+<p-confirmdialog [style]="{ width: '450px' }" />
 <app-content-subtopbar kicker="Academic" [title]="title()" [actions]="actions()" />
-
 <div class="card mb-4">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
         <div><span class="text-color-secondary">Code</span>
             <div>{{ unit()?.code }}</div>
         </div>
-        <div>
-            <span class="text-color-secondary">UE</span>
-            <div>{{ unit()?.code }} @if (unit()) { — {{ blocLabel(unit()!.knowledge_skills_bloc) }} }</div>
+        <div><span class="text-color-secondary">Bloc</span>
+            <div>@if (unit()) { {{ blocLabel(unit()!.knowledge_skills_bloc) }} }</div>
+        </div>
+        <div><span class="text-color-secondary">Programme / niveau</span>
+            <div>{{ unit()?.program_code || '—' }} — {{ unit()?.level_code || '—' }}</div>
         </div>
         <div><span class="text-color-secondary">Total crédits</span>
             <div class="font-semibold">{{ totalCredits() }}</div>
@@ -61,7 +62,7 @@
     [modal]="true" [style]="{ width: '32rem' }">
     <form [formGroup]="assignForm" class="flex flex-col gap-4" (ngSubmit)="submitAssign()">
         <p-select formControlName="course_id" [options]="availableCourseOptions()" optionLabel="label"
-            optionValue="value" [filter]="true" appendTo="body" class="w-full" placeholder="Cours de la faculté" />
+            optionValue="value" [filter]="true" appendTo="body" class="w-full" placeholder="Cours du même niveau" />
         <div class="flex justify-end gap-2">
             <button pButton type="button" label="Annuler" severity="secondary" outlined
                 (click)="assignDialogVisible.set(false)"></button>
@@ -72,7 +73,8 @@
 
 <p-dialog header="Retirer le cours" [visible]="moveDialogVisible()" (visibleChange)="moveDialogVisible.set($event)"
     [modal]="true" [style]="{ width: '32rem' }">
-    <p class="mb-3 text-sm text-color-secondary">Un cours doit rester rattaché à une UE. Choisissez l’UE de destination.
+    <p class="mb-3 text-sm text-color-secondary">
+        Un cours doit rester rattaché à une UE. Choisissez une autre UE du même niveau.
     </p>
     <form [formGroup]="moveForm" class="flex flex-col gap-4" (ngSubmit)="submitMove()">
         <p-select formControlName="course_unit_id" [options]="otherUnitOptions()" optionLabel="label"

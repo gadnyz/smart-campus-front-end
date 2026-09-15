@@ -1,13 +1,11 @@
 <p-toast />
-<p-confirmdialog [style]="{ width: '450px' }" />
 
 <app-content-subtopbar kicker="Academic" title="Unités d’enseignement" [actions]="actions()" />
 
 <div class="card">
     <p-table #dt [value]="units()" [loading]="loading()" [paginator]="true" [rows]="10"
         [rowsPerPageOptions]="[10, 20, 50]" [globalFilterFields]="['code']" [rowHover]="true" dataKey="id"
-        responsiveLayout="scroll"
-        currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} UE"
+        responsiveLayout="scroll" currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} UE"
         [showCurrentPageReport]="true" [tableStyle]="{ 'min-width': '40rem' }">
         <ng-template pTemplate="caption">
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -16,8 +14,16 @@
                     @if (canReadAll()) {
                     <p-select [options]="facultyOptions()" optionLabel="label" optionValue="value"
                         [ngModel]="selectedFacultyId()" (ngModelChange)="onFacultyFilterChange($event)"
-                        placeholder="Choisir une faculté" appendTo="body" class="w-full md:w-16rem" />
+                        placeholder="Faculté" appendTo="body" class="w-full md:w-14rem" />
                     }
+                    <p-select [options]="programOptions()" optionLabel="label" optionValue="value"
+                        [ngModel]="selectedProgramId()" (ngModelChange)="onProgramFilterChange($event)"
+                        placeholder="Programme" appendTo="body" class="w-full md:w-14rem"
+                        [disabled]="!selectedFacultyId()" />
+                    <p-select [options]="programLevelOptions()" optionLabel="label" optionValue="value"
+                        [ngModel]="selectedProgramLevelId()" (ngModelChange)="onProgramLevelFilterChange($event)"
+                        placeholder="Niveau" appendTo="body" class="w-full md:w-12rem"
+                        [disabled]="!selectedProgramId()" />
                     <p-iconfield>
                         <p-inputicon styleClass="pi pi-search" />
                         <input pInputText type="text" placeholder="Rechercher..." (input)="onGlobalFilter(dt, $event)" />
@@ -44,17 +50,13 @@
                         <button pButton type="button" icon="pi pi-pencil" rounded outlined severity="info"
                             (click)="openEditDialog(unit)"></button>
                         }
-                        @if (canDelete()) {
-                        <button pButton type="button" icon="pi pi-trash" rounded outlined severity="danger"
-                            (click)="confirmDelete(unit)"></button>
-                        }
                     </div>
                 </td>
             </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="3">{{ selectedFacultyId() ? 'Aucune UE.' : 'Choisissez une faculté.' }}</td>
+                <td colspan="3">{{ selectedProgramLevelId() ? 'Aucune UE.' : 'Choisissez un niveau de programme.' }}</td>
             </tr>
         </ng-template>
     </p-table>
@@ -69,6 +71,16 @@
                 appendTo="body" class="w-full" />
         </div>
         <div>
+            <label class="block text-sm text-color-secondary mb-1">Programme</label>
+            <p-select formControlName="program_id" [options]="programOptions()" optionLabel="label" optionValue="value"
+                appendTo="body" class="w-full" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Niveau</label>
+            <p-select formControlName="program_level_id" [options]="dialogProgramLevelOptions()" optionLabel="label"
+                optionValue="value" appendTo="body" class="w-full" />
+        </div>
+        <div>
             <label class="block text-sm text-color-secondary mb-1">Code</label>
             <input pInputText formControlName="code" placeholder="UE-INFO-01" class="w-full" />
         </div>
@@ -78,7 +90,8 @@
                 optionValue="value" appendTo="body" class="w-full" />
         </div>
         <div class="flex justify-end gap-2">
-            <button pButton type="button" label="Annuler" severity="secondary" outlined (click)="closeDialog()"></button>
+            <button pButton type="button" label="Annuler" severity="secondary" outlined
+                (click)="closeDialog()"></button>
             <button pButton type="submit" label="Enregistrer" icon="pi pi-save" [loading]="saving()"></button>
         </div>
     </form>

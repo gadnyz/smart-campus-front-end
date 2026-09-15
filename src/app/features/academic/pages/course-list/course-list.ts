@@ -17,14 +17,16 @@ import { ToastModule } from 'primeng/toast';
 import { AuthService } from '@/app/core/auth/services/auth.service';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
+import { DetailNavigationService } from '@/app/shared/navigation/detail-navigation.service';
 import { AcademicPermission } from '../../permissions/permission.model';
 import { Course } from '../../models/course.model';
 import { CourseUnit, UE_BLOC_OPTIONS } from '../../models/course-unit.model';
 import { Faculty } from '../../models/faculty.model';
+import { Program } from '../../models/program.model';
 import { CourseService } from '../../services/course.service';
 import { CourseUnitService } from '../../services/course-unit.service';
 import { FacultyService } from '../../services/faculty.service';
-import { DetailNavigationService } from '@/app/shared/navigation/detail-navigation.service';
+import { ProgramService } from '../../services/program.service';
 
 @Component({
     selector: 'app-course-list',
@@ -52,22 +54,27 @@ export class CourseListPage implements OnInit {
     private readonly courseService = inject(CourseService);
     private readonly courseUnitService = inject(CourseUnitService);
     private readonly facultyService = inject(FacultyService);
+    private readonly programService = inject(ProgramService);
     private readonly router = inject(Router);
     private readonly authService = inject(AuthService);
     private readonly messageService = inject(MessageService);
     private readonly permissionService = inject(PermissionService);
     private readonly fb = inject(FormBuilder);
+    private readonly detailNavigation = inject(DetailNavigationService);
+    private readonly navigationScope = 'academic.courses';
 
     readonly courses = signal<Course[]>([]);
     readonly faculties = signal<Faculty[]>([]);
+    readonly programs = signal<Program[]>([]);
     readonly units = signal<CourseUnit[]>([]);
     readonly selectedFacultyId = signal<string | null>(null);
+    readonly selectedProgramId = signal<string | null>(null);
+    readonly selectedProgramLevelId = signal<string | null>(null);
+    readonly formProgramId = signal<string | null>(null);
     readonly scopedFacultyId = signal<string | null>(null);
     readonly loading = signal(false);
     readonly saving = signal(false);
     readonly dialogVisible = signal(false);
-    private readonly detailNavigation = inject(DetailNavigationService);
-    private readonly navigationScope = 'academic.courses';
 
     readonly canReadAll = computed(() =>
         this.permissionService.hasAnyPermission([AcademicPermission.CourseReadAll])
@@ -80,6 +87,17 @@ export class CourseListPage implements OnInit {
         }))
     );
 
+    readonly programOptions = computed(() =>
+        this.programs().map((program) => ({
+            label: `${program.code} — ${program.name}`,
+            value: program.id
+        }))
+    );
+
+    readonly programLevelOptions = computed(() => this.toLevelOptions(this.selectedProgramId()));
+
+    readonly dialogProgramLevelOptions = computed(() => this.toLevelOptions(this.formProgramId()));
+
     readonly unitOptions = computed(() =>
         this.units().map((unit) => ({
             label: `${unit.code} — ${this.blocLabel(unit.knowledge_skills_bloc)}`,
@@ -89,6 +107,8 @@ export class CourseListPage implements OnInit {
 
     readonly form = this.fb.nonNullable.group({
         faculty_id: [null as string | null, Validators.required],
+        program_id: [null as string | null, Validators.required],
+        program_level_id: [null as string | null, Validators.required],
         course_unit_id: [null as string | null, Validators.required],
         code: ['', Validators.required],
         name: ['', Validators.required],
@@ -110,10 +130,23 @@ export class CourseListPage implements OnInit {
 
     ngOnInit(): void {
         this.form.controls.faculty_id.valueChanges.subscribe((facultyId) => {
+            this.form.controls.program_id.setValue(null);
+            this.form.controls.program_level_id.setValue(null);
             this.form.controls.course_unit_id.setValue(null);
-
-            if (facultyId) {
-                this.loadUnits(facultyId);
+            this.formProgramId.set(null);
+            this.units.set([]);
+            this.loadPrograms(facultyId);
+        });
+        this.form.controls.program_id.valueChanges.subscribe((programId) => {
+            this.form.controls.program_level_id.setValue(null);
+            this.form.controls.course_unit_id.setValue(null);
+            this.formProgramId.set(programId);
+            this.units.set([]);
+        });
+        this.form.controls.program_level_id.valueChanges.subscribe((programLevelId) => {
+            this.form.controls.course_unit_id.setValue(null);
+            if (programLevelId) {
+                this.loadUnits(programLevelId);
             } else {
                 this.units.set([]);
             }
@@ -137,6 +170,22 @@ export class CourseListPage implements OnInit {
 
     onFacultyFilterChange(facultyId: string | null): void {
         this.selectedFacultyId.set(facultyId);
+        this.selectedProgramId.set(null);
+        this.selectedProgramLevelId.set(null);
+        this.courses.set([]);
+        this.loadPrograms(facultyId);
+        this.load();
+    }
+
+    onProgramFilterChange(programId: string | null): void {
+        this.selectedProgramId.set(programId);
+        this.selectedProgramLevelId.set(null);
+        this.courses.set([]);
+        this.load();
+    }
+
+    onProgramLevelFilterChange(programLevelId: string | null): void {
+        this.selectedProgramLevelId.set(programLevelId);
         this.load();
     }
 
@@ -146,19 +195,29 @@ export class CourseListPage implements OnInit {
 
     openCreateDialog(): void {
         const facultyId = this.scopedFacultyId() ?? this.selectedFacultyId();
-        this.form.reset({
-            faculty_id: facultyId,
-            course_unit_id: null,
-            code: '',
-            name: '',
-            description: '',
-            credits: 1
-        });
-
+        const programId = this.selectedProgramId();
+        const programLevelId = this.selectedProgramLevelId();
+        this.form.reset(
+            {
+                faculty_id: facultyId,
+                program_id: programId,
+                program_level_id: programLevelId,
+                course_unit_id: null,
+                code: '',
+                name: '',
+                description: '',
+                credits: 1
+            },
+            { emitEvent: false }
+        );
+        this.formProgramId.set(programId);
+        this.units.set([]);
         if (facultyId) {
-            this.loadUnits(facultyId);
+            this.loadPrograms(facultyId);
         }
-
+        if (programLevelId) {
+            this.loadUnits(programLevelId);
+        }
         this.dialogVisible.set(true);
     }
 
@@ -186,6 +245,8 @@ export class CourseListPage implements OnInit {
                 next: (course) => {
                     this.saving.set(false);
                     this.dialogVisible.set(false);
+                    this.selectedProgramId.set(raw.program_id);
+                    this.selectedProgramLevelId.set(raw.program_level_id);
                     this.load();
                     this.showSuccess(`Cours ${course.code} créé.`);
                 },
@@ -194,6 +255,15 @@ export class CourseListPage implements OnInit {
                     this.showError(error.error?.detail ?? 'Impossible d’enregistrer le cours.');
                 }
             });
+    }
+
+    private toLevelOptions(programId: string | null): { label: string; value: string }[] {
+        const program = this.programs().find((item) => item.id === programId);
+
+        return (program?.levels ?? []).map((item) => ({
+            label: item.is_common ? `${item.level.code} (commun)` : item.level.code,
+            value: item.id
+        }));
     }
 
     private blocLabel(bloc: string): string {
@@ -218,45 +288,77 @@ export class CourseListPage implements OnInit {
                 this.scopedFacultyId.set(faculty.id);
                 this.selectedFacultyId.set(faculty.id);
                 this.faculties.set([faculty]);
+                this.form.controls.faculty_id.disable({ emitEvent: false });
+                this.loadPrograms(faculty.id);
                 this.load();
             },
             error: () => void this.router.navigate(['/notfound'])
         });
     }
 
-    private load(): void {
-        this.loading.set(true);
-        const facultyId = this.selectedFacultyId();
-        const request$ = facultyId ? this.courseService.getByFaculty(facultyId) : this.courseService.getAll();
+    private loadPrograms(facultyId: string | null): void {
+        if (!facultyId) {
+            this.programs.set([]);
+            return;
+        }
 
-        request$.subscribe({
-            next: (courses) => {
-                const sorted = [...courses].sort((a, b) => a.code.localeCompare(b.code));
-                this.courses.set(sorted);
-                this.detailNavigation.setContext({
-                    scope: this.navigationScope,
-                    listRoute: ['/academic/courses'],
-                    page: 0,
-                    size: sorted.length,
-                    totalElements: sorted.length,
-                    totalPages: 1,
-                    items: sorted.map((course) => ({
-                        id: course.id,
-                        label: `${course.code} — ${course.name}`
-                    })),
-                    filters: { facultyId }
-                });
-                this.loading.set(false);
-            },
-            error: (error: HttpErrorResponse) => {
-                this.courses.set([]);
-                this.loading.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de charger les cours.');
-            }
+        this.programService.getByFaculty(facultyId).subscribe({
+            next: (programs) => this.programs.set(programs),
+            error: () => this.programs.set([])
         });
     }
-    private loadUnits(facultyId: string): void {
-        this.courseUnitService.getByFaculty(facultyId).subscribe({
+
+    private load(): void {
+        const programLevelId = this.selectedProgramLevelId();
+
+        if (!programLevelId) {
+            if (this.canReadAll() && !this.selectedFacultyId()) {
+                this.loading.set(true);
+                this.courseService.getAll().subscribe({
+                    next: (courses) => this.afterCourses(courses, null),
+                    error: (error: HttpErrorResponse) => this.onLoadError(error)
+                });
+                return;
+            }
+
+            this.courses.set([]);
+            return;
+        }
+
+        this.loading.set(true);
+        this.courseService.getByProgramLevel(programLevelId).subscribe({
+            next: (courses) => this.afterCourses(courses, programLevelId),
+            error: (error: HttpErrorResponse) => this.onLoadError(error)
+        });
+    }
+
+    private afterCourses(courses: Course[], programLevelId: string | null): void {
+        const sorted = [...courses].sort((a, b) => a.code.localeCompare(b.code));
+        this.courses.set(sorted);
+        this.detailNavigation.setContext({
+            scope: this.navigationScope,
+            listRoute: ['/academic/courses'],
+            page: 0,
+            size: sorted.length,
+            totalElements: sorted.length,
+            totalPages: 1,
+            items: sorted.map((course) => ({
+                id: course.id,
+                label: `${course.code} — ${course.name}`
+            })),
+            filters: { programLevelId }
+        });
+        this.loading.set(false);
+    }
+
+    private onLoadError(error: HttpErrorResponse): void {
+        this.courses.set([]);
+        this.loading.set(false);
+        this.showError(error.error?.detail ?? 'Impossible de charger les cours.');
+    }
+
+    private loadUnits(programLevelId: string): void {
+        this.courseUnitService.getByProgramLevel(programLevelId).subscribe({
             next: (units) => this.units.set(units),
             error: () => this.units.set([])
         });

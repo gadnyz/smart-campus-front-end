@@ -16,6 +16,8 @@ import { Course, CourseRequest } from '../../models/course.model';
 import { CourseUnit, UE_BLOC_OPTIONS } from '../../models/course-unit.model';
 import { CourseService } from '../../services/course.service';
 import { CourseUnitService } from '../../services/course-unit.service';
+import { ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 @Component({
     selector: 'app-course-unit-detail',
@@ -26,12 +28,13 @@ import { CourseUnitService } from '../../services/course-unit.service';
         TableModule,
         ButtonModule,
         ToastModule,
+        ConfirmDialogModule,
         DialogModule,
         SelectModule,
         ContentSubtopbar
     ],
     templateUrl: './course-unit-detail.html',
-    providers: [MessageService]
+    providers: [ConfirmationService, MessageService]
 })
 export class CourseUnitDetailPage implements OnInit {
     private readonly route = inject(ActivatedRoute);
@@ -50,6 +53,34 @@ export class CourseUnitDetailPage implements OnInit {
     readonly saving = signal(false);
     readonly movingCourse = signal<Course | null>(null);
     readonly otherUnits = signal<CourseUnit[]>([]);
+
+    private readonly confirmationService = inject(ConfirmationService);
+
+    readonly canDelete = computed(() =>
+        this.permissionService.hasAnyPermission([AcademicPermission.CourseUnitDeleteAll])
+    );
+
+    readonly canUpdate = computed(() =>
+        this.permissionService.hasAnyPermission([AcademicPermission.CourseUnitUpdateAll])
+    );
+
+    readonly actions = computed<SubtopbarAction[]>(() => [
+        {
+            label: 'Retour',
+            icon: 'pi pi-arrow-left',
+            severity: 'secondary',
+            outlined: true,
+            command: () => void this.router.navigate(['/academic/course-units'])
+        },
+        {
+            label: 'Supprimer',
+            icon: 'pi pi-trash',
+            severity: 'danger',
+            outlined: true,
+            command: () => this.confirmDelete(),
+            permissions: [AcademicPermission.CourseUnitDeleteAll]
+        }
+    ]);
 
     readonly attachedCourses = computed(() => {
         const unitId = this.unit()?.id;
@@ -74,15 +105,6 @@ export class CourseUnitDetailPage implements OnInit {
         return unit ? unit.code : 'UE';
     });
 
-    readonly actions = computed<SubtopbarAction[]>(() => [
-        {
-            label: 'Retour',
-            icon: 'pi pi-arrow-left',
-            severity: 'secondary',
-            outlined: true,
-            command: () => void this.router.navigate(['/academic/course-units'])
-        }
-    ]);
 
     readonly assignForm = this.fb.nonNullable.group({
         course_id: [null as string | null, Validators.required]
@@ -140,7 +162,7 @@ export class CourseUnitDetailPage implements OnInit {
             next: () => {
                 this.saving.set(false);
                 this.assignDialogVisible.set(false);
-                this.loadFacultyCourses(unit.faculty_id);
+                this.loadProgramLevelCourses(unit.program_level_id);
                 this.showSuccess(`Cours ${course.code} affecté.`);
             },
             error: (error: HttpErrorResponse) => {
@@ -159,7 +181,7 @@ export class CourseUnitDetailPage implements OnInit {
 
         this.movingCourse.set(course);
         this.moveForm.reset({ course_unit_id: null });
-        this.courseUnitService.getByFaculty(unit.faculty_id).subscribe({
+        this.courseUnitService.getByProgramLevel(unit.program_level_id).subscribe({
             next: (units) => {
                 this.otherUnits.set(units.filter((item) => item.id !== unit.id));
                 this.moveDialogVisible.set(true);
@@ -183,7 +205,7 @@ export class CourseUnitDetailPage implements OnInit {
                 this.saving.set(false);
                 this.moveDialogVisible.set(false);
                 this.movingCourse.set(null);
-                this.loadFacultyCourses(unit.faculty_id);
+                this.loadProgramLevelCourses(unit.program_level_id);
                 this.showSuccess(`Cours ${course.code} retiré de cette UE.`);
             },
             error: (error: HttpErrorResponse) => {
@@ -199,7 +221,7 @@ export class CourseUnitDetailPage implements OnInit {
             next: (unit) => {
                 this.unit.set(unit);
                 this.loading.set(false);
-                this.loadFacultyCourses(unit.faculty_id);
+                this.loadProgramLevelCourses(unit.program_level_id);
             },
             error: () => {
                 this.loading.set(false);
@@ -208,11 +230,38 @@ export class CourseUnitDetailPage implements OnInit {
         });
     }
 
-    private loadFacultyCourses(facultyId: string): void {
-        this.courseService.getByFaculty(facultyId).subscribe({
+    private loadProgramLevelCourses(programLevelId: string): void {
+        this.courseService.getByProgramLevel(programLevelId).subscribe({
             next: (courses) => this.facultyCourses.set(courses),
             error: (error: HttpErrorResponse) =>
                 this.showError(error.error?.detail ?? 'Impossible de charger les cours.')
+        });
+    }
+    confirmDelete(): void {
+        const unit = this.unit();
+        if (!unit) {
+            return;
+        }
+        this.confirmationService.confirm({
+            header: 'Supprimer l’UE',
+            message: `Supprimer ${unit.code} ? Les cours rattachés doivent d’abord être déplacés.`,
+            icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Supprimer',
+            rejectLabel: 'Annuler',
+            acceptButtonStyleClass: 'p-button-danger',
+            rejectButtonStyleClass: 'p-button-text',
+            accept: () => this.delete(unit)
+        });
+    }
+    private delete(unit: CourseUnit): void {
+        this.courseUnitService.delete(unit.id).subscribe({
+            next: () => {
+                this.showSuccess(`UE ${unit.code} supprimée.`);
+                void this.router.navigate(['/academic/course-units']);
+            },
+            error: (error: HttpErrorResponse) => {
+                this.showError(error.error?.detail ?? 'Impossible de supprimer cette UE.');
+            }
         });
     }
 

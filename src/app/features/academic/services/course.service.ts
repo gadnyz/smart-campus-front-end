@@ -13,14 +13,8 @@ export class CourseService {
         return this.http.get<Course[]>(this.baseUrl);
     }
 
-    getByFaculty(facultyId: string): Observable<Course[]> {
-        return this.http.get<Course[]>(`${this.baseUrl}/faculty/${facultyId}`);
-    }
-
-    findById(id: string, facultyId?: string): Observable<Course | null> {
-        const source$ = facultyId ? this.getByFaculty(facultyId) : this.getAll();
-
-        return source$.pipe(map((courses) => courses.find((course) => course.id === id) ?? null));
+    findById(id: string): Observable<Course | null> {
+        return this.getAll().pipe(map((courses) => courses.find((course) => course.id === id) ?? null));
     }
 
     create(payload: CourseRequest): Observable<Course> {
@@ -29,5 +23,9 @@ export class CourseService {
 
     update(id: string, payload: CourseRequest): Observable<Course> {
         return this.http.put<Course>(`${this.baseUrl}/${id}`, payload);
+    }
+
+    getByProgramLevel(programLevelId: string): Observable<Course[]> {
+        return this.http.get<Course[]>(`${this.baseUrl}/program-level/${programLevelId}`);
     }
 }

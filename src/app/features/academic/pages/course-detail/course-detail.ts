@@ -284,9 +284,9 @@ export class CourseDetailPage implements OnInit {
         });
         this.courseDialogVisible.set(true);
 
-        const facultyId = this.unit()?.faculty_id ?? course.faculty_id;
-        if (facultyId) {
-            this.courseUnitService.getByFaculty(facultyId).subscribe({
+        const programLevelId = this.unit()?.program_level_id;
+        if (programLevelId) {
+            this.courseUnitService.getByProgramLevel(programLevelId).subscribe({
                 next: (units) => this.units.set(units)
             });
         }
@@ -349,7 +349,7 @@ export class CourseDetailPage implements OnInit {
                     return;
                 }
 
-                this.courseService.findById(id, faculty.id).subscribe({
+                this.courseService.findById(id).subscribe({
                     next: (course) => this.afterCourse(course),
                     error: () => this.goToNotFound()
                 });

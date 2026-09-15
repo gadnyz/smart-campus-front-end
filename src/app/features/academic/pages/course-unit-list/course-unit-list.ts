@@ -3,9 +3,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -19,8 +18,10 @@ import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subto
 import { AcademicPermission } from '../../permissions/permission.model';
 import { CourseUnit, KnowledgeSkillsBloc, UE_BLOC_OPTIONS } from '../../models/course-unit.model';
 import { Faculty } from '../../models/faculty.model';
+import { Program } from '../../models/program.model';
 import { CourseUnitService } from '../../services/course-unit.service';
 import { FacultyService } from '../../services/faculty.service';
+import { ProgramService } from '../../services/program.service';
 
 @Component({
     selector: 'app-course-unit-list',
@@ -32,7 +33,6 @@ import { FacultyService } from '../../services/faculty.service';
         TableModule,
         ButtonModule,
         ToastModule,
-        ConfirmDialogModule,
         DialogModule,
         InputTextModule,
         SelectModule,
@@ -41,21 +41,25 @@ import { FacultyService } from '../../services/faculty.service';
         ContentSubtopbar
     ],
     templateUrl: './course-unit-list.html',
-    providers: [ConfirmationService, MessageService]
+    providers: [MessageService]
 })
 export class CourseUnitListPage implements OnInit {
     private readonly courseUnitService = inject(CourseUnitService);
     private readonly facultyService = inject(FacultyService);
+    private readonly programService = inject(ProgramService);
     private readonly router = inject(Router);
     private readonly authService = inject(AuthService);
-    private readonly confirmationService = inject(ConfirmationService);
     private readonly messageService = inject(MessageService);
     private readonly permissionService = inject(PermissionService);
     private readonly fb = inject(FormBuilder);
 
     readonly units = signal<CourseUnit[]>([]);
     readonly faculties = signal<Faculty[]>([]);
+    readonly programs = signal<Program[]>([]);
     readonly selectedFacultyId = signal<string | null>(null);
+    readonly selectedProgramId = signal<string | null>(null);
+    readonly selectedProgramLevelId = signal<string | null>(null);
+    readonly formProgramId = signal<string | null>(null);
     readonly scopedFacultyId = signal<string | null>(null);
     readonly loading = signal(false);
     readonly saving = signal(false);
@@ -72,10 +76,6 @@ export class CourseUnitListPage implements OnInit {
         this.permissionService.hasAnyPermission([AcademicPermission.CourseUnitUpdateAll])
     );
 
-    readonly canDelete = computed(() =>
-        this.permissionService.hasAnyPermission([AcademicPermission.CourseUnitDeleteAll])
-    );
-
     readonly dialogTitle = computed(() => (this.editingId() ? 'Modifier l’UE' : 'Nouvelle UE'));
 
     readonly facultyOptions = computed(() =>
@@ -85,8 +85,21 @@ export class CourseUnitListPage implements OnInit {
         }))
     );
 
+    readonly programOptions = computed(() =>
+        this.programs().map((program) => ({
+            label: `${program.code} — ${program.name}`,
+            value: program.id
+        }))
+    );
+
+    readonly programLevelOptions = computed(() => this.toLevelOptions(this.selectedProgramId()));
+
+    readonly dialogProgramLevelOptions = computed(() => this.toLevelOptions(this.formProgramId()));
+
     readonly form = this.fb.nonNullable.group({
         faculty_id: [null as string | null, Validators.required],
+        program_id: [null as string | null, Validators.required],
+        program_level_id: [null as string | null, Validators.required],
         code: ['', Validators.required],
         knowledge_skills_bloc: [null as KnowledgeSkillsBloc | null, Validators.required]
     });
@@ -102,6 +115,17 @@ export class CourseUnitListPage implements OnInit {
     ]);
 
     ngOnInit(): void {
+        this.form.controls.faculty_id.valueChanges.subscribe((facultyId) => {
+            this.form.controls.program_id.setValue(null);
+            this.form.controls.program_level_id.setValue(null);
+            this.formProgramId.set(null);
+            this.loadPrograms(facultyId);
+        });
+        this.form.controls.program_id.valueChanges.subscribe((programId) => {
+            this.form.controls.program_level_id.setValue(null);
+            this.formProgramId.set(programId);
+        });
+
         if (this.canReadAll()) {
             this.facultyService.getAll().subscribe({
                 next: (faculties) =>
@@ -119,6 +143,20 @@ export class CourseUnitListPage implements OnInit {
 
     onFacultyFilterChange(facultyId: string | null): void {
         this.selectedFacultyId.set(facultyId);
+        this.selectedProgramId.set(null);
+        this.selectedProgramLevelId.set(null);
+        this.units.set([]);
+        this.loadPrograms(facultyId);
+    }
+
+    onProgramFilterChange(programId: string | null): void {
+        this.selectedProgramId.set(programId);
+        this.selectedProgramLevelId.set(null);
+        this.units.set([]);
+    }
+
+    onProgramLevelFilterChange(programLevelId: string | null): void {
+        this.selectedProgramLevelId.set(programLevelId);
         this.load();
     }
 
@@ -127,22 +165,44 @@ export class CourseUnitListPage implements OnInit {
     }
 
     openCreateDialog(): void {
+        const facultyId = this.scopedFacultyId() ?? this.selectedFacultyId();
+        const programId = this.selectedProgramId();
         this.editingId.set(null);
-        this.form.reset({
-            faculty_id: this.scopedFacultyId() ?? this.selectedFacultyId(),
-            code: '',
-            knowledge_skills_bloc: null
-        });
+        this.form.reset(
+            {
+                faculty_id: facultyId,
+                program_id: programId,
+                program_level_id: this.selectedProgramLevelId(),
+                code: '',
+                knowledge_skills_bloc: null
+            },
+            { emitEvent: false }
+        );
+        this.formProgramId.set(programId);
+        if (facultyId) {
+            this.loadPrograms(facultyId);
+        }
         this.dialogVisible.set(true);
     }
 
     openEditDialog(unit: CourseUnit): void {
+        const facultyId = this.selectedFacultyId();
+        const programId = unit.program_id ?? this.selectedProgramId();
         this.editingId.set(unit.id);
-        this.form.reset({
-            faculty_id: unit.faculty_id,
-            code: unit.code,
-            knowledge_skills_bloc: unit.knowledge_skills_bloc
-        });
+        this.form.reset(
+            {
+                faculty_id: facultyId,
+                program_id: programId,
+                program_level_id: unit.program_level_id,
+                code: unit.code,
+                knowledge_skills_bloc: unit.knowledge_skills_bloc
+            },
+            { emitEvent: false }
+        );
+        this.formProgramId.set(programId);
+        if (facultyId) {
+            this.loadPrograms(facultyId);
+        }
         this.dialogVisible.set(true);
     }
 
@@ -161,7 +221,7 @@ export class CourseUnitListPage implements OnInit {
         const payload = {
             code: raw.code.trim(),
             knowledge_skills_bloc: raw.knowledge_skills_bloc as KnowledgeSkillsBloc,
-            faculty_id: raw.faculty_id as string
+            program_level_id: raw.program_level_id as string
         };
         const editingId = this.editingId();
         this.saving.set(true);
@@ -175,7 +235,8 @@ export class CourseUnitListPage implements OnInit {
                 this.saving.set(false);
                 this.dialogVisible.set(false);
                 this.editingId.set(null);
-                this.selectedFacultyId.set(unit.faculty_id);
+                this.selectedProgramId.set(raw.program_id);
+                this.selectedProgramLevelId.set(unit.program_level_id);
                 this.load();
                 this.showSuccess(editingId ? `UE ${unit.code} modifiée.` : `UE ${unit.code} créée.`);
             },
@@ -186,31 +247,49 @@ export class CourseUnitListPage implements OnInit {
         });
     }
 
-    confirmDelete(unit: CourseUnit): void {
-        this.confirmationService.confirm({
-            header: 'Supprimer l’UE',
-            message: `Supprimer ${unit.code} ? Les cours rattachés doivent d’abord être déplacés.`,
-            icon: 'pi pi-exclamation-triangle',
-            acceptLabel: 'Supprimer',
-            rejectLabel: 'Annuler',
-            acceptButtonStyleClass: 'p-button-danger',
-            rejectButtonStyleClass: 'p-button-text',
-            accept: () => this.delete(unit)
-        });
-    }
-
     blocLabel(bloc: string): string {
         return this.blocOptions.find((item) => item.value === bloc)?.label ?? bloc;
     }
 
-    private delete(unit: CourseUnit): void {
-        this.courseUnitService.delete(unit.id).subscribe({
-            next: () => {
-                this.load();
-                this.showSuccess(`UE ${unit.code} supprimée.`);
+    private toLevelOptions(programId: string | null): { label: string; value: string }[] {
+        const program = this.programs().find((item) => item.id === programId);
+
+        return (program?.levels ?? []).map((item) => ({
+            label: item.is_common ? `${item.level.code} (commun)` : item.level.code,
+            value: item.id
+        }));
+    }
+
+    private loadPrograms(facultyId: string | null): void {
+        if (!facultyId) {
+            this.programs.set([]);
+            return;
+        }
+
+        this.programService.getByFaculty(facultyId).subscribe({
+            next: (programs) => this.programs.set(programs),
+            error: () => this.programs.set([])
+        });
+    }
+
+    private load(): void {
+        const programLevelId = this.selectedProgramLevelId();
+
+        if (!programLevelId) {
+            this.units.set([]);
+            return;
+        }
+
+        this.loading.set(true);
+        this.courseUnitService.getByProgramLevel(programLevelId).subscribe({
+            next: (units) => {
+                this.units.set([...units].sort((a, b) => a.code.localeCompare(b.code)));
+                this.loading.set(false);
             },
             error: (error: HttpErrorResponse) => {
-                this.showError(error.error?.detail ?? 'Impossible de supprimer cette UE.');
+                this.units.set([]);
+                this.loading.set(false);
+                this.showError(error.error?.detail ?? 'Impossible de charger les UE.');
             }
         });
     }
@@ -233,31 +312,10 @@ export class CourseUnitListPage implements OnInit {
                 this.scopedFacultyId.set(faculty.id);
                 this.selectedFacultyId.set(faculty.id);
                 this.faculties.set([faculty]);
-                this.load();
+                this.form.controls.faculty_id.disable({ emitEvent: false });
+                this.loadPrograms(faculty.id);
             },
             error: () => void this.router.navigate(['/notfound'])
-        });
-    }
-
-    private load(): void {
-        const facultyId = this.selectedFacultyId();
-
-        if (!facultyId) {
-            this.units.set([]);
-            return;
-        }
-
-        this.loading.set(true);
-        this.courseUnitService.getByFaculty(facultyId).subscribe({
-            next: (units) => {
-                this.units.set([...units].sort((a, b) => a.code.localeCompare(b.code)));
-                this.loading.set(false);
-            },
-            error: (error: HttpErrorResponse) => {
-                this.units.set([]);
-                this.loading.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de charger les UE.');
-            }
         });
     }
 

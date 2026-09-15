@@ -28,7 +28,7 @@
                 <td>{{ program.code }}</td>
                 <td>{{ program.name }}</td>
                 <td>
-                    @for (item of program.levels ?? []; track item.level.id) {
+                   @for (item of program.levels ?? []; track item.id) {
                     <p-tag class="mr-1 mb-1" [value]="item.is_common ? item.level.code + ' (commun)' : item.level.code" />
                     }
                 </td>

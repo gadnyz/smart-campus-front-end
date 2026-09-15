@@ -9,14 +9,14 @@ export class CourseUnitService {
     private readonly http = inject(HttpClient);
     private readonly baseUrl = `${environment.apiBaseUrl}/api/v1/course-units`;
 
-    getByFaculty(facultyId: string, knowledgeSkillsBloc?: KnowledgeSkillsBloc): Observable<CourseUnit[]> {
+    getByProgramLevel(programLevelId: string, knowledgeSkillsBloc?: KnowledgeSkillsBloc): Observable<CourseUnit[]> {
         let params = new HttpParams();
 
         if (knowledgeSkillsBloc) {
             params = params.set('knowledgeSkillsBloc', knowledgeSkillsBloc);
         }
 
-        return this.http.get<CourseUnit[]>(`${this.baseUrl}/faculty/${facultyId}`, { params });
+        return this.http.get<CourseUnit[]>(`${this.baseUrl}/program-level/${programLevelId}`, { params });
     }
 
     getById(id: string): Observable<CourseUnit> {
