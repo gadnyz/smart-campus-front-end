@@ -25,6 +25,6 @@ export interface ProgramRequest {
     code: string;
     name: string;
     faculty_id: string;
-    levels: ProgramLevelRequest[];
+    levels?: ProgramLevelRequest[];
 }
 
