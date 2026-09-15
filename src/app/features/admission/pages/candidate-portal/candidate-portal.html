@@ -12,7 +12,7 @@
     <div class="portal-empty">
         <h2>Espace étudiant</h2>
         <p>
-           L’espace étudiant n’est pas encore disponible..
+            L’espace étudiant n’est pas encore disponible..
         </p>
     </div>
 </div>
@@ -226,23 +226,68 @@
     <section class="portal-docs card">
         <h3>Documents</h3>
 
-        <ul class="portal-docs__list">
-            @for (doc of c.documents; track doc.id) {
-            <li>
-                <strong>{{ documentLabel(doc.document_type) }}</strong>
-                <span>{{ doc.uploaded_at | date: 'dd/MM/yyyy HH:mm' }}</span>
-            </li>
-            } 
-        </ul>
+        @if (supportingDocuments().length) {
+        <div class="document-grid">
+            @for (document of supportingDocuments(); track document.id) {
+            <article class="document-item">
+                @if (documentKind(document) === 'image') {
+                <p-image [src]="documentViewUrl(document)" [previewImageSrc]="documentViewUrl(document)"
+                    [alt]="loadedDocumentLabel(document)" [preview]="true" [imageStyle]="{
+                    width: '100%',
+                    height: '10rem',
+                    objectFit: 'cover'
+                }" (onImageError)="onDocumentImageError(document)" />
+                } @else {
+                <div class="document-placeholder">
+                    <i [class]="documentKind(document) === 'pdf' ? 'pi pi-file-pdf' : 'pi pi-file'"></i>
+                </div>
+                }
+
+                <div class="document-information">
+                    <strong>{{ loadedDocumentLabel(document) }}</strong>
+                    @if (document.file_name) {
+                    <span>{{ document.file_name }}</span>
+                    }
+                    <span>{{ document.uploaded_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+
+                <div class="document-actions">
+                    @if (documentKind(document) === 'pdf') {
+                    <button pButton type="button" icon="pi pi-eye" label="Prévisualiser" size="small"
+                        (click)="openDocument(document)"></button>
+                    } @else if (documentKind(document) === 'unknown') {
+                    <a pButton [href]="documentViewUrl(document)" target="_blank" rel="noopener noreferrer"
+                        icon="pi pi-external-link" label="Ouvrir" size="small"></a>
+                    }
+
+                    @if (canManageDocuments()) {
+                    <button pButton type="button" icon="pi pi-upload" label="Remplacer" size="small" [outlined]="true"
+                        [disabled]="uploading()" (click)="replaceLoadedDocument(document.document_type)"></button>
+                    }
+                </div>
+            </article>
+            }
+        </div>
+        } @else {
+        <div class="empty-documents">
+            <i class="pi pi-file"></i>
+            <span>Aucun document chargé.</span>
+        </div>
+        }
 
         @if (canManageDocuments()) {
         <div class="portal-docs__upload">
             @for (doc of pendingDocs(); track doc.type) {
+            <input type="file" hidden [id]="'portal_doc_' + doc.type"
+                accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*"
+                (change)="onDocumentSelected($event, doc.type)" />
+            }
+
+            @if (missingPendingDocs().length) {
+            <p class="portal-hint">Ajoutez les pièces manquantes.</p>
+            @for (doc of missingPendingDocs(); track doc.type) {
             <div class="portal-docs__row">
                 <label [for]="'portal_doc_' + doc.type">{{ doc.label }}</label>
-                <input type="file" hidden [id]="'portal_doc_' + doc.type"
-                    accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*"
-                    (change)="onDocumentSelected($event, doc.type)" />
                 <button pButton type="button" class="p-button-outlined p-button-sm"
                     [label]="doc.file ? doc.file.name : 'Choisir un fichier'"
                     (click)="openDocumentPicker(doc.type)"></button>
@@ -254,8 +299,26 @@
             }
             <button pButton type="button" label="Téléverser les documents" icon="pi pi-upload" class="mt-3"
                 [loading]="uploading()" [disabled]="uploading()" (click)="uploadPendingDocuments()"></button>
+            }
         </div>
         }
     </section>
+
+    <p-dialog [header]="previewTitle()" [visible]="previewVisible()" (visibleChange)="onPreviewVisibleChange($event)"
+        [modal]="true" [maximizable]="true" [style]="{ width: '75vw' }" [contentStyle]="{ padding: '0' }"
+        [breakpoints]="{ '960px': '92vw', '640px': '98vw' }">
+        @if (safePreviewUrl(); as url) {
+        <iframe class="preview-pdf" [src]="url" title="Document du candidat"></iframe>
+        } @else {
+        <div class="preview-unavailable">Prévisualisation indisponible.</div>
+        }
+
+        @if (previewDocument(); as document) {
+        <div class="preview-actions">
+            <a pButton [href]="documentViewUrl(document)" target="_blank" rel="noopener noreferrer"
+                icon="pi pi-external-link" label="Ouvrir dans un nouvel onglet"></a>
+        </div>
+        }
+    </p-dialog>
 </div>
 }

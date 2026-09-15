@@ -278,6 +278,10 @@ export class CandidateManagement implements OnInit {
     }
 
     submittedLabel(candidate: CandidateListItem): string {
+        if (candidate.status === 'DRAFT' || !candidate.submitted_at) {
+            return '—';
+        }
+
         return formatCandidateDateTime(candidate.submitted_at);
     }
 

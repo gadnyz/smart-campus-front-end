@@ -674,7 +674,7 @@ export class CandidateDetail implements OnInit {
 
         const isDraft = candidate.candidature.status === 'DRAFT';
         const draftWarning = isDraft
-            ? ` Attention : ce dossier est encore en brouillon (documents éventuellement incomplets). Vous pouvez tout de même le valider.`
+            ? ` Attention : ce dossier est encore en brouillon (documents éventuellement incomplets).`
             : '';
 
         this.confirmationService.confirm({

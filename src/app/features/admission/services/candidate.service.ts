@@ -312,7 +312,7 @@ export class CandidateService {
             submitted_at:
                 candidate.submitted_at ??
                 candidate.candidature?.submitted_at ??
-                candidate.created_at
+                ''
         };
     }
 
@@ -407,9 +407,9 @@ export class CandidateService {
         return this.getByUserId(userId, force);
     }
 
-    /** Helper métier UI — DRAFT seul éditable. PENDING+ = lecture seule. */
+    /** Éditable tant que le dossier n’est ni validé ni rejeté. */
     canEditOwn(status: CandidatureStatus | null | undefined): boolean {
-        return status === 'DRAFT';
+        return status === 'DRAFT' || status === 'PENDING';
     }
 
     // lire / mettre à jour « mon » dossier
@@ -421,6 +421,10 @@ export class CandidateService {
                 tap((c) => {
                     this.detailCache.set(c.id, c);
                     this.detailCache.set('me', c);
+                    const userId = this.authService.getCurrentUser()?.id;
+                    if (userId) {
+                        this.detailCache.set(`user:${userId}`, c);
+                    }
                 })
             );
     }

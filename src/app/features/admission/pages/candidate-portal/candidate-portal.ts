@@ -3,7 +3,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
@@ -12,11 +11,16 @@ import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { forkJoin, of } from 'rxjs';
-import { catchError, finalize } from 'rxjs/operators';
+import { forkJoin, Observable, of } from 'rxjs';
+import { catchError, finalize, map, tap } from 'rxjs/operators';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DialogModule } from 'primeng/dialog';
+import { ImageModule } from 'primeng/image';
 
+import { isSignedUrlExpiredOrExpiring } from '@/app/shared/utils/signed-url';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import {
+    CandidateDocument,
     CandidateDocumentType,
     CandidateGender,
     CandidateResponse,
@@ -35,7 +39,8 @@ import {
     candidateStatusSeverity,
     formatCandidateDateTime,
     formatCandidateDocumentType,
-    formatCandidatureStatus
+    formatCandidatureStatus,
+    resolveCandidateDocumentKind
 } from '../../utils/candidate-format';
 
 type DocDraft = {
@@ -48,6 +53,8 @@ type DocDraft = {
     selector: 'app-candidate-portal',
     standalone: true,
     imports: [
+        DialogModule,
+        ImageModule,
         CommonModule,
         ReactiveFormsModule,
         ButtonModule,
@@ -75,9 +82,8 @@ export class CandidatePortal implements OnInit {
 
     readonly studentPlaceholder = signal(false);
 
-    readonly canManageDocuments = computed(
-        () => this.canEdit() && this.status() !== 'PENDING'
-    );
+
+    private readonly sanitizer = inject(DomSanitizer);
 
     readonly loading = signal(true);
     readonly saving = signal(false);
@@ -112,7 +118,6 @@ export class CandidatePortal implements OnInit {
     ]);
 
     readonly status = computed(() => this.candidate()?.candidature.status ?? null);
-    readonly canEdit = computed(() => this.status() === 'DRAFT');
 
     readonly statusLabel = computed(() => {
         const s = this.status();
@@ -124,6 +129,60 @@ export class CandidatePortal implements OnInit {
         return s ? candidateStatusSeverity(s) : 'secondary';
     });
 
+    readonly canEdit = computed(() => {
+        const status = this.status();
+        return status === 'DRAFT' || status === 'PENDING';
+    });
+    readonly canManageDocuments = computed(() => this.canEdit());
+    readonly documentViewUrls = signal<Record<string, string>>({});
+    readonly previewDocument = signal<CandidateDocument | null>(null);
+    readonly previewVisible = signal(false);
+
+    private readonly documentViewUrlRefreshAttempts = new Map<string, number>();
+    private readonly maxDocumentViewUrlRefreshes = 2;
+
+    readonly supportingDocuments = computed(
+        () =>
+            this.candidate()?.documents?.filter(
+                (document) => document.document_type !== 'PHOTO'
+            ) ?? []
+    );
+
+    readonly missingPendingDocs = computed(() => {
+        const present = new Set(
+            (this.candidate()?.documents ?? []).map((d) => d.document_type)
+        );
+        return this.pendingDocs().filter((d) => !present.has(d.type));
+    });
+
+    readonly previewTitle = computed(() => {
+        const document = this.previewDocument();
+        return document
+            ? formatCandidateDocumentType(document.document_type)
+            : 'Prévisualisation du document';
+    });
+
+    readonly safePreviewUrl = computed<SafeResourceUrl | null>(() => {
+        const document = this.previewDocument();
+        if (!document || this.documentKind(document) !== 'pdf') {
+            return null;
+        }
+
+        const viewUrl = this.documentViewUrls()[document.id];
+        if (!viewUrl) {
+            return null;
+        }
+
+        try {
+            const url = new URL(viewUrl, window.location.origin);
+            if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+                return null;
+            }
+            return this.sanitizer.bypassSecurityTrustResourceUrl(url.toString());
+        } catch {
+            return null;
+        }
+    });
 
     readonly lastUpdatedLabel = computed(() =>
         formatCandidateDateTime(this.candidate()?.updated_at)
@@ -290,6 +349,7 @@ export class CandidatePortal implements OnInit {
                 this.editing.set(false);
                 this.resolveLabels(c);
                 this.loadAcademicOptions(c.faculty_id, c.program_id);
+                this.resolveDocumentViewUrls(c);
                 this.loading.set(false);
             },
             error: (error: unknown) => {
@@ -375,13 +435,69 @@ export class CandidatePortal implements OnInit {
         return formatCandidateDocumentType(type);
     }
 
+    loadedDocumentLabel(document: CandidateDocument): string {
+        return formatCandidateDocumentType(document.document_type);
+    }
+
+    documentViewUrl(document: CandidateDocument): string {
+        return this.documentViewUrls()[document.id] ?? '';
+    }
+
+    documentKind(document: CandidateDocument): 'image' | 'pdf' | 'unknown' {
+        return resolveCandidateDocumentKind(document);
+    }
+
+    openDocument(document: CandidateDocument): void {
+        const viewUrl = this.documentViewUrl(document);
+
+        if (!viewUrl || isSignedUrlExpiredOrExpiring(viewUrl)) {
+            this.refreshDocumentViewUrl(document).subscribe((refreshedUrl) => {
+                if (!refreshedUrl) return;
+                this.previewDocument.set(document);
+                this.previewVisible.set(true);
+            });
+            return;
+        }
+
+        this.previewDocument.set(document);
+        this.previewVisible.set(true);
+    }
+
+    onDocumentImageError(document: CandidateDocument): void {
+        this.refreshDocumentViewUrl(document).subscribe();
+    }
+
+    onPreviewVisibleChange(visible: boolean): void {
+        this.previewVisible.set(visible);
+        if (!visible) {
+            this.previewDocument.set(null);
+        }
+    }
+
+    replaceLoadedDocument(type: CandidateDocumentType): void {
+        if (!this.canManageDocuments()) return;
+        this.openDocumentPicker(type);
+    }
+
     onDocumentSelected(event: Event, type: CandidateDocumentType): void {
         const input = event.target as HTMLInputElement;
         const file = input.files?.[0] ?? null;
+        input.value = '';
+
+        if (!file || !this.canManageDocuments()) return;
+
+        const alreadyLoaded = (this.candidate()?.documents ?? []).some(
+            (d) => d.document_type === type
+        );
+
+        if (alreadyLoaded) {
+            this.uploadFiles([{ type, file }]);
+            return;
+        }
+
         this.pendingDocs.update((docs) =>
             docs.map((d) => (d.type === type ? { ...d, file } : d))
         );
-        input.value = '';
     }
 
     removePendingDocument(type: CandidateDocumentType): void {
@@ -391,9 +507,6 @@ export class CandidatePortal implements OnInit {
     }
 
     uploadPendingDocuments(): void {
-        const candidate = this.candidate();
-        if (!candidate || !this.canEdit()) return;
-
         const files = this.pendingDocs()
             .filter((d) => d.file)
             .map((d) => ({ type: d.type, file: d.file as File }));
@@ -407,6 +520,15 @@ export class CandidatePortal implements OnInit {
             return;
         }
 
+        this.uploadFiles(files);
+    }
+
+    private uploadFiles(
+        files: Array<{ type: CandidateDocumentType; file: File }>
+    ): void {
+        const candidate = this.candidate();
+        if (!candidate || !this.canEdit()) return;
+
         this.uploading.set(true);
         this.candidateService
             .uploadDocuments(candidate.id, files)
@@ -416,7 +538,6 @@ export class CandidatePortal implements OnInit {
                     const failed = results.some((r) => r === null);
                     this.pendingDocs.update((docs) => docs.map((d) => ({ ...d, file: null })));
                     this.load();
-
                     this.messageService.add({
                         severity: failed ? 'warn' : 'success',
                         summary: failed ? 'Téléversement partiel' : 'Documents joints',
@@ -434,6 +555,55 @@ export class CandidatePortal implements OnInit {
                 }
             });
     }
+
+    private resolveDocumentViewUrls(candidate: CandidateResponse): void {
+        const documents = candidate.documents ?? [];
+        this.documentViewUrlRefreshAttempts.clear();
+
+        if (!documents.length) {
+            this.documentViewUrls.set({});
+            return;
+        }
+
+        forkJoin(
+            documents.map((document) =>
+                this.candidateService.resolveDocumentViewUrl(candidate.id, document).pipe(
+                    map((url) => ({ id: document.id, url })),
+                    catchError(() => of({ id: document.id, url: '' }))
+                )
+            )
+        )
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((entries) => {
+                this.documentViewUrls.set(
+                    Object.fromEntries(entries.map(({ id, url }) => [id, url]))
+                );
+            });
+    }
+
+    private refreshDocumentViewUrl(document: CandidateDocument): Observable<string> {
+        const candidateId = this.candidate()?.id;
+        if (!candidateId) return of('');
+
+        const attempts = this.documentViewUrlRefreshAttempts.get(document.id) ?? 0;
+        if (attempts >= this.maxDocumentViewUrlRefreshes) {
+            return of(this.documentViewUrls()[document.id] ?? '');
+        }
+
+        this.documentViewUrlRefreshAttempts.set(document.id, attempts + 1);
+
+        return this.candidateService.resolveDocumentViewUrl(candidateId, document).pipe(
+            tap((url) => {
+                this.documentViewUrls.update((current) => ({
+                    ...current,
+                    [document.id]: url
+                }));
+            }),
+            catchError(() => of(''))
+        );
+    }
+
+
 
     isInvalid(controlName: string): boolean {
         const control = this.form.get(controlName);

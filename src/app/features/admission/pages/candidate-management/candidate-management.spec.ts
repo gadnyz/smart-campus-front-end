@@ -107,4 +107,14 @@ describe('CandidateManagement', () => {
             })
         );
     });
+
+    it('should not display a submission date for draft applications', () => {
+        expect(
+            component.submittedLabel({
+                ...candidates[0],
+                status: 'DRAFT',
+                submitted_at: ''
+            })
+        ).toBe('—');
+    });
 });

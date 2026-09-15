@@ -94,4 +94,17 @@ describe('permissionGuard (RBAC — privilege escalation risk)', () => {
         expect(router.serializeUrl(usersList as UrlTree)).toBe('/access-denied');
         expect(router.serializeUrl(usersCreate as UrlTree)).toBe('/access-denied');
     });
+
+    it('should deny a route when the user also holds a hiddenWhen permission', () => {
+        permissionService.canAccess.and.returnValue(true);
+
+        const result = runGuard({
+            permissions: ['admission:candidate:read:own'],
+            mode: 'any',
+            hiddenWhenPermissions: ['admission:candidate:read:all']
+        });
+
+        expect(result instanceof UrlTree).toBeTrue();
+        expect(router.serializeUrl(result as UrlTree)).toBe('/access-denied');
+    });
 });

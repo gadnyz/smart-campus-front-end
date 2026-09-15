@@ -9,12 +9,10 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
-import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
-import { CandidateDocumentType, CandidateGender, CandidateResponse, CandidatureType, ConfirmDocumentResponse, MaritalStatus, SubmitCandidatureRequest } from '../../models/candidate.model';
+import { CandidateGender, CandidateResponse, CandidatureType, MaritalStatus, SubmitCandidatureRequest } from '../../models/candidate.model';
 import { CandidateService } from '../../services/candidate.service';
 import { AdmissionAcademicReferenceService } from '../../services/admission-academic-reference.service';
 import { AuthFooter } from '@/app/core/auth/auth-footer/auth-footer';
-import { AuthService } from '@/app/core/auth/services/auth.service';
 import { CoreSettingsStore } from '@/app/core/settings/services/core-settings.store';
 import { AdmissionSettingsStore } from '@/app/features/admission/settings/services/admission-settings.store';
 import { ProgramReference } from '@/app/features/academic/academic.public-api';
@@ -38,13 +36,6 @@ type CountryOption = {
 type SelectOption<T = string> = {
     label: string;
     value: T;
-};
-
-type CandidateDocumentDraft = {
-    type: CandidateDocumentType;
-    label: string;
-    required: boolean;
-    file: File | null;
 };
 
 type ProgramLevelOption = SelectOption & {
