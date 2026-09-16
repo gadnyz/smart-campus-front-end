@@ -61,6 +61,16 @@ describe('authInterceptor', () => {
         req.flush([]);
     });
 
+    it('should add Authorization header for same-origin proxied API URLs', () => {
+        sessionStorage.setItem('access_token', 'my-token');
+
+        httpClient.get('/api/v1/candidates?page=0&size=1').subscribe();
+
+        const req = httpTesting.expectOne('/api/v1/candidates?page=0&size=1');
+        expect(req.request.headers.get('Authorization')).toBe('Bearer my-token');
+        req.flush([]);
+    });
+
     describe('Swagger-generated API services — JWT attachment', () => {
         const swaggerPaths = [
             '/api/v1/users',
