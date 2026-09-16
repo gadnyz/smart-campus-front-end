@@ -1,10 +1,10 @@
 import { Level } from './level.model';
 
 export interface ProgramLevel {
+    id: string;
     level: Level;
     is_common: boolean;
 }
-
 export interface Program {
     id: string;
     name: string;
@@ -25,5 +25,6 @@ export interface ProgramRequest {
     code: string;
     name: string;
     faculty_id: string;
-    levels: ProgramLevelRequest[];
+    levels?: ProgramLevelRequest[];
 }
+

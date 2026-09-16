@@ -9,6 +9,8 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       CHOKIDAR_USEPOLLING: "true"
     stdin_open: true

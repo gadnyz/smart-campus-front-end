@@ -28,8 +28,8 @@
                 <td>{{ program.code }}</td>
                 <td>{{ program.name }}</td>
                 <td>
-                    @for (item of program.levels ?? []; track item.level.id) {
-                    <p-tag class="mr-1 mb-1" [value]="item.is_common ? item.level.code + ' (commun)' : item.level.code" />
+                    @for (item of program.levels ?? []; track item.id) {
+                    <p-tag class="mr-1 mb-1" [value]="item.level.code" />
                     }
                 </td>
                 @if (canShowProgramActions()) {
@@ -112,22 +112,6 @@
             <label class="block text-sm text-color-secondary mb-1">Niveaux</label>
             <p-multiselect formControlName="level_ids" [options]="levelOptions()" optionLabel="label"
                 optionValue="value" display="chip" appendTo="body" class="w-full" />
-            @if (selectedLevelOptions().length) {
-            <div class="flex flex-col gap-2 mt-3">
-                @for (level of selectedLevelOptions(); track level.value) {
-                <div class="flex items-center gap-2">
-                    <p-checkbox
-                        [binary]="true"
-                        [ngModel]="isCommonLevel(level.value)"
-                        [ngModelOptions]="{ standalone: true }"
-                        (ngModelChange)="setCommonLevel(level.value, $event === true)"
-                        [inputId]="'common-' + level.value"
-                    />
-                    <label [for]="'common-' + level.value" class="text-sm">{{ level.label }} — tronc commun</label>
-                </div>
-                }
-            </div>
-            }
         </div>
         <div class="flex justify-end gap-2">
             <button pButton type="button" label="Annuler" severity="secondary" outlined
@@ -154,6 +138,25 @@
             <button pButton type="button" label="Annuler" severity="secondary" outlined
                 (click)="leadershipDialogVisible.set(false)"></button>
             <button pButton type="submit" label="Assigner" icon="pi pi-save" [loading]="savingLeadership()"></button>
+        </div>
+    </form>
+</p-dialog>
+
+<p-dialog header="Modifier la faculté" [visible]="facultyDialogVisible()"
+    (visibleChange)="facultyDialogVisible.set($event)" [modal]="true" [style]="{ width: '32rem' }">
+    <form [formGroup]="facultyForm" class="flex flex-col gap-4" (ngSubmit)="submitFaculty()">
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Code</label>
+            <input pInputText formControlName="code" class="w-full" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Nom</label>
+            <input pInputText formControlName="name" class="w-full" />
+        </div>
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined
+                (click)="facultyDialogVisible.set(false)"></button>
+            <button pButton type="submit" label="Enregistrer" icon="pi pi-save" [loading]="savingFaculty()"></button>
         </div>
     </form>
 </p-dialog>

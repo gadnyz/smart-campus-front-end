@@ -1,11 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { CheckboxModule } from 'primeng/checkbox';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
@@ -20,21 +19,23 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
 import { UsersService } from '@/app/features/identity/users/services/user.service';
 import { AcademicPermission } from '../../permissions/permission.model';
 import { Faculty, FacultyLeadership, FacultyLeadershipRole } from '../../models/faculty.model';
-import { Program } from '../../models/program.model';
+import { Program, ProgramLevel } from '../../models/program.model';
 import { FacultyService } from '../../services/faculty.service';
 import { ProgramService } from '../../services/program.service';
 import { LevelService } from '../../services/level.service';
 import { AcademicCatalogService } from '../../services/academic-catalog.service';
+import {
+    DetailNavigationService,
+    DetailNavigationState
+} from '@/app/shared/navigation/detail-navigation.service';
 
 @Component({
     selector: 'app-faculty-detail',
     standalone: true,
     imports: [
         CommonModule,
-        FormsModule,
         ReactiveFormsModule,
         TableModule,
-        CheckboxModule,
         ButtonModule,
         ToastModule,
         ConfirmDialogModule,
@@ -61,6 +62,8 @@ export class FacultyDetailPage implements OnInit {
     private readonly messageService = inject(MessageService);
     private readonly permissionService = inject(PermissionService);
     private readonly fb = inject(FormBuilder);
+    private readonly detailNavigation = inject(DetailNavigationService);
+    private readonly navigationScope = 'academic.faculties';
 
     readonly faculty = signal<Faculty | null>(null);
     readonly programs = signal<Program[]>([]);
@@ -70,7 +73,11 @@ export class FacultyDetailPage implements OnInit {
     readonly leadershipDialogVisible = signal(false);
     readonly savingProgram = signal(false);
     readonly savingLeadership = signal(false);
+    readonly savingFaculty = signal(false);
+    readonly facultyDialogVisible = signal(false);
     readonly editingProgramId = signal<string | null>(null);
+    readonly editingProgramLevels = signal<ProgramLevel[]>([]);
+    readonly navigationState = signal<DetailNavigationState | null>(null);
 
     readonly levelOptions = signal<{ label: string; value: string }[]>([]);
     readonly userOptions = signal<{ label: string; value: string }[]>([]);
@@ -105,7 +112,18 @@ export class FacultyDetailPage implements OnInit {
 
     readonly title = computed(() => {
         const faculty = this.faculty();
-        return faculty ? `${faculty.code} — ${faculty.name}` : 'Faculté';
+        const name = faculty ? `${faculty.code} — ${faculty.name}` : 'Faculté';
+        const position = this.navigationState()?.label;
+
+        return position ? `${name} (${position})` : name;
+    });
+
+    readonly canGoPrevious = computed(() => this.navigationState()?.hasPrevious ?? false);
+    readonly canGoNext = computed(() => this.navigationState()?.hasNext ?? false);
+
+    readonly facultyForm = this.fb.nonNullable.group({
+        code: ['', Validators.required],
+        name: ['', Validators.required]
     });
 
 
@@ -122,7 +140,6 @@ export class FacultyDetailPage implements OnInit {
     });
 
     readonly ownFaculty = signal(false);
-    readonly commonByLevelId = signal<Record<string, boolean>>({});
 
     readonly actions = computed<SubtopbarAction[]>(() => {
         if (this.ownFaculty() || !this.permissionService.hasAnyPermission([AcademicPermission.FacultyReadAll])) {
@@ -131,11 +148,39 @@ export class FacultyDetailPage implements OnInit {
 
         return [
             {
-                label: 'Retour',
-                icon: 'pi pi-arrow-left',
+                label: 'Liste',
+                icon: 'pi pi-list',
                 severity: 'secondary',
-                outlined: true,
+                outlined: false,
                 command: () => void this.router.navigate(['/academic/faculties'])
+            },
+            {
+                label: 'Précédent',
+                icon: 'pi pi-chevron-left',
+                severity: 'secondary',
+                disabled: !this.canGoPrevious() || this.loading(),
+                command: () => this.goToPreviousFaculty()
+            },
+            {
+                label: 'Suivant',
+                icon: 'pi pi-chevron-right',
+                severity: 'secondary',
+                disabled: !this.canGoNext() || this.loading(),
+                command: () => this.goToNextFaculty()
+            },
+            {
+                label: 'Modifier',
+                icon: 'pi pi-pencil',
+                command: () => this.openEditFaculty(),
+                permissions: [AcademicPermission.FacultyUpdateAll]
+            },
+            {
+                label: 'Supprimer',
+                icon: 'pi pi-trash',
+                severity: 'danger',
+                outlined: true,
+                command: () => this.confirmDeleteFaculty(),
+                permissions: [AcademicPermission.FacultyDeleteAll]
             }
         ];
     });
@@ -156,14 +201,17 @@ export class FacultyDetailPage implements OnInit {
             return;
         }
 
-        const id = this.route.snapshot.paramMap.get('id');
+        this.route.paramMap.subscribe((params) => {
+            const id = params.get('id');
 
-        if (!id) {
-            this.goToNotFound();
-            return;
-        }
+            if (!id) {
+                this.goToNotFound();
+                return;
+            }
 
-        this.loadFaculty(id);
+            this.syncNavigation(id);
+            this.loadFaculty(id);
+        });
     }
 
     private loadOwnFaculty(): void {
@@ -206,35 +254,20 @@ export class FacultyDetailPage implements OnInit {
 
     openCreateProgram(): void {
         this.editingProgramId.set(null);
-        this.commonByLevelId.set({});
+        this.editingProgramLevels.set([]);
         this.programForm.reset({ code: '', name: '', level_ids: [] });
         this.programDialogVisible.set(true);
     }
 
     openEditProgram(program: Program): void {
         this.editingProgramId.set(program.id);
-        this.commonByLevelId.set(
-            Object.fromEntries((program.levels ?? []).map((item) => [item.level.id, item.is_common === true]))
-        );
+        this.editingProgramLevels.set(program.levels ?? []);
         this.programForm.reset({
             code: program.code,
             name: program.name,
             level_ids: (program.levels ?? []).map((item) => item.level.id)
         });
         this.programDialogVisible.set(true);
-    }
-
-    selectedLevelOptions(): { label: string; value: string }[] {
-        const selectedIds = this.programForm.controls.level_ids.value ?? [];
-        return this.levelOptions().filter((option) => selectedIds.includes(option.value));
-    }
-
-    isCommonLevel(levelId: string): boolean {
-        return this.commonByLevelId()[levelId] === true;
-    }
-
-    setCommonLevel(levelId: string, value: boolean): void {
-        this.commonByLevelId.update((current) => ({ ...current, [levelId]: value }));
     }
 
     submitProgram(): void {
@@ -246,16 +279,19 @@ export class FacultyDetailPage implements OnInit {
         }
 
         const raw = this.programForm.getRawValue();
+        const editingId = this.editingProgramId();
+        const existingByLevelId = new Map(
+            this.editingProgramLevels().map((item) => [item.level.id, item])
+        );
         const payload = {
             code: raw.code.trim(),
             name: raw.name.trim(),
             faculty_id: faculty.id,
             levels: raw.level_ids.map((level_id) => ({
                 level_id,
-                is_common: this.commonByLevelId()[level_id] === true
+                is_common: existingByLevelId.get(level_id)?.is_common ?? false
             }))
         };
-        const editingId = this.editingProgramId();
         this.savingProgram.set(true);
 
         const request$ = editingId
@@ -430,6 +466,151 @@ export class FacultyDetailPage implements OnInit {
 
     private goToNotFound(): void {
         void this.router.navigate(['/notfound']);
+    }
+
+    openEditFaculty(): void {
+        const faculty = this.faculty();
+
+        if (!faculty) {
+            return;
+        }
+
+        this.facultyForm.reset({ code: faculty.code, name: faculty.name });
+        this.facultyDialogVisible.set(true);
+    }
+
+    submitFaculty(): void {
+        const faculty = this.faculty();
+
+        if (!faculty || this.facultyForm.invalid) {
+            this.facultyForm.markAllAsTouched();
+            return;
+        }
+
+        const raw = this.facultyForm.getRawValue();
+        this.savingFaculty.set(true);
+
+        this.facultyService
+            .update(faculty.id, { code: raw.code.trim(), name: raw.name.trim() })
+            .subscribe({
+                next: (updated) => {
+                    this.savingFaculty.set(false);
+                    this.facultyDialogVisible.set(false);
+                    this.faculty.set(updated);
+                    this.academicCatalog.invalidateFaculties();
+                    this.refreshNavigationLabel(updated);
+                    this.showSuccess(`Faculté ${updated.code} modifiée.`);
+                },
+                error: (error: HttpErrorResponse) => {
+                    this.savingFaculty.set(false);
+                    this.showError(error.error?.detail ?? 'Impossible de modifier la faculté.');
+                }
+            });
+    }
+
+    confirmDeleteFaculty(): void {
+        const faculty = this.faculty();
+
+        if (!faculty) {
+            return;
+        }
+
+        this.confirmationService.confirm({
+            header: 'Supprimer la faculté',
+            message: `Supprimer ${faculty.code} — ${faculty.name} ?`,
+            icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Supprimer',
+            rejectLabel: 'Annuler',
+            acceptButtonStyleClass: 'p-button-danger',
+            rejectButtonStyleClass: 'p-button-text',
+            accept: () => this.deleteFaculty(faculty)
+        });
+    }
+
+    private deleteFaculty(faculty: Faculty): void {
+        this.facultyService.delete(faculty.id).subscribe({
+            next: () => {
+                this.academicCatalog.invalidateFaculties();
+                this.showSuccess(`Faculté ${faculty.code} supprimée.`);
+                void this.router.navigate(['/academic/faculties']);
+            },
+            error: (error: HttpErrorResponse) => {
+                this.showError(error.error?.detail ?? 'Impossible de supprimer cette faculté.');
+            }
+        });
+    }
+
+    private syncNavigation(id: string): void {
+        const state = this.detailNavigation.getState(this.navigationScope, id);
+        this.navigationState.set(state);
+
+        if (state) {
+            return;
+        }
+
+        this.facultyService.getAll().subscribe({
+            next: (faculties) => {
+                const sorted = [...faculties].sort((a, b) => a.name.localeCompare(b.name));
+                this.detailNavigation.setContext({
+                    scope: this.navigationScope,
+                    listRoute: ['/academic/faculties'],
+                    page: 0,
+                    size: sorted.length,
+                    totalElements: sorted.length,
+                    totalPages: 1,
+                    items: sorted.map((item) => ({
+                        id: item.id,
+                        label: `${item.code} — ${item.name}`
+                    }))
+                });
+                this.navigationState.set(this.detailNavigation.getState(this.navigationScope, id));
+            }
+        });
+    }
+
+    private refreshNavigationLabel(faculty: Faculty): void {
+        const context = this.detailNavigation.getContext(this.navigationScope);
+
+        if (!context) {
+            this.syncNavigation(faculty.id);
+            return;
+        }
+
+        this.detailNavigation.setContext({
+            ...context,
+            items: context.items.map((item) =>
+                item.id === faculty.id ? { id: faculty.id, label: `${faculty.code} — ${faculty.name}` } : item
+            )
+        });
+        this.navigationState.set(this.detailNavigation.getState(this.navigationScope, faculty.id));
+    }
+
+    private goToPreviousFaculty(): void {
+        const state = this.navigationState();
+
+        if (!state?.hasPrevious) {
+            return;
+        }
+
+        const previous = state.context.items[state.localIndex - 1];
+
+        if (previous) {
+            void this.router.navigate(['/academic/faculties', previous.id]);
+        }
+    }
+
+    private goToNextFaculty(): void {
+        const state = this.navigationState();
+
+        if (!state?.hasNext) {
+            return;
+        }
+
+        const next = state.context.items[state.localIndex + 1];
+
+        if (next) {
+            void this.router.navigate(['/academic/faculties', next.id]);
+        }
     }
 
     private showSuccess(detail: string): void {

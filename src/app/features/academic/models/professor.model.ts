@@ -1,3 +1,5 @@
+import { Level } from "./level.model";
+
 export interface Professor {
     id: string;
     first_name: string;
@@ -8,4 +10,10 @@ export interface Professor {
     professor_grade_id?: string;
     matricule?: string | null;
     user_id?: string;
+}
+
+export interface ProgramLevel {
+    id: string;
+    level: Level;
+    is_common: boolean;
 }

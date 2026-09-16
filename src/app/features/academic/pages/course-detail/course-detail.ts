@@ -72,14 +72,18 @@ export class CourseDetailPage implements OnInit {
     readonly course = signal<Course | null>(null);
     readonly unit = signal<CourseUnit | null>(null);
     readonly units = signal<CourseUnit[]>([]);
-    readonly assignments = signal<CourseAssignment[]>([]);
+    readonly allAssignments = signal<CourseAssignment[]>([]);
     readonly professors = signal<Professor[]>([]);
-    readonly years = signal<AcademicYear[]>([]);
+    readonly currentYear = signal<AcademicYear | null>(null);
     readonly loading = signal(false);
     readonly dialogVisible = signal(false);
     readonly courseDialogVisible = signal(false);
     readonly saving = signal(false);
     readonly savingCourse = signal(false);
+
+    readonly assignments = computed(() =>
+        this.allAssignments().filter((item) => item.status !== 'INACTIVE')
+    );
 
     private readonly detailNavigation = inject(DetailNavigationService);
     private readonly navigationScope = 'academic.courses';
@@ -89,10 +93,10 @@ export class CourseDetailPage implements OnInit {
     readonly canGoPrevious = computed(() => this.navigationState()?.hasPrevious ?? false);
     readonly canGoNext = computed(() => this.navigationState()?.hasNext ?? false);
 
-    readonly typeOptions: { label: string; value: CourseAssignmentType }[] = [
-        { label: 'Titulaire', value: 'LEAD_INSTRUCTOR' },
-        { label: 'Assistant', value: 'CO_INSTRUCTOR' }
-    ];
+    private readonly typeLabels: Record<CourseAssignmentType, string> = {
+        LEAD_INSTRUCTOR: 'Titulaire',
+        CO_INSTRUCTOR: 'Assistant'
+    };
 
     readonly canAssign = computed(() =>
         this.permissionService.hasAnyPermission([AcademicPermission.CourseAssignmentCreateAll])
@@ -157,16 +161,43 @@ export class CourseDetailPage implements OnInit {
         credits: [1, [Validators.required, Validators.min(1)]]
     });
 
-    readonly professorOptions = computed(() =>
-        this.professors().map((professor) => ({
-            label: this.professorLabel(professor),
-            value: professor.id
-        }))
-    );
+    readonly professorOptions = computed(() => {
+        const yearId = this.currentYear()?.id;
+        const taken = new Set(
+            this.assignments()
+                .filter((item) => !yearId || item.academic_year_id === yearId)
+                .map((item) => item.professor_id)
+        );
 
-    readonly yearOptions = computed(() =>
-        this.years().map((year) => ({ label: year.label, value: year.id }))
-    );
+        return this.professors()
+            .filter((professor) => !taken.has(professor.id))
+            .map((professor) => ({
+                label: this.professorLabel(professor),
+                value: professor.id
+            }));
+    });
+
+    readonly yearOptions = computed(() => {
+        const year = this.currentYear();
+        return year ? [{ label: year.label, value: year.id }] : [];
+    });
+
+    readonly typeOptions = computed(() => {
+        const yearId = this.currentYear()?.id;
+        const hasLead = this.assignments().some(
+            (item) =>
+                (!yearId || item.academic_year_id === yearId) && item.assignment_type === 'LEAD_INSTRUCTOR'
+        );
+        const options: { label: string; value: CourseAssignmentType }[] = [
+            { label: this.typeLabels.CO_INSTRUCTOR, value: 'CO_INSTRUCTOR' }
+        ];
+
+        if (!hasLead) {
+            options.unshift({ label: this.typeLabels.LEAD_INSTRUCTOR, value: 'LEAD_INSTRUCTOR' });
+        }
+
+        return options;
+    });
 
     readonly form = this.fb.nonNullable.group({
         professor_id: [null as string | null, Validators.required],
@@ -175,8 +206,9 @@ export class CourseDetailPage implements OnInit {
     });
 
     ngOnInit(): void {
-        this.academicYearService.getAll().subscribe({
-            next: (years) => this.years.set(years)
+        this.academicYearService.getCurrent().subscribe({
+            next: (year) => this.currentYear.set(year),
+            error: () => this.currentYear.set(null)
         });
 
         this.route.paramMap.subscribe((params) => {
@@ -191,13 +223,25 @@ export class CourseDetailPage implements OnInit {
             this.loadCourse(id);
         });
     }
+
     openAssign(): void {
-        const currentYear = this.years().find((year) => year.status === 'ACTIVE');
+        const year = this.currentYear();
+
+        if (!year) {
+            this.showError('Aucune année académique active.');
+            return;
+        }
+
+        const hasLead = this.assignments().some(
+            (item) => item.academic_year_id === year.id && item.assignment_type === 'LEAD_INSTRUCTOR'
+        );
+
         this.form.reset({
             professor_id: null,
-            academic_year_id: currentYear?.id ?? null,
-            assignment_type: 'LEAD_INSTRUCTOR'
+            academic_year_id: year.id,
+            assignment_type: hasLead ? 'CO_INSTRUCTOR' : 'LEAD_INSTRUCTOR'
         });
+        this.form.controls.academic_year_id.disable({ emitEvent: false });
         this.dialogVisible.set(true);
         this.loadProfessors();
     }
@@ -211,27 +255,59 @@ export class CourseDetailPage implements OnInit {
         }
 
         const raw = this.form.getRawValue();
+        const professorId = raw.professor_id as string;
+        const yearId = raw.academic_year_id as string;
+        const type = raw.assignment_type as CourseAssignmentType;
+
+        const alreadyActive = this.assignments().some(
+            (item) => item.professor_id === professorId && item.academic_year_id === yearId
+        );
+
+        if (alreadyActive) {
+            this.showError('Ce professeur est déjà assigné à ce cours pour cette année.');
+            return;
+        }
+
+        if (
+            type === 'LEAD_INSTRUCTOR' &&
+            this.assignments().some(
+                (item) => item.academic_year_id === yearId && item.assignment_type === 'LEAD_INSTRUCTOR'
+            )
+        ) {
+            this.showError('Ce cours a déjà un titulaire pour cette année.');
+            return;
+        }
+
+        const inactive = this.allAssignments().find(
+            (item) =>
+                item.professor_id === professorId &&
+                item.academic_year_id === yearId &&
+                item.status === 'INACTIVE'
+        );
+
         this.saving.set(true);
 
-        this.assignmentService
-            .create({
-                course_id: course.id,
-                professor_id: raw.professor_id as string,
-                academic_year_id: raw.academic_year_id as string,
-                assignment_type: raw.assignment_type as CourseAssignmentType
-            })
-            .subscribe({
-                next: () => {
-                    this.saving.set(false);
-                    this.dialogVisible.set(false);
-                    this.loadAssignments(course.id);
-                    this.showSuccess('Professeur assigné.');
-                },
-                error: (error: HttpErrorResponse) => {
-                    this.saving.set(false);
-                    this.showError(error.error?.detail ?? 'Impossible d’assigner ce professeur.');
-                }
-            });
+        const request$ = inactive
+            ? this.assignmentService.update(inactive.id, { assignment_type: type, status: 'ACTIVE' })
+            : this.assignmentService.create({
+                  course_id: course.id,
+                  professor_id: professorId,
+                  academic_year_id: yearId,
+                  assignment_type: type
+              });
+
+        request$.subscribe({
+            next: () => {
+                this.saving.set(false);
+                this.dialogVisible.set(false);
+                this.loadAssignments(course.id);
+                this.showSuccess('Professeur assigné.');
+            },
+            error: (error: HttpErrorResponse) => {
+                this.saving.set(false);
+                this.showError(error.error?.detail ?? 'Impossible d’assigner ce professeur.');
+            }
+        });
     }
 
     confirmRetract(item: CourseAssignment): void {
@@ -248,7 +324,7 @@ export class CourseDetailPage implements OnInit {
     }
 
     typeLabel(type: string): string {
-        return this.typeOptions.find((item) => item.value === type)?.label ?? type;
+        return this.typeLabels[type as CourseAssignmentType] ?? type;
     }
 
     assignmentProfessorLabel(item: CourseAssignment): string {
@@ -284,9 +360,9 @@ export class CourseDetailPage implements OnInit {
         });
         this.courseDialogVisible.set(true);
 
-        const facultyId = this.unit()?.faculty_id ?? course.faculty_id;
-        if (facultyId) {
-            this.courseUnitService.getByFaculty(facultyId).subscribe({
+        const programLevelId = this.unit()?.program_level_id;
+        if (programLevelId) {
+            this.courseUnitService.getByProgramLevel(programLevelId).subscribe({
                 next: (units) => this.units.set(units)
             });
         }
@@ -349,7 +425,7 @@ export class CourseDetailPage implements OnInit {
                     return;
                 }
 
-                this.courseService.findById(id, faculty.id).subscribe({
+                this.courseService.findById(id).subscribe({
                     next: (course) => this.afterCourse(course),
                     error: () => this.goToNotFound()
                 });
@@ -374,7 +450,7 @@ export class CourseDetailPage implements OnInit {
 
     private loadAssignments(courseId: string): void {
         this.assignmentService.getByCourse(courseId).subscribe({
-            next: (items) => this.assignments.set(items.filter((item) => item.status !== 'INACTIVE')),
+            next: (items) => this.allAssignments.set(items),
             error: (error: HttpErrorResponse) =>
                 this.showError(error.error?.detail ?? 'Impossible de charger les enseignants.')
         });

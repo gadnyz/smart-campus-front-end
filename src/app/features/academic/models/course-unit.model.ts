@@ -4,7 +4,13 @@ export interface CourseUnit {
     id: string;
     code: string;
     knowledge_skills_bloc: KnowledgeSkillsBloc;
-    faculty_id: string;
+    program_level_id: string;
+    program_id?: string;
+    program_code?: string;
+    program_name?: string;
+    level_code?: string;
+    level_name?: string;
+    faculty_id?: string;
     faculty_name?: string;
     created_at?: string;
     updated_at?: string;
@@ -13,7 +19,7 @@ export interface CourseUnit {
 export interface CourseUnitRequest {
     code: string;
     knowledge_skills_bloc: KnowledgeSkillsBloc;
-    faculty_id: string;
+    program_level_id: string;
 }
 
 export const UE_BLOC_OPTIONS: { label: string; value: KnowledgeSkillsBloc }[] = [

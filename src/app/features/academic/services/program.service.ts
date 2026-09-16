@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, switchMap } from 'rxjs';
 import { environment } from '@/environments/environment';
 import { Program, ProgramRequest } from '../models/program.model';
 
@@ -18,10 +18,28 @@ export class ProgramService {
     }
 
     update(id: string, payload: ProgramRequest): Observable<Program> {
-        return this.http.put<Program>(`${this.baseUrl}/${id}`, payload);
+        const meta = {
+            code: payload.code,
+            name: payload.name,
+            faculty_id: payload.faculty_id
+        };
+
+        // Hibernate insert-before-delete on program_levels: clear first, then insert the desired list.
+        return this.http.put<Program>(`${this.baseUrl}/${id}`, meta).pipe(
+            switchMap(() =>
+                this.http.put<Program>(`${this.baseUrl}/${id}`, {
+                    ...meta,
+                    levels: payload.levels ?? []
+                })
+            )
+        );
     }
 
     delete(id: string): Observable<void> {
         return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    }
+
+    getAll(): Observable<Program[]> {
+        return this.http.get<Program[]>(this.baseUrl);
     }
 }

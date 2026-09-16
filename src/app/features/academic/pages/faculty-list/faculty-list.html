@@ -1,5 +1,4 @@
 <p-toast />
-<p-confirmdialog [style]="{ width: '450px' }" />
 
 <app-content-subtopbar kicker="Academic" title="Facultés" [actions]="actions()" />
 
@@ -33,7 +32,7 @@
             <tr>
                 <th pSortableColumn="code">Code <p-sortIcon field="code" /></th>
                 <th pSortableColumn="name">Nom <p-sortIcon field="name" /></th>
-                <th style="width: 10rem">Actions</th>
+                <th style="width: 6rem">Actions</th>
             </tr>
         </ng-template>
 
@@ -42,42 +41,16 @@
                 <td>{{ faculty.code }}</td>
                 <td>{{ faculty.name }}</td>
                 <td>
-                    <div class="flex gap-2">
-                        <button
-                            pButton
-                            type="button"
-                            icon="pi pi-arrow-right"
-                            rounded
-                            outlined
-                            severity="info"
-                            [attr.aria-label]="'Détail ' + faculty.code"
-                            (click)="openDetail(faculty)"
-                        ></button>
-                        @if (canUpdate()) {
-                        <button
-                            pButton
-                            type="button"
-                            icon="pi pi-pencil"
-                            rounded
-                            outlined
-                            severity="info"
-                            [attr.aria-label]="'Modifier ' + faculty.code"
-                            (click)="openEditDialog(faculty)"
-                        ></button>
-                        }
-                        @if (canDelete()) {
-                        <button
-                            pButton
-                            type="button"
-                            icon="pi pi-trash"
-                            rounded
-                            outlined
-                            severity="danger"
-                            [attr.aria-label]="'Supprimer ' + faculty.code"
-                            (click)="confirmDelete(faculty)"
-                        ></button>
-                        }
-                    </div>
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-arrow-right"
+                        rounded
+                        outlined
+                        severity="info"
+                        [attr.aria-label]="'Détail ' + faculty.code"
+                        (click)="openDetail(faculty)"
+                    ></button>
                 </td>
             </tr>
         </ng-template>
@@ -91,7 +64,7 @@
 </div>
 
 <p-dialog
-    [header]="dialogTitle()"
+    header="Nouvelle faculté"
     [visible]="dialogVisible()"
     (visibleChange)="dialogVisible.set($event)"
     [modal]="true"
