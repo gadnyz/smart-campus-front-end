@@ -10,9 +10,14 @@ import { DatePicker } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
+import { AvatarModule } from 'primeng/avatar';
+import { CardModule } from 'primeng/card';
+import { DividerModule } from 'primeng/divider';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { catchError, of, switchMap } from 'rxjs';
+import { resolveAvatarUrl } from '@/app/shared/utils/avatar-url';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import {
@@ -39,7 +44,7 @@ import { CourseService } from '../../services/course.service';
 import { FacultyService } from '../../services/faculty.service';
 import { ProfessorGradeService } from '../../services/professor-grade.service';
 import { ProfessorService } from '../../services/professor.service';
-import { toApiDate, toDateValue } from '../../utils/academic-date';
+import { blankToNull, toApiDate, toDateValue } from '../../utils/academic-date';
 
 @Component({
     selector: 'app-professor-detail',
@@ -56,9 +61,13 @@ import { toApiDate, toDateValue } from '../../utils/academic-date';
         SelectModule,
         DatePicker,
         TagModule,
+        AvatarModule,
+        CardModule,
+        DividerModule,
         ContentSubtopbar
     ],
     templateUrl: './professor-detail.html',
+    styleUrl: './professor-detail.scss',
     providers: [ConfirmationService, MessageService]
 })
 export class ProfessorDetailPage implements OnInit {
@@ -116,6 +125,40 @@ export class ProfessorDetailPage implements OnInit {
         return position ? `${name} (${position})` : name;
     });
 
+    readonly displayName = computed(() => {
+        const professor = this.professor();
+        return professor ? professorDisplayName(professor) : 'Professeur';
+    });
+
+    readonly initials = computed(() => {
+        const professor = this.professor();
+        return (
+            professor?.first_name?.trim().charAt(0) ||
+            professor?.last_name?.trim().charAt(0) ||
+            '?'
+        ).toUpperCase();
+    });
+
+    readonly photoFailed = signal(false);
+
+    readonly photoUrl = computed(() => {
+        if (this.photoFailed()) {
+            return '';
+        }
+
+        return resolveAvatarUrl(this.professor()?.avatar_url);
+    });
+
+    readonly genderLabel = computed(() => {
+        const gender = this.professor()?.gender;
+        return this.genderOptions.find((option) => option.value === gender)?.label ?? '—';
+    });
+
+    readonly maritalStatusLabel = computed(() => {
+        const status = this.professor()?.marital_status;
+        return this.maritalStatusOptions.find((option) => option.value === status)?.label ?? '—';
+    });
+
     readonly gradeLabel = computed(() => {
         const professor = this.professor();
         if (!professor) {
@@ -128,6 +171,23 @@ export class ProfessorDetailPage implements OnInit {
             '—'
         );
     });
+
+    readonly facultyLabel = computed(() => {
+        const professor = this.professor();
+        if (!professor) {
+            return '—';
+        }
+
+        return (
+            professor.faculty_name ||
+            this.faculties().find((faculty) => faculty.id === professor.faculty_id)?.name ||
+            '—'
+        );
+    });
+
+    onPhotoImageError(): void {
+        this.photoFailed.set(true);
+    }
 
     readonly facultyOptions = computed(() =>
         this.faculties().map((faculty) => ({ label: faculty.name, value: faculty.id }))
@@ -170,12 +230,13 @@ export class ProfessorDetailPage implements OnInit {
         last_name: ['', Validators.required],
         middle_name: [''],
         gender: ['MALE' as ProfessorGender, Validators.required],
-        birth_date: [null as Date | string | null, Validators.required],
-        birth_place: ['', Validators.required],
-        marital_status: ['SINGLE' as ProfessorMaritalStatus, Validators.required],
-        nationality: ['Congolaise', Validators.required],
-        email: ['', [Validators.required, Validators.email]],
-        phone: ['', Validators.required]
+        birth_date: [null as Date | string | null],
+        birth_place: [''],
+        marital_status: [null as ProfessorMaritalStatus | null],
+        nationality: [''],
+        email: ['', Validators.email],
+        phone: [''],
+        matricule: ['']
     });
 
     readonly assignmentForm = this.fb.nonNullable.group({
@@ -276,7 +337,7 @@ export class ProfessorDetailPage implements OnInit {
         }
 
         this.professorForm.reset({
-            faculty_id: professor.faculty_id,
+            faculty_id: professor.faculty_id || null,
             professor_grade_id: professor.professor_grade_id ?? null,
             first_name: professor.first_name,
             last_name: professor.last_name,
@@ -284,10 +345,11 @@ export class ProfessorDetailPage implements OnInit {
             gender: professor.gender ?? 'MALE',
             birth_date: toDateValue(professor.birth_date),
             birth_place: professor.birth_place ?? '',
-            marital_status: professor.marital_status ?? 'SINGLE',
-            nationality: professor.nationality ?? 'Congolaise',
+            marital_status: professor.marital_status ?? null,
+            nationality: professor.nationality ?? '',
             email: professor.email ?? '',
-            phone: professor.phone ?? ''
+            phone: professor.phone ?? '',
+            matricule: professor.matricule ?? ''
         });
         this.professorDialogVisible.set(true);
     }
@@ -308,20 +370,27 @@ export class ProfessorDetailPage implements OnInit {
                 professor_grade_id: raw.professor_grade_id as string,
                 first_name: raw.first_name.trim(),
                 last_name: raw.last_name.trim(),
-                middle_name: raw.middle_name.trim() || null,
+                middle_name: blankToNull(raw.middle_name),
                 gender: raw.gender,
                 birth_date: toApiDate(raw.birth_date),
-                birth_place: raw.birth_place.trim(),
+                birth_place: blankToNull(raw.birth_place),
                 marital_status: raw.marital_status,
-                nationality: raw.nationality.trim(),
-                email: raw.email.trim(),
-                phone: raw.phone.trim()
+                nationality: blankToNull(raw.nationality),
+                email: blankToNull(raw.email),
+                phone: blankToNull(raw.phone),
+                matricule: blankToNull(raw.matricule),
+                user_id: professor.user_id ?? null
             })
+            .pipe(
+                switchMap((updated) =>
+                    this.professorService.getById(professor.id).pipe(catchError(() => of(updated)))
+                )
+            )
             .subscribe({
                 next: (updated) => {
                     this.saving.set(false);
                     this.professorDialogVisible.set(false);
-                    this.professor.set({ ...professor, ...updated, id: professor.id });
+                    this.professor.set(this.enrichProfessor({ ...updated, id: professor.id }));
                     this.refreshNavigationLabel(this.professor() as Professor);
                     this.showSuccess('Professeur modifié.');
                 },
@@ -424,9 +493,10 @@ export class ProfessorDetailPage implements OnInit {
 
     private loadProfessor(id: string): void {
         this.loading.set(true);
+        this.photoFailed.set(false);
         this.professorService.getById(id).subscribe({
             next: (professor) => {
-                this.professor.set(professor);
+                this.professor.set(this.enrichProfessor(professor));
                 this.loading.set(false);
                 this.loadAssignments(id);
             },
@@ -435,6 +505,21 @@ export class ProfessorDetailPage implements OnInit {
                 this.goToNotFound();
             }
         });
+    }
+
+    private enrichProfessor(professor: Professor): Professor {
+        return {
+            ...professor,
+            faculty_name:
+                professor.faculty_name ||
+                this.faculties().find((faculty) => faculty.id === professor.faculty_id)?.name,
+            professor_grade_name:
+                professor.professor_grade_name ||
+                this.grades().find((grade) => grade.id === professor.professor_grade_id)?.name,
+            professor_grade_code:
+                professor.professor_grade_code ||
+                this.grades().find((grade) => grade.id === professor.professor_grade_id)?.code
+        };
     }
 
     private loadAssignments(professorId: string): void {

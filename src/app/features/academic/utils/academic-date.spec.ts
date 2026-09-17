@@ -7,6 +7,8 @@ describe('academic-date', () => {
 
     it('should keep an ISO date string', () => {
         expect(toApiDate('1980-05-15T00:00:00.000Z')).toBe('1980-05-15');
+        expect(toApiDate(null)).toBeNull();
+        expect(toApiDate('')).toBeNull();
     });
 
     it('should parse a date string', () => {

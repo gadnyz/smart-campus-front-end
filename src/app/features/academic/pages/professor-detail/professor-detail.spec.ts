@@ -166,6 +166,29 @@ describe('ProfessorDetailPage', () => {
         expect(assignmentService.create).toHaveBeenCalled();
     });
 
+    it('should allow editing without filling optional empty fields', () => {
+        professorService.update.and.returnValue(of({ ...professor, professor_grade_id: 'g-1', faculty_id: 'fac-1' }));
+        component.openEdit();
+        component.professorForm.patchValue({
+            faculty_id: 'fac-1',
+            professor_grade_id: 'g-1',
+            last_name: 'Mbuyi',
+            first_name: 'Jean',
+            gender: 'MALE',
+            birth_date: null,
+            birth_place: '',
+            marital_status: null,
+            nationality: '',
+            phone: '',
+            email: '',
+            matricule: 'ENS-001'
+        });
+        expect(component.professorForm.valid).toBeTrue();
+        component.submitProfessor();
+        expect(professorService.update).toHaveBeenCalled();
+        expect(professorService.getById).toHaveBeenCalledTimes(2);
+    });
+
     it('should navigate to the assigned course', () => {
         component.openCourse(assignment);
         expect(router.navigate).toHaveBeenCalledWith(['/academic/courses', 'c-1']);

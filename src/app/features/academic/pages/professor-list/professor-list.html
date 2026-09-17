@@ -90,11 +90,11 @@
     <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="submit()">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm text-color-secondary mb-1" for="last_name">Nom</label>
+                <label class="block text-sm text-color-secondary mb-1" for="last_name">Nom *</label>
                 <input pInputText id="last_name" formControlName="last_name" class="w-full" />
             </div>
             <div>
-                <label class="block text-sm text-color-secondary mb-1" for="first_name">Prénom</label>
+                <label class="block text-sm text-color-secondary mb-1" for="first_name">Prénom *</label>
                 <input pInputText id="first_name" formControlName="first_name" class="w-full" />
             </div>
             <div class="md:col-span-2">
@@ -102,7 +102,23 @@
                 <input pInputText id="middle_name" formControlName="middle_name" class="w-full" />
             </div>
             <div>
-                <label class="block text-sm text-color-secondary mb-1" for="faculty_id">Faculté</label>
+                <label class="block text-sm text-color-secondary mb-1" for="matricule">Matricule</label>
+                <input pInputText id="matricule" formControlName="matricule" class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1" for="gender">Genre *</label>
+                <p-select
+                    inputId="gender"
+                    formControlName="gender"
+                    [options]="genderOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    appendTo="body"
+                    class="w-full"
+                />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1" for="faculty_id">Faculté *</label>
                 <p-select
                     inputId="faculty_id"
                     formControlName="faculty_id"
@@ -114,23 +130,11 @@
                 />
             </div>
             <div>
-                <label class="block text-sm text-color-secondary mb-1" for="professor_grade_id">Grade</label>
+                <label class="block text-sm text-color-secondary mb-1" for="professor_grade_id">Grade *</label>
                 <p-select
                     inputId="professor_grade_id"
                     formControlName="professor_grade_id"
                     [options]="gradeOptions()"
-                    optionLabel="label"
-                    optionValue="value"
-                    appendTo="body"
-                    class="w-full"
-                />
-            </div>
-            <div>
-                <label class="block text-sm text-color-secondary mb-1" for="gender">Genre</label>
-                <p-select
-                    inputId="gender"
-                    formControlName="gender"
-                    [options]="genderOptions"
                     optionLabel="label"
                     optionValue="value"
                     appendTo="body"
@@ -145,6 +149,7 @@
                     [options]="maritalStatusOptions"
                     optionLabel="label"
                     optionValue="value"
+                    [showClear]="true"
                     appendTo="body"
                     class="w-full"
                 />
@@ -173,7 +178,7 @@
                 <input pInputText id="phone" formControlName="phone" class="w-full" />
             </div>
             <div class="md:col-span-2">
-                <label class="block text-sm text-color-secondary mb-1" for="email">E-mail</label>
+                <label class="block text-sm text-color-secondary mb-1" for="email">E-mail *</label>
                 <input pInputText id="email" formControlName="email" class="w-full" />
             </div>
         </div>

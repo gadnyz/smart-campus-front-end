@@ -85,6 +85,13 @@ describe('ProfessorListPage', () => {
         expect(component.rows()[0].display_name).toContain('Kalala');
     });
 
+    it('should list only academic professors', () => {
+        expect(component.professors().map((professor) => professor.email)).toEqual([
+            'claire@unh.edu',
+            'jean@unh.edu'
+        ]);
+    });
+
     it('should navigate to the professor detail', () => {
         component.openDetail(component.rows()[0]);
         expect(router.navigate).toHaveBeenCalledWith(['/academic/professors', 'p-2']);
@@ -98,10 +105,7 @@ describe('ProfessorListPage', () => {
             professor_grade_id: 'g-prof',
             first_name: 'Jean',
             last_name: 'Mbuyi',
-            birth_date: new Date(1980, 4, 15),
-            birth_place: 'Kinshasa',
-            email: 'jean@unh.edu',
-            phone: '+243840000001'
+            email: 'jean@unh.edu'
         });
         component.submit();
 

@@ -1,8 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '@/environments/environment';
 import { ProfessorGrade, ProfessorGradeRequest } from '../models/professor-grade.model';
+import { asList } from '../utils/academic-http';
 
 @Injectable({ providedIn: 'root' })
 export class ProfessorGradeService {
@@ -10,7 +11,8 @@ export class ProfessorGradeService {
     private readonly baseUrl = `${environment.apiBaseUrl}/api/v1/professor-grades`;
 
     getAll(): Observable<ProfessorGrade[]> {
-        return this.http.get<ProfessorGrade[]>(this.baseUrl);
+        const params = new HttpParams().set('page', 0).set('size', 100);
+        return this.http.get<unknown>(this.baseUrl, { params }).pipe(map((body) => asList(body)));
     }
 
     create(payload: ProfessorGradeRequest): Observable<ProfessorGrade> {

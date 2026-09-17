@@ -3,45 +3,78 @@
 
 <app-content-subtopbar kicker="Academic" [title]="title()" [actions]="actions()" />
 
-<div class="card mb-4">
-    <div class="font-semibold text-xl mb-3">Identité</div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div>
-            <span class="text-color-secondary">Nom</span>
-            <div><strong>{{ professor()?.last_name }}</strong></div>
-        </div>
-        <div>
-            <span class="text-color-secondary">Prénom</span>
-            <div><strong>{{ professor()?.first_name }}</strong></div>
-        </div>
-        <div>
-            <span class="text-color-secondary">Postnom</span>
-            <div><strong>{{ professor()?.middle_name || '—' }}</strong></div>
-        </div>
-        <div>
-            <span class="text-color-secondary">Matricule</span>
-            <div><strong>{{ professor()?.matricule || '—' }}</strong></div>
-        </div>
-        <div>
-            <span class="text-color-secondary">Faculté</span>
-            <div><strong>{{ professor()?.faculty_name || '—' }}</strong></div>
-        </div>
-        <div>
-            <span class="text-color-secondary">Grade</span>
-            <div><strong>{{ gradeLabel() }}</strong></div>
-        </div>
-        <div>
-            <span class="text-color-secondary">E-mail</span>
-            <div><strong>{{ professor()?.email || '—' }}</strong></div>
-        </div>
-        <div>
-            <span class="text-color-secondary">Téléphone</span>
-            <div><strong>{{ professor()?.phone || '—' }}</strong></div>
+@if (professor(); as professor) {
+<p-card>
+    <div class="professor-header">
+        @if (photoUrl()) {
+        <p-avatar [image]="photoUrl()" shape="circle" size="xlarge" styleClass="professor-avatar"
+            (onImageError)="onPhotoImageError()" />
+        } @else {
+        <p-avatar [label]="initials()" shape="circle" size="xlarge" styleClass="professor-avatar" />
+        }
+
+        <div class="professor-heading">
+            <h3>{{ displayName() }}</h3>
+            <div class="professor-grade">{{ gradeLabel() }}</div>
+            <div class="professor-contact">
+                <span>{{ professor.email || '—' }}</span>
+                <span>{{ professor.phone || '—' }}</span>
+            </div>
+            <div class="professor-academic-meta">
+                <span>
+                    <i class="pi pi-building"></i>
+                    {{ facultyLabel() }}
+                </span>
+                <span>
+                    <i class="pi pi-id-card"></i>
+                    {{ professor.matricule || '—' }}
+                </span>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="card">
+    <p-divider />
+
+    <section class="detail-section">
+        <div class="section-heading">
+            <i class="pi pi-user text-primary"></i>
+            <div>
+                <h4>Informations personnelles</h4>
+                <span>État civil et coordonnées de l’enseignant</span>
+            </div>
+        </div>
+
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span>Postnom</span>
+                <strong>{{ professor.middle_name || '—' }}</strong>
+            </div>
+            <div class="detail-item">
+                <span>Genre</span>
+                <strong>{{ genderLabel() }}</strong>
+            </div>
+            <div class="detail-item">
+                <span>État civil</span>
+                <strong>{{ maritalStatusLabel() }}</strong>
+            </div>
+            <div class="detail-item">
+                <span>Date de naissance</span>
+                <strong>{{ professor.birth_date || '—' }}</strong>
+            </div>
+            <div class="detail-item">
+                <span>Lieu de naissance</span>
+                <strong>{{ professor.birth_place || '—' }}</strong>
+            </div>
+            <div class="detail-item">
+                <span>Nationalité</span>
+                <strong>{{ professor.nationality || '—' }}</strong>
+            </div>
+        </div>
+    </section>
+</p-card>
+}
+
+<div class="card mt-4">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
         <div class="font-semibold text-xl">Cours enseignés</div>
         @if (canAssign()) {
@@ -81,11 +114,11 @@
     <form [formGroup]="professorForm" class="flex flex-col gap-4" (ngSubmit)="submitProfessor()">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm text-color-secondary mb-1">Nom</label>
+                <label class="block text-sm text-color-secondary mb-1">Nom *</label>
                 <input pInputText formControlName="last_name" class="w-full" />
             </div>
             <div>
-                <label class="block text-sm text-color-secondary mb-1">Prénom</label>
+                <label class="block text-sm text-color-secondary mb-1">Prénom *</label>
                 <input pInputText formControlName="first_name" class="w-full" />
             </div>
             <div class="md:col-span-2">
@@ -93,24 +126,28 @@
                 <input pInputText formControlName="middle_name" class="w-full" />
             </div>
             <div>
-                <label class="block text-sm text-color-secondary mb-1">Faculté</label>
-                <p-select formControlName="faculty_id" [options]="facultyOptions()" optionLabel="label"
-                    optionValue="value" appendTo="body" class="w-full" />
+                <label class="block text-sm text-color-secondary mb-1">Matricule</label>
+                <input pInputText formControlName="matricule" class="w-full" />
             </div>
             <div>
-                <label class="block text-sm text-color-secondary mb-1">Grade</label>
-                <p-select formControlName="professor_grade_id" [options]="gradeOptions()" optionLabel="label"
-                    optionValue="value" appendTo="body" class="w-full" />
-            </div>
-            <div>
-                <label class="block text-sm text-color-secondary mb-1">Genre</label>
+                <label class="block text-sm text-color-secondary mb-1">Genre *</label>
                 <p-select formControlName="gender" [options]="genderOptions" optionLabel="label" optionValue="value"
                     appendTo="body" class="w-full" />
             </div>
             <div>
+                <label class="block text-sm text-color-secondary mb-1">Faculté *</label>
+                <p-select formControlName="faculty_id" [options]="facultyOptions()" optionLabel="label"
+                    optionValue="value" appendTo="body" class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1">Grade *</label>
+                <p-select formControlName="professor_grade_id" [options]="gradeOptions()" optionLabel="label"
+                    optionValue="value" appendTo="body" class="w-full" />
+            </div>
+            <div>
                 <label class="block text-sm text-color-secondary mb-1">État civil</label>
                 <p-select formControlName="marital_status" [options]="maritalStatusOptions" optionLabel="label"
-                    optionValue="value" appendTo="body" class="w-full" />
+                    optionValue="value" [showClear]="true" appendTo="body" class="w-full" />
             </div>
             <div>
                 <label class="block text-sm text-color-secondary mb-1">Date de naissance</label>

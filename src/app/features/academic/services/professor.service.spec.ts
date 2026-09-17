@@ -9,6 +9,7 @@ describe('ProfessorService', () => {
     let service: ProfessorService;
     let httpTesting: HttpTestingController;
     const baseUrl = `${environment.apiBaseUrl}/api/v1/professors`;
+    const listUrl = `${baseUrl}?page=0&size=100`;
 
     const professor: Professor = {
         id: 'prof-1',
@@ -51,54 +52,62 @@ describe('ProfessorService', () => {
         let result: Professor[] | undefined;
         service.getAll().subscribe((professors) => (result = professors));
 
-        const request = httpTesting.expectOne(baseUrl);
+        const request = httpTesting.expectOne(listUrl);
         expect(request.request.method).toBe('GET');
         request.flush([professor]);
 
-        expect(result).toEqual([professor]);
+        expect(result).toEqual([jasmine.objectContaining(professor)]);
     });
 
     it('should unwrap a paged professors payload', () => {
         let result: Professor[] | undefined;
         service.getAll().subscribe((professors) => (result = professors));
 
-        httpTesting.expectOne(baseUrl).flush({ content: [professor] });
-        expect(result).toEqual([professor]);
+        httpTesting.expectOne(listUrl).flush({ content: [professor] });
+        expect(result?.[0].id).toBe('prof-1');
     });
 
-    it('should get a professor by id', () => {
+    it('should normalize nested faculty and grade on getById', () => {
         let result: Professor | undefined;
         service.getById('prof-1').subscribe((item) => (result = item));
 
         const request = httpTesting.expectOne(`${baseUrl}/prof-1`);
         expect(request.request.method).toBe('GET');
-        request.flush(professor);
-        expect(result).toEqual(professor);
+        request.flush({
+            ...professor,
+            faculty: { id: 'fac-9', name: 'Droit' },
+            professor_grade: { id: 'grade-9', name: 'Assistant', code: 'ASS' }
+        });
+        expect(result?.faculty_id).toBe('fac-9');
+        expect(result?.professor_grade_id).toBe('grade-9');
+        expect(result?.faculty_name).toBe('Droit');
     });
 
     it('should get professors by faculty and grade', () => {
         let byFaculty: Professor[] | undefined;
         let byGrade: Professor[] | undefined;
         service.getByFaculty('fac-1').subscribe((items) => (byFaculty = items));
-        httpTesting.expectOne(`${baseUrl}/faculty/fac-1`).flush([professor]);
+        httpTesting.expectOne(`${baseUrl}/faculty/fac-1?page=0&size=100`).flush([professor]);
 
         service.getByGrade('grade-1').subscribe((items) => (byGrade = items));
-        httpTesting.expectOne(`${baseUrl}/grade/grade-1`).flush({ content: [professor] });
+        httpTesting.expectOne(`${baseUrl}/grade/grade-1?page=0&size=100`).flush({ content: [professor] });
 
-        expect(byFaculty).toEqual([professor]);
-        expect(byGrade).toEqual([professor]);
+        expect(byFaculty?.[0].id).toBe('prof-1');
+        expect(byGrade?.[0].id).toBe('prof-1');
     });
 
     it('should create, update and delete a professor', () => {
         service.create(payload).subscribe();
         const create = httpTesting.expectOne(baseUrl);
         expect(create.request.method).toBe('POST');
-        expect(create.request.body).toEqual(payload);
+        expect(create.request.body).toEqual({ ...payload, grade_id: 'grade-1' });
         create.flush(professor);
 
         service.update('prof-1', payload).subscribe();
         const update = httpTesting.expectOne(`${baseUrl}/prof-1`);
         expect(update.request.method).toBe('PUT');
+        expect(update.request.body.grade_id).toBe('grade-1');
+        expect(update.request.body.professor_grade_id).toBe('grade-1');
         update.flush(professor);
 
         service.delete('prof-1').subscribe();
@@ -112,7 +121,7 @@ describe('ProfessorService', () => {
         service.resolveCurrent('user-1', professor.email).subscribe((item) => (result = item));
 
         httpTesting.expectOne(`${baseUrl}/me`).flush(professor);
-        expect(result).toEqual(professor);
+        expect(result?.id).toBe('prof-1');
     });
 
     it('should fall back to getAll when /me is unavailable', () => {
@@ -120,8 +129,8 @@ describe('ProfessorService', () => {
         service.resolveCurrent('user-1', professor.email).subscribe((item) => (result = item));
 
         httpTesting.expectOne(`${baseUrl}/me`).flush({ detail: 'Not found' }, { status: 404, statusText: 'Not Found' });
-        httpTesting.expectOne(baseUrl).flush([professor]);
-        expect(result).toEqual(professor);
+        httpTesting.expectOne(listUrl).flush([professor]);
+        expect(result?.id).toBe('prof-1');
     });
 
     it('should return null when the current user is not a professor', () => {
@@ -129,7 +138,7 @@ describe('ProfessorService', () => {
         service.resolveCurrent('other', 'nobody@smart-campus.org').subscribe((item) => (result = item));
 
         httpTesting.expectOne(`${baseUrl}/me`).flush({ detail: 'Not found' }, { status: 404, statusText: 'Not Found' });
-        httpTesting.expectOne(baseUrl).flush([professor]);
+        httpTesting.expectOne(listUrl).flush([professor]);
         expect(result).toBeNull();
     });
 });

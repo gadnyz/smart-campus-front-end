@@ -1,8 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map } from 'rxjs';
 import { environment } from '@/environments/environment';
-import { Professor, ProfessorRequest } from '../models/professor.model';
+import { Professor, ProfessorRequest, normalizeProfessor } from '../models/professor.model';
+import { asList } from '../utils/academic-http';
 
 @Injectable({ providedIn: 'root' })
 export class ProfessorService {
@@ -10,27 +11,32 @@ export class ProfessorService {
     private readonly baseUrl = `${environment.apiBaseUrl}/api/v1/professors`;
 
     getAll(): Observable<Professor[]> {
-        return this.http.get<Professor[] | { content?: Professor[] }>(this.baseUrl).pipe(map(asList));
+        const params = new HttpParams().set('page', 0).set('size', 100);
+        return this.http
+            .get<unknown>(this.baseUrl, { params })
+            .pipe(map((body) => asList(body).map(normalizeProfessor)));
     }
 
     getById(id: string): Observable<Professor> {
-        return this.http.get<Professor>(`${this.baseUrl}/${id}`);
+        return this.http.get<unknown>(`${this.baseUrl}/${id}`).pipe(map(normalizeProfessor));
     }
 
     getByFaculty(facultyId: string): Observable<Professor[]> {
+        const params = new HttpParams().set('page', 0).set('size', 100);
         return this.http
-            .get<Professor[] | { content?: Professor[] }>(`${this.baseUrl}/faculty/${facultyId}`)
-            .pipe(map(asList));
+            .get<unknown>(`${this.baseUrl}/faculty/${facultyId}`, { params })
+            .pipe(map((body) => asList(body).map(normalizeProfessor)));
     }
 
     getByGrade(gradeId: string): Observable<Professor[]> {
+        const params = new HttpParams().set('page', 0).set('size', 100);
         return this.http
-            .get<Professor[] | { content?: Professor[] }>(`${this.baseUrl}/grade/${gradeId}`)
-            .pipe(map(asList));
+            .get<unknown>(`${this.baseUrl}/grade/${gradeId}`, { params })
+            .pipe(map((body) => asList(body).map(normalizeProfessor)));
     }
 
     getMe(): Observable<Professor> {
-        return this.http.get<Professor>(`${this.baseUrl}/me`);
+        return this.http.get<unknown>(`${this.baseUrl}/me`).pipe(map(normalizeProfessor));
     }
 
     resolveCurrent(userId?: string | null, email?: string | null): Observable<Professor | null> {
@@ -51,11 +57,13 @@ export class ProfessorService {
     }
 
     create(payload: ProfessorRequest): Observable<Professor> {
-        return this.http.post<Professor>(this.baseUrl, payload);
+        return this.http.post<unknown>(this.baseUrl, toProfessorApiBody(payload)).pipe(map(normalizeProfessor));
     }
 
     update(id: string, payload: ProfessorRequest): Observable<Professor> {
-        return this.http.put<Professor>(`${this.baseUrl}/${id}`, payload);
+        return this.http
+            .put<unknown>(`${this.baseUrl}/${id}`, toProfessorApiBody(payload))
+            .pipe(map(normalizeProfessor));
     }
 
     delete(id: string): Observable<void> {
@@ -63,10 +71,9 @@ export class ProfessorService {
     }
 }
 
-function asList<T>(body: T[] | { content?: T[] } | null | undefined): T[] {
-    if (Array.isArray(body)) {
-        return body;
-    }
-
-    return body?.content ?? [];
+function toProfessorApiBody(payload: ProfessorRequest): Record<string, unknown> {
+    return {
+        ...payload,
+        grade_id: payload.professor_grade_id
+    };
 }

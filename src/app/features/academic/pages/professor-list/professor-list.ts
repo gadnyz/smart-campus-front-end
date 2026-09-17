@@ -30,7 +30,7 @@ import { ProfessorGrade } from '../../models/professor-grade.model';
 import { FacultyService } from '../../services/faculty.service';
 import { ProfessorGradeService } from '../../services/professor-grade.service';
 import { ProfessorService } from '../../services/professor.service';
-import { toApiDate } from '../../utils/academic-date';
+import { blankToNull, toApiDate } from '../../utils/academic-date';
 
 export interface ProfessorRow extends Professor {
     display_name: string;
@@ -93,10 +93,12 @@ export class ProfessorListPage implements OnInit {
 
     readonly rows = computed<ProfessorRow[]>(() => {
         const gradeById = new Map(this.grades().map((grade) => [grade.id, grade]));
+        const facultyById = new Map(this.faculties().map((faculty) => [faculty.id, faculty]));
 
         return this.professors()
             .map((professor) => ({
                 ...professor,
+                faculty_name: professor.faculty_name || facultyById.get(professor.faculty_id)?.name,
                 display_name: professorDisplayName(professor),
                 grade_label:
                     professor.professor_grade_name ||
@@ -117,12 +119,13 @@ export class ProfessorListPage implements OnInit {
         last_name: ['', Validators.required],
         middle_name: [''],
         gender: ['MALE' as ProfessorGender, Validators.required],
-        birth_date: [null as Date | string | null, Validators.required],
-        birth_place: ['', Validators.required],
-        marital_status: ['SINGLE' as ProfessorMaritalStatus, Validators.required],
-        nationality: ['Congolaise', Validators.required],
+        birth_date: [null as Date | string | null],
+        birth_place: [''],
+        marital_status: [null as ProfessorMaritalStatus | null],
+        nationality: [''],
         email: ['', [Validators.required, Validators.email]],
-        phone: ['', Validators.required]
+        phone: [''],
+        matricule: ['']
     });
 
     readonly actions = computed<SubtopbarAction[]>(() => [
@@ -158,10 +161,11 @@ export class ProfessorListPage implements OnInit {
             gender: 'MALE',
             birth_date: null,
             birth_place: '',
-            marital_status: 'SINGLE',
-            nationality: 'Congolaise',
+            marital_status: null,
+            nationality: '',
             email: '',
-            phone: ''
+            phone: '',
+            matricule: ''
         });
         this.dialogVisible.set(true);
     }
@@ -184,14 +188,15 @@ export class ProfessorListPage implements OnInit {
                 professor_grade_id: raw.professor_grade_id as string,
                 first_name: raw.first_name.trim(),
                 last_name: raw.last_name.trim(),
-                middle_name: raw.middle_name.trim() || null,
+                middle_name: blankToNull(raw.middle_name),
                 gender: raw.gender,
                 birth_date: toApiDate(raw.birth_date),
-                birth_place: raw.birth_place.trim(),
+                birth_place: blankToNull(raw.birth_place),
                 marital_status: raw.marital_status,
-                nationality: raw.nationality.trim(),
-                email: raw.email.trim(),
-                phone: raw.phone.trim()
+                nationality: blankToNull(raw.nationality),
+                email: blankToNull(raw.email),
+                phone: blankToNull(raw.phone),
+                matricule: blankToNull(raw.matricule)
             })
             .subscribe({
                 next: (professor) => {

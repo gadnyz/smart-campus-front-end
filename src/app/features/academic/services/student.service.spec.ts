@@ -16,6 +16,8 @@ describe('StudentService', () => {
         program_name: 'Génie Logiciel',
         level_code: 'L1'
     };
+    const primaryUrl = `${environment.apiBaseUrl}/api/v1/students/course/course-1?page=0&size=100`;
+    const fallbackUrl = `${environment.apiBaseUrl}/api/v1/courses/course-1/students?page=0&size=100`;
 
     beforeEach(() => {
         TestBed.configureTestingModule({
@@ -33,19 +35,35 @@ describe('StudentService', () => {
         let result: Student[] | undefined;
         service.getByCourse('course-1').subscribe((students) => (result = students));
 
-        const request = httpTesting.expectOne(`${environment.apiBaseUrl}/api/v1/students/course/course-1`);
+        const request = httpTesting.expectOne(primaryUrl);
         expect(request.request.method).toBe('GET');
         request.flush([student]);
-        expect(result).toEqual([student]);
+        expect(result?.[0].matricule).toBe('FST-001');
     });
 
     it('should unwrap a paged enrollment payload', () => {
         let result: Student[] | undefined;
         service.getByCourse('course-1').subscribe((students) => (result = students));
 
-        httpTesting
-            .expectOne(`${environment.apiBaseUrl}/api/v1/students/course/course-1`)
-            .flush({ content: [student] });
-        expect(result).toEqual([student]);
+        httpTesting.expectOne(primaryUrl).flush({ content: [student] });
+        expect(result?.[0].id).toBe('st-1');
+    });
+
+    it('should fall back to the course students endpoint', () => {
+        let result: Student[] | undefined;
+        service.getByCourse('course-1').subscribe((students) => (result = students));
+
+        httpTesting.expectOne(primaryUrl).flush({ detail: 'Not found' }, { status: 404, statusText: 'Not Found' });
+        httpTesting.expectOne(fallbackUrl).flush([student]);
+        expect(result?.[0].id).toBe('st-1');
+    });
+
+    it('should return an empty list when both enrollment endpoints are missing', () => {
+        let result: Student[] | undefined;
+        service.getByCourse('course-1').subscribe((students) => (result = students));
+
+        httpTesting.expectOne(primaryUrl).flush({ detail: 'Not found' }, { status: 404, statusText: 'Not Found' });
+        httpTesting.expectOne(fallbackUrl).flush({ detail: 'Not found' }, { status: 404, statusText: 'Not Found' });
+        expect(result).toEqual([]);
     });
 });

@@ -106,12 +106,10 @@ describe('CourseDetailPage students and collaborators', () => {
         await fixture.whenStable();
     });
 
-    it('should load enrolled students for the course', () => {
+    it('should load the course and delegate enrolled students to a dedicated component', () => {
+        expect(component.course()?.id).toBe('c-1');
         expect(studentService.getByCourse).toHaveBeenCalledWith('c-1');
-        expect(component.students().length).toBe(1);
-        expect(component.studentName(students[0])).toBe('Lovelace Ada');
-        expect(component.studentProgram(students[0])).toBe('Génie Logiciel');
-        expect(component.studentLevel(students[0])).toBe('L1');
+        expect(fixture.nativeElement.querySelector('app-course-enrolled-students')).toBeTruthy();
     });
 
     it('should ignore a missing students endpoint', async () => {
@@ -122,6 +120,6 @@ describe('CourseDetailPage students and collaborators', () => {
         component = fixture.componentInstance;
         fixture.detectChanges();
         await fixture.whenStable();
-        expect(component.students()).toEqual([]);
+        expect(component.course()?.id).toBe('c-1');
     });
 });

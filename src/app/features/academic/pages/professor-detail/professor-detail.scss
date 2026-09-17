@@ -1,0 +1,116 @@
+:host {
+    display: block;
+}
+
+.professor-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.professor-heading {
+    flex: 1;
+    min-width: 0;
+}
+
+.professor-heading h3 {
+    margin: 0;
+    font-size: 1.375rem;
+    font-weight: 600;
+}
+
+.professor-grade {
+    margin-top: 0.15rem;
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+.professor-contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin-top: 0.25rem;
+    color: var(--text-color-secondary);
+}
+
+.professor-academic-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-top: 0.5rem;
+    color: var(--text-color-secondary);
+    font-size: 0.875rem;
+}
+
+.professor-academic-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.professor-academic-meta i {
+    color: var(--primary-color);
+}
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.section-heading i {
+    font-size: 1.25rem;
+}
+
+.section-heading h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.section-heading span {
+    display: block;
+    margin-top: 0.125rem;
+    color: var(--text-color-secondary);
+    font-size: 0.875rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.875rem 1rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.detail-item > span {
+    color: var(--text-color-secondary);
+    font-size: 0.8125rem;
+}
+
+.detail-item > strong {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 960px) {
+    .detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .professor-header {
+        align-items: flex-start;
+    }
+
+    .detail-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

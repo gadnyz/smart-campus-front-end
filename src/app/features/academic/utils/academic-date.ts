@@ -1,10 +1,11 @@
-export function toApiDate(value: Date | string | null | undefined): string {
+export function toApiDate(value: Date | string | null | undefined): string | null {
     if (!value) {
-        return '';
+        return null;
     }
 
     if (typeof value === 'string') {
-        return value.slice(0, 10);
+        const slice = value.slice(0, 10);
+        return slice || null;
     }
 
     const year = value.getFullYear();
@@ -20,4 +21,9 @@ export function toDateValue(value: string | null | undefined): Date | null {
 
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function blankToNull(value: string | null | undefined): string | null {
+    const trimmed = value?.trim();
+    return trimmed ? trimmed : null;
 }
