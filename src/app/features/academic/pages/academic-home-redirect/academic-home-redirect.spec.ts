@@ -42,4 +42,12 @@ describe('AcademicHomeRedirect', () => {
         await createComponent();
         expect(router.navigate).toHaveBeenCalledWith(['/academic/professors']);
     });
+
+    it('should send a student manager to the students list when that is the only academic right', async () => {
+        permissionService.hasAnyPermission.and.callFake((permissions) =>
+            permissions.includes(AcademicPermission.StudentReadAll)
+        );
+        await createComponent();
+        expect(router.navigate).toHaveBeenCalledWith(['/academic/students']);
+    });
 });

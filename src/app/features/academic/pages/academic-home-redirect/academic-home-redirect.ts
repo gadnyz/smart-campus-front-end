@@ -38,6 +38,11 @@ export class AcademicHomeRedirect implements OnInit {
             return;
         }
 
+        if (this.permissionService.hasAnyPermission([AcademicPermission.StudentReadAll])) {
+            void this.router.navigate(['/academic/students']);
+            return;
+        }
+
         void this.router.navigate(['/access-denied']);
     }
 }

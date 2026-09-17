@@ -1,0 +1,147 @@
+<p-toast />
+
+<app-content-subtopbar kicker="Academic" title="Étudiants" [actions]="actions()" />
+
+<p-card>
+    <div class="list-header">
+        <div>
+            <h3 class="list-title">Liste des étudiants</h3>
+            <span class="text-color-secondary">{{ totalElements() }} étudiant(s)</span>
+        </div>
+
+        <div class="list-filters">
+            <p-iconfield>
+                <p-inputicon styleClass="pi pi-search" />
+                <input pInputText type="text" placeholder="Rechercher..." (input)="onGlobalFilter(dt, $event)" />
+            </p-iconfield>
+        </div>
+    </div>
+
+    @if (advancedOpen()) {
+    <div class="advanced-search">
+        <div class="advanced-grid">
+            <p-select
+                [options]="genderOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Genre"
+                [showClear]="true"
+                [ngModel]="genderFilter()"
+                (ngModelChange)="genderFilter.set($event)"
+            />
+            <p-select
+                [options]="faculties()"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Faculté"
+                [showClear]="true"
+                [loading]="loadingCatalog()"
+                [filter]="true"
+                [ngModel]="facultyFilter()"
+                (ngModelChange)="onFacultyChange($event)"
+            />
+            <p-select
+                [options]="programs()"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Programme"
+                [showClear]="true"
+                [filter]="true"
+                [ngModel]="programFilter()"
+                (ngModelChange)="programFilter.set($event)"
+            />
+            <p-select
+                [options]="levels()"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Niveau"
+                [showClear]="true"
+                [filter]="true"
+                [ngModel]="levelFilter()"
+                (ngModelChange)="levelFilter.set($event)"
+            />
+            <input
+                pInputText
+                placeholder="Nationalité"
+                [ngModel]="nationalityFilter()"
+                (ngModelChange)="nationalityFilter.set($event)"
+            />
+            <input
+                pInputText
+                placeholder="Matricule"
+                [ngModel]="matriculeFilter()"
+                (ngModelChange)="matriculeFilter.set($event)"
+            />
+        </div>
+        <div class="advanced-actions">
+            <button pButton type="button" label="Réinitialiser" severity="secondary" outlined (click)="resetSearch()"></button>
+            <button pButton type="button" label="Filtrer" icon="pi pi-search" (click)="applySearch(0)"></button>
+        </div>
+    </div>
+    }
+
+    <p-table
+        #dt
+        [value]="students()"
+        [loading]="loading()"
+        dataKey="id"
+        [rowHover]="true"
+        [globalFilterFields]="['first_name', 'middle_name', 'last_name', 'email', 'matricule', 'faculty_name', 'program_name', 'nationality']"
+        responsiveLayout="scroll"
+        [tableStyle]="{ 'min-width': '64rem' }"
+    >
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Étudiant</th>
+                <th>Matricule</th>
+                <th>Email</th>
+                <th>Faculté</th>
+                <th>Programme</th>
+                <th>Niveau</th>
+                <th class="actions-column">Actions</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-student>
+            <tr>
+                <td>
+                    <div class="font-medium">{{ displayName(student) }}</div>
+                    <div class="text-sm text-color-secondary">
+                        {{ genderLabel(student) }}
+                        @if (student.nationality) {
+                        · {{ student.nationality }}
+                        }
+                    </div>
+                </td>
+                <td>{{ student.matricule || '—' }}</td>
+                <td>{{ student.email || '—' }}</td>
+                <td>{{ student.faculty_name || '—' }}</td>
+                <td>{{ student.program_name || student.program_code || '—' }}</td>
+                <td>{{ student.level_code || student.level_name || '—' }}</td>
+                <td class="actions-column">
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-arrow-right"
+                        label="Détails"
+                        size="small"
+                        (click)="openDetail(student)"
+                    ></button>
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="7">Aucun étudiant trouvé.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <p-paginator
+        [first]="page() * size()"
+        [rows]="size()"
+        [totalRecords]="totalElements()"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [alwaysShow]="false"
+        (onPageChange)="onPageChange($event)"
+    />
+</p-card>

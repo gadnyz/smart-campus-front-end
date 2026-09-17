@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { permissionGuard } from '@/app/core/permissions/permission.guard';
 import { AcademicPermission } from './permissions/permission.model';
-import { AcademicPlaceholder } from './pages/academic-placeholder/academic-placeholder';
 import { AcademicHomeRedirect } from './pages/academic-home-redirect/academic-home-redirect';
 import { FacultyListPage } from './pages/faculty-list/faculty-list';
 import { FacultyDetailPage } from './pages/faculty-detail/faculty-detail';
@@ -11,6 +10,8 @@ import { CourseUnitListPage } from './pages/course-unit-list/course-unit-list';
 import { CourseUnitDetailPage } from './pages/course-unit-detail/course-unit-detail';
 import { ProfessorListPage } from './pages/professor-list/professor-list';
 import { ProfessorDetailPage } from './pages/professor-detail/professor-detail';
+import { StudentListPage } from './pages/student-list/student-list';
+import { StudentDetailPage } from './pages/student-detail/student-detail';
 import { MyCoursesPage } from './pages/my-courses/my-courses';
 
 
@@ -105,12 +106,18 @@ export default [
     },
     {
         path: 'students',
-        component: AcademicPlaceholder,
+        component: StudentListPage,
         canActivate: [permissionGuard],
         data: {
-            title: 'Étudiants',
-            permissions: [AcademicPermission.StudentReadAll],
-            mode: 'any'
+            permissions: [AcademicPermission.StudentReadAll]
+        }
+    },
+    {
+        path: 'students/:id',
+        component: StudentDetailPage,
+        canActivate: [permissionGuard],
+        data: {
+            permissions: [AcademicPermission.StudentReadAll]
         }
     },
     { path: '', component: AcademicHomeRedirect }

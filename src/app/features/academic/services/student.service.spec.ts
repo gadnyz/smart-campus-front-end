@@ -66,4 +66,55 @@ describe('StudentService', () => {
         httpTesting.expectOne(fallbackUrl).flush({ detail: 'Not found' }, { status: 404, statusText: 'Not Found' });
         expect(result).toEqual([]);
     });
+
+    it('should list students with snake_case filters', () => {
+        let total = 0;
+        service
+            .getAll({ page: 0, size: 10, gender: 'MALE', facultyId: 'fac-1', nationality: 'Zambienne' })
+            .subscribe((response) => (total = response.total_elements));
+
+        const request = httpTesting.expectOne(
+            (httpRequest) =>
+                httpRequest.method === 'GET' &&
+                httpRequest.url === `${environment.apiBaseUrl}/api/v1/students` &&
+                httpRequest.params.get('gender') === 'MALE' &&
+                httpRequest.params.get('faculty_id') === 'fac-1' &&
+                httpRequest.params.get('nationality') === 'Zambienne'
+        );
+        request.flush({
+            content: [student],
+            page: 0,
+            size: 10,
+            total_elements: 1,
+            total_pages: 1
+        });
+        expect(total).toBe(1);
+    });
+
+    it('should load a student by id', () => {
+        let result: Student | undefined;
+        service.getById('st-1').subscribe((loaded) => (result = loaded));
+
+        const request = httpTesting.expectOne(`${environment.apiBaseUrl}/api/v1/students/st-1`);
+        expect(request.request.method).toBe('GET');
+        request.flush({
+            ...student,
+            faculty: { id: 'fac-1', name: 'Sciences informatiques' }
+        });
+        expect(result?.faculty_id).toBe('fac-1');
+        expect(result?.faculty_name).toBe('Sciences informatiques');
+    });
+
+    it('should update a student with PUT', () => {
+        let result: Student | undefined;
+        service.update('st-1', { first_name: 'Ada', last_name: 'Lovelace', nationality: 'Zambienne' }).subscribe((updated) => {
+            result = updated;
+        });
+
+        const request = httpTesting.expectOne(`${environment.apiBaseUrl}/api/v1/students/st-1`);
+        expect(request.request.method).toBe('PUT');
+        expect(request.request.body.nationality).toBe('Zambienne');
+        request.flush({ ...student, nationality: 'Zambienne' });
+        expect(result?.nationality).toBe('Zambienne');
+    });
 });
