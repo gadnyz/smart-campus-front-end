@@ -23,8 +23,18 @@ export class AcademicHomeRedirect implements OnInit {
             return;
         }
 
-        if (this.permissionService.hasAnyPermission([AcademicPermission.CourseReadAll, AcademicPermission.CourseReadOwn])) {
+        if (this.permissionService.hasAnyPermission([AcademicPermission.CourseReadAll])) {
             void this.router.navigate(['/academic/courses']);
+            return;
+        }
+
+        if (this.permissionService.hasAnyPermission([AcademicPermission.CourseReadOwn, AcademicPermission.ProfessorReadOwn])) {
+            void this.router.navigate(['/academic/my-courses']);
+            return;
+        }
+
+        if (this.permissionService.hasAnyPermission([AcademicPermission.ProfessorReadAll])) {
+            void this.router.navigate(['/academic/professors']);
             return;
         }
 

@@ -49,6 +49,15 @@ export const academicFeature: AppFeature = {
                     order: 20
                 },
                 {
+                    label: 'Mes cours',
+                    icon: 'pi pi-fw pi-bookmark',
+                    routerLink: ['/academic/my-courses'],
+                    permissions: [AcademicPermission.CourseReadOwn, AcademicPermission.ProfessorReadOwn],
+                    mode: 'any',
+                    hiddenWhenPermissions: [AcademicPermission.CourseReadAll],
+                    order: 25
+                },
+                {
                     label: 'Professeurs',
                     icon: 'pi pi-fw pi-users',
                     routerLink: ['/academic/professors'],

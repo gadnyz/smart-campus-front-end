@@ -1,0 +1,185 @@
+<p-toast />
+
+<app-content-subtopbar kicker="Academic" title="Professeurs" [actions]="actions()" />
+
+<div class="card">
+    <p-table
+        #dt
+        [value]="rows()"
+        [loading]="loading()"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 20, 50]"
+        [globalFilterFields]="['display_name', 'email', 'matricule', 'faculty_name', 'grade_label']"
+        [rowHover]="true"
+        dataKey="id"
+        sortField="grade_label"
+        [sortOrder]="1"
+        rowGroupMode="subheader"
+        groupRowsBy="grade_label"
+        responsiveLayout="scroll"
+        currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} professeurs"
+        [showCurrentPageReport]="true"
+        [tableStyle]="{ 'min-width': '48rem' }"
+    >
+        <ng-template pTemplate="caption">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div class="font-semibold text-xl">Corps enseignant par grade</div>
+                <p-iconfield>
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text" placeholder="Rechercher..." (input)="onGlobalFilter(dt, $event)" />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="groupheader" let-row>
+            <tr pRowGroupHeader>
+                <td colspan="5">
+                    <span class="font-semibold">{{ row.grade_label }}</span>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="display_name">Nom <p-sortIcon field="display_name" /></th>
+                <th pSortableColumn="email">E-mail <p-sortIcon field="email" /></th>
+                <th pSortableColumn="faculty_name">Faculté <p-sortIcon field="faculty_name" /></th>
+                <th pSortableColumn="matricule">Matricule <p-sortIcon field="matricule" /></th>
+                <th style="width: 6rem">Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-row>
+            <tr>
+                <td>{{ row.display_name }}</td>
+                <td>{{ row.email || '—' }}</td>
+                <td>{{ row.faculty_name || '—' }}</td>
+                <td>{{ row.matricule || '—' }}</td>
+                <td>
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-arrow-right"
+                        rounded
+                        outlined
+                        severity="info"
+                        [attr.aria-label]="'Détail ' + row.display_name"
+                        (click)="openDetail(row)"
+                    ></button>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="5">Aucun professeur.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog
+    header="Nouveau professeur"
+    [visible]="dialogVisible()"
+    (visibleChange)="dialogVisible.set($event)"
+    [modal]="true"
+    [style]="{ width: '40rem' }"
+    [breakpoints]="{ '640px': '95vw' }"
+>
+    <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="submit()">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm text-color-secondary mb-1" for="last_name">Nom</label>
+                <input pInputText id="last_name" formControlName="last_name" class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1" for="first_name">Prénom</label>
+                <input pInputText id="first_name" formControlName="first_name" class="w-full" />
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm text-color-secondary mb-1" for="middle_name">Postnom</label>
+                <input pInputText id="middle_name" formControlName="middle_name" class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1" for="faculty_id">Faculté</label>
+                <p-select
+                    inputId="faculty_id"
+                    formControlName="faculty_id"
+                    [options]="facultyOptions()"
+                    optionLabel="label"
+                    optionValue="value"
+                    appendTo="body"
+                    class="w-full"
+                />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1" for="professor_grade_id">Grade</label>
+                <p-select
+                    inputId="professor_grade_id"
+                    formControlName="professor_grade_id"
+                    [options]="gradeOptions()"
+                    optionLabel="label"
+                    optionValue="value"
+                    appendTo="body"
+                    class="w-full"
+                />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1" for="gender">Genre</label>
+                <p-select
+                    inputId="gender"
+                    formControlName="gender"
+                    [options]="genderOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    appendTo="body"
+                    class="w-full"
+                />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1" for="marital_status">État civil</label>
+                <p-select
+                    inputId="marital_status"
+                    formControlName="marital_status"
+                    [options]="maritalStatusOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    appendTo="body"
+                    class="w-full"
+                />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1" for="birth_date">Date de naissance</label>
+                <p-datepicker
+                    inputId="birth_date"
+                    formControlName="birth_date"
+                    dateFormat="yy-mm-dd"
+                    [showIcon]="true"
+                    appendTo="body"
+                    class="w-full"
+                />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1" for="birth_place">Lieu de naissance</label>
+                <input pInputText id="birth_place" formControlName="birth_place" class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1" for="nationality">Nationalité</label>
+                <input pInputText id="nationality" formControlName="nationality" class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1" for="phone">Téléphone</label>
+                <input pInputText id="phone" formControlName="phone" class="w-full" />
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm text-color-secondary mb-1" for="email">E-mail</label>
+                <input pInputText id="email" formControlName="email" class="w-full" />
+            </div>
+        </div>
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined (click)="closeDialog()"></button>
+            <button pButton type="submit" label="Enregistrer" icon="pi pi-save" [loading]="saving()" [disabled]="saving()"></button>
+        </div>
+    </form>
+</p-dialog>

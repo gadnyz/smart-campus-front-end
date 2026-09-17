@@ -29,6 +29,8 @@ import { CourseService } from '../../services/course.service';
 import { CourseUnitService } from '../../services/course-unit.service';
 import { FacultyService } from '../../services/faculty.service';
 import { ProfessorService } from '../../services/professor.service';
+import { StudentService } from '../../services/student.service';
+import { Student, studentDisplayName } from '../../models/student.model';
 import {
     DetailNavigationService,
     DetailNavigationState
@@ -61,6 +63,7 @@ export class CourseDetailPage implements OnInit {
     private readonly courseUnitService = inject(CourseUnitService);
     private readonly assignmentService = inject(CourseAssignmentService);
     private readonly professorService = inject(ProfessorService);
+    private readonly studentService = inject(StudentService);
     private readonly academicYearService = inject(AcademicYearService);
     private readonly facultyService = inject(FacultyService);
     private readonly authService = inject(AuthService);
@@ -73,6 +76,7 @@ export class CourseDetailPage implements OnInit {
     readonly unit = signal<CourseUnit | null>(null);
     readonly units = signal<CourseUnit[]>([]);
     readonly allAssignments = signal<CourseAssignment[]>([]);
+    readonly students = signal<Student[]>([]);
     readonly professors = signal<Professor[]>([]);
     readonly currentYear = signal<AcademicYear | null>(null);
     readonly loading = signal(false);
@@ -443,16 +447,41 @@ export class CourseDetailPage implements OnInit {
         this.course.set(course);
         this.loading.set(false);
         this.loadAssignments(course.id);
+        this.loadStudents(course.id);
         this.courseUnitService.getById(course.course_unit_id).subscribe({
             next: (unit) => this.unit.set(unit)
         });
+    }
+
+    studentName(student: Student): string {
+        return studentDisplayName(student);
+    }
+
+    studentProgram(student: Student): string {
+        return student.program_name || student.program_code || '—';
+    }
+
+    studentLevel(student: Student): string {
+        return student.level_code || student.level_name || '—';
     }
 
     private loadAssignments(courseId: string): void {
         this.assignmentService.getByCourse(courseId).subscribe({
             next: (items) => this.allAssignments.set(items),
             error: (error: HttpErrorResponse) =>
-                this.showError(error.error?.detail ?? 'Impossible de charger les enseignants.')
+                this.showError(error.error?.detail ?? 'Impossible de charger les collaborateurs.')
+        });
+    }
+
+    private loadStudents(courseId: string): void {
+        this.studentService.getByCourse(courseId).subscribe({
+            next: (students) => this.students.set(students),
+            error: (error: HttpErrorResponse) => {
+                this.students.set([]);
+                if (error.status !== 404) {
+                    this.showError(error.error?.detail ?? 'Impossible de charger les étudiants inscrits.');
+                }
+            }
         });
     }
 

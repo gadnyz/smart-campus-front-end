@@ -9,6 +9,9 @@ import { CourseListPage } from './pages/course-list/course-list';
 import { CourseDetailPage } from './pages/course-detail/course-detail';
 import { CourseUnitListPage } from './pages/course-unit-list/course-unit-list';
 import { CourseUnitDetailPage } from './pages/course-unit-detail/course-unit-detail';
+import { ProfessorListPage } from './pages/professor-list/professor-list';
+import { ProfessorDetailPage } from './pages/professor-detail/professor-detail';
+import { MyCoursesPage } from './pages/my-courses/my-courses';
 
 
 export default [
@@ -75,12 +78,28 @@ export default [
         }
     },
     {
-        path: 'professors',
-        component: AcademicPlaceholder,
+        path: 'my-courses',
+        component: MyCoursesPage,
         canActivate: [permissionGuard],
         data: {
-            title: 'Professeurs',
-            permissions: [AcademicPermission.ProfessorReadAll],
+            permissions: [AcademicPermission.CourseReadOwn, AcademicPermission.ProfessorReadOwn],
+            mode: 'any'
+        }
+    },
+    {
+        path: 'professors',
+        component: ProfessorListPage,
+        canActivate: [permissionGuard],
+        data: {
+            permissions: [AcademicPermission.ProfessorReadAll]
+        }
+    },
+    {
+        path: 'professors/:id',
+        component: ProfessorDetailPage,
+        canActivate: [permissionGuard],
+        data: {
+            permissions: [AcademicPermission.ProfessorReadAll, AcademicPermission.ProfessorReadOwn],
             mode: 'any'
         }
     },
