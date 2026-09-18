@@ -1,0 +1,32 @@
+<div class="card">
+    <div class="font-semibold text-xl mb-3">Étudiants inscrits</div>
+    <p-table
+        [value]="students()"
+        [loading]="loading()"
+        dataKey="id"
+        [rowHover]="true"
+        responsiveLayout="scroll"
+    >
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Matricule</th>
+                <th>Nom</th>
+                <th>Programme</th>
+                <th>Niveau</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-student>
+            <tr>
+                <td>{{ student.matricule || '—' }}</td>
+                <td>{{ studentName(student) }}</td>
+                <td>{{ studentProgram(student) }}</td>
+                <td>{{ studentLevel(student) }}</td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="4">Aucun étudiant inscrit à ce cours.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>

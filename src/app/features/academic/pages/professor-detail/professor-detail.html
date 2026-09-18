@@ -1,0 +1,206 @@
+<p-toast />
+<p-confirmdialog [style]="{ width: '450px' }" />
+
+<app-content-subtopbar kicker="Academic" [title]="title()" [actions]="actions()" />
+
+@if (professor(); as professor) {
+<p-card>
+    <div class="professor-header">
+        @if (photoUrl()) {
+        <p-avatar [image]="photoUrl()" shape="circle" size="xlarge" styleClass="professor-avatar"
+            (onImageError)="onPhotoImageError()" />
+        } @else {
+        <p-avatar [label]="initials()" shape="circle" size="xlarge" styleClass="professor-avatar" />
+        }
+
+        <div class="professor-heading">
+            <h3>{{ displayName() }}</h3>
+            <div class="professor-grade">{{ gradeLabel() }}</div>
+            <div class="professor-contact">
+                <span>{{ professor.email || '—' }}</span>
+                <span>{{ professor.phone || '—' }}</span>
+            </div>
+            <div class="professor-academic-meta">
+                <span>
+                    <i class="pi pi-building"></i>
+                    {{ facultyLabel() }}
+                </span>
+                <span>
+                    <i class="pi pi-id-card"></i>
+                    {{ professor.matricule || '—' }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <p-divider />
+
+    <section class="detail-section">
+        <div class="section-heading">
+            <i class="pi pi-user text-primary"></i>
+            <div>
+                <h4>Informations personnelles</h4>
+                <span>État civil et coordonnées de l’enseignant</span>
+            </div>
+        </div>
+
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span>Postnom</span>
+                <strong>{{ professor.middle_name || '—' }}</strong>
+            </div>
+            <div class="detail-item">
+                <span>Genre</span>
+                <strong>{{ genderLabel() }}</strong>
+            </div>
+            <div class="detail-item">
+                <span>État civil</span>
+                <strong>{{ maritalStatusLabel() }}</strong>
+            </div>
+            <div class="detail-item">
+                <span>Date de naissance</span>
+                <strong>{{ professor.birth_date || '—' }}</strong>
+            </div>
+            <div class="detail-item">
+                <span>Lieu de naissance</span>
+                <strong>{{ professor.birth_place || '—' }}</strong>
+            </div>
+            <div class="detail-item">
+                <span>Nationalité</span>
+                <strong>{{ professor.nationality || '—' }}</strong>
+            </div>
+        </div>
+    </section>
+</p-card>
+}
+
+<div class="card mt-4">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="font-semibold text-xl">Cours enseignés</div>
+        @if (canAssign()) {
+        <button pButton type="button" label="Nouvelle affectation" icon="pi pi-plus" size="small"
+            (click)="openAssign()"></button>
+        }
+    </div>
+
+    <p-table [value]="assignments()" dataKey="id" [rowHover]="true" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Cours</th>
+                <th>Rôle</th>
+                <th style="width: 6rem">Actions</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+            <tr>
+                <td>{{ courseLabel(item) }}</td>
+                <td><p-tag [value]="typeLabel(item.assignment_type)" /></td>
+                <td>
+                    <button pButton type="button" icon="pi pi-arrow-right" rounded outlined severity="info"
+                        [attr.aria-label]="'Détail du cours'" (click)="openCourse(item)"></button>
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="3">Aucun cours affecté.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog header="Modifier le professeur" [visible]="professorDialogVisible()"
+    (visibleChange)="professorDialogVisible.set($event)" [modal]="true" [style]="{ width: '40rem' }">
+    <form [formGroup]="professorForm" class="flex flex-col gap-4" (ngSubmit)="submitProfessor()">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm text-color-secondary mb-1">Nom *</label>
+                <input pInputText formControlName="last_name" class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1">Prénom *</label>
+                <input pInputText formControlName="first_name" class="w-full" />
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm text-color-secondary mb-1">Postnom</label>
+                <input pInputText formControlName="middle_name" class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1">Matricule</label>
+                <input pInputText formControlName="matricule" class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1">Genre *</label>
+                <p-select formControlName="gender" [options]="genderOptions" optionLabel="label" optionValue="value"
+                    appendTo="body" class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1">Faculté *</label>
+                <p-select formControlName="faculty_id" [options]="facultyOptions()" optionLabel="label"
+                    optionValue="value" appendTo="body" class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1">Grade *</label>
+                <p-select formControlName="professor_grade_id" [options]="gradeOptions()" optionLabel="label"
+                    optionValue="value" appendTo="body" class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1">État civil</label>
+                <p-select formControlName="marital_status" [options]="maritalStatusOptions" optionLabel="label"
+                    optionValue="value" [showClear]="true" appendTo="body" class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1">Date de naissance</label>
+                <p-datepicker formControlName="birth_date" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body"
+                    class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1">Lieu de naissance</label>
+                <input pInputText formControlName="birth_place" class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1">Nationalité</label>
+                <input pInputText formControlName="nationality" class="w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-color-secondary mb-1">Téléphone</label>
+                <input pInputText formControlName="phone" class="w-full" />
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm text-color-secondary mb-1">E-mail</label>
+                <input pInputText formControlName="email" class="w-full" />
+            </div>
+        </div>
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined
+                (click)="professorDialogVisible.set(false)"></button>
+            <button pButton type="submit" label="Enregistrer" icon="pi pi-save" [loading]="saving()"></button>
+        </div>
+    </form>
+</p-dialog>
+
+<p-dialog header="Nouvelle affectation" [visible]="assignmentDialogVisible()"
+    (visibleChange)="assignmentDialogVisible.set($event)" [modal]="true" [style]="{ width: '32rem' }">
+    <form [formGroup]="assignmentForm" class="flex flex-col gap-4" (ngSubmit)="submitAssignment()">
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Cours</label>
+            <p-select formControlName="course_id" [options]="courseOptions()" optionLabel="label" optionValue="value"
+                [filter]="true" appendTo="body" class="w-full" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Année académique</label>
+            <p-select formControlName="academic_year_id" [options]="yearOptions()" optionLabel="label"
+                optionValue="value" appendTo="body" class="w-full" />
+        </div>
+        <div>
+            <label class="block text-sm text-color-secondary mb-1">Rôle</label>
+            <p-select formControlName="assignment_type" [options]="typeOptions" optionLabel="label" optionValue="value"
+                appendTo="body" class="w-full" />
+        </div>
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined
+                (click)="assignmentDialogVisible.set(false)"></button>
+            <button pButton type="submit" label="Affecter" icon="pi pi-save" [loading]="savingAssignment()"></button>
+        </div>
+    </form>
+</p-dialog>

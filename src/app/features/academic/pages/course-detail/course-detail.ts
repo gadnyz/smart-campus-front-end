@@ -29,6 +29,7 @@ import { CourseService } from '../../services/course.service';
 import { CourseUnitService } from '../../services/course-unit.service';
 import { FacultyService } from '../../services/faculty.service';
 import { ProfessorService } from '../../services/professor.service';
+import { CourseEnrolledStudents } from '../../components/course-enrolled-students/course-enrolled-students';
 import {
     DetailNavigationService,
     DetailNavigationState
@@ -49,7 +50,8 @@ import {
         TextareaModule,
         SelectModule,
         TagModule,
-        ContentSubtopbar
+        ContentSubtopbar,
+        CourseEnrolledStudents
     ],
     templateUrl: './course-detail.html',
     providers: [ConfirmationService, MessageService]
@@ -448,11 +450,15 @@ export class CourseDetailPage implements OnInit {
         });
     }
 
+    onStudentsLoadError(detail: string): void {
+        this.showError(detail);
+    }
+
     private loadAssignments(courseId: string): void {
         this.assignmentService.getByCourse(courseId).subscribe({
             next: (items) => this.allAssignments.set(items),
             error: (error: HttpErrorResponse) =>
-                this.showError(error.error?.detail ?? 'Impossible de charger les enseignants.')
+                this.showError(error.error?.detail ?? 'Impossible de charger les collaborateurs.')
         });
     }
 

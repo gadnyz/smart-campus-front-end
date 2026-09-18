@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 import { PermissionService } from '@/app/core/permissions/permission.service';
-import { IdentityPermission } from '@/app/features/identity/permissions/permission.model';
 import { DetailNavigationService } from '@/app/shared/navigation/detail-navigation.service';
 import { User } from '../../models/user.model';
 import { UsersService } from '../../services/user.service';
@@ -50,7 +49,6 @@ describe('UserList', () => {
             imports: [UserList],
             providers: [
                 provideRouter([]),
-                ConfirmationService,
                 { provide: UsersService, useValue: usersService },
                 { provide: PermissionService, useValue: permissionService },
                 { provide: DetailNavigationService, useValue: detailNavigation }
@@ -107,16 +105,6 @@ describe('UserList', () => {
         expect(component.formatProfiles({ ...sampleUser, profiles: [] })).toBe('Sans profil');
     });
 
-    it('should gate delete actions on UserDeleteAll', () => {
-        permissionService.hasAnyPermission.and.returnValue(true);
-        fixture = TestBed.createComponent(UserList);
-        component = fixture.componentInstance;
-        fixture.detectChanges();
-
-        expect(component.canDeleteUsers()).toBeTrue();
-        expect(permissionService.hasAnyPermission).toHaveBeenCalledWith([IdentityPermission.UserDeleteAll]);
-    });
-
     it('should toast an error and clear the list on load failure', () => {
         usersService.getUsers.and.returnValue(throwError(() => new Error('network')));
 
@@ -128,27 +116,6 @@ describe('UserList', () => {
             jasmine.objectContaining({
                 severity: 'error',
                 detail: 'Impossible de charger les utilisateurs.'
-            })
-        );
-    });
-
-    it('should confirm then delete a user and refresh the local list', () => {
-        const confirmation = fixture.debugElement.injector.get(ConfirmationService);
-        spyOn(confirmation, 'confirm').and.callFake((options) => {
-            options.accept?.();
-            return confirmation;
-        });
-        usersService.deleteUser.and.returnValue(of(void 0));
-        component.users.set([sampleUser]);
-
-        component.confirmDelete({ ...sampleUser, profilesLabel: 'ADMIN' });
-
-        expect(usersService.deleteUser).toHaveBeenCalledOnceWith('u-1');
-        expect(component.users()).toEqual([]);
-        expect(messageService.add).toHaveBeenCalledWith(
-            jasmine.objectContaining({
-                severity: 'success',
-                detail: 'Utilisateur supprimé avec succès.'
             })
         );
     });

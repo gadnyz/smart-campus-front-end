@@ -1,0 +1,285 @@
+<p-toast />
+
+<app-content-subtopbar kicker="Academic" [title]="title()" [actions]="actions()" />
+
+@if (!student() && loading()) {
+<p-card>
+    <div class="loading-header">
+        <p-skeleton shape="circle" size="5rem" />
+        <div class="loading-content">
+            <p-skeleton width="16rem" height="1.5rem" />
+            <p-skeleton width="22rem" styleClass="mt-2" />
+        </div>
+    </div>
+    <p-divider />
+    <div class="detail-grid">
+        @for (item of [1, 2, 3, 4, 5, 6, 7, 8]; track item) {
+        <div class="detail-item">
+            <p-skeleton width="6rem" />
+            <p-skeleton width="10rem" height="1.25rem" />
+        </div>
+        }
+    </div>
+</p-card>
+} @else if (student(); as student) {
+@if (saving()) {
+<p-progressbar mode="indeterminate" [style]="{ height: '3px' }" ariaLabel="Enregistrement de l’étudiant" />
+}
+
+<form [formGroup]="form">
+    <p-card>
+        <div class="student-header">
+            @if (photoUrl()) {
+            <p-avatar [image]="photoUrl()" shape="circle" size="xlarge" styleClass="student-avatar"
+                (onImageError)="onPhotoImageError()" />
+            } @else {
+            <p-avatar [label]="initials()" shape="circle" size="xlarge" styleClass="student-avatar" />
+            }
+
+            <div class="student-heading">
+                <h3>{{ displayName() }}</h3>
+                <div class="student-contact">
+                    <span>{{ student.email || '—' }}</span>
+                    <span>{{ student.phone || '—' }}</span>
+                </div>
+                <div class="student-academic-meta">
+                    <span><i class="pi pi-building"></i> {{ facultyLabel() }}</span>
+                    <span><i class="pi pi-book"></i> {{ programLabel() }}</span>
+                    <span><i class="pi pi-sitemap"></i> {{ levelLabel() }}</span>
+                    <span><i class="pi pi-id-card"></i> {{ student.matricule || '—' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <p-divider />
+
+        <section class="detail-section">
+            <div class="section-heading">
+                <i class="pi pi-user text-primary"></i>
+                <div>
+                    <h4>Informations personnelles</h4>
+                    <span>Identité, contact et origine de l’étudiant.</span>
+                </div>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span>Prénom</span>
+                    @if (editing()) { <input pInputText formControlName="first_name" /> } @else {
+                    <strong>{{ display(student.first_name) }}</strong> }
+                </div>
+                <div class="detail-item">
+                    <span>Post-nom</span>
+                    @if (editing()) { <input pInputText formControlName="middle_name" /> } @else {
+                    <strong>{{ display(student.middle_name) }}</strong> }
+                </div>
+                <div class="detail-item">
+                    <span>Nom</span>
+                    @if (editing()) { <input pInputText formControlName="last_name" /> } @else {
+                    <strong>{{ display(student.last_name) }}</strong> }
+                </div>
+                <div class="detail-item">
+                    <span>Genre</span>
+                    @if (editing()) {
+                    <p-select formControlName="gender" [options]="genderOptions" optionLabel="label" optionValue="value"
+                        appendTo="body" class="w-full" />
+                    } @else { <strong>{{ genderLabel() }}</strong> }
+                </div>
+                <div class="detail-item">
+                    <span>Date de naissance</span>
+                    @if (editing()) {
+                    <p-datepicker formControlName="birth_date" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body"
+                        class="w-full" />
+                    } @else { <strong>{{ display(student.birth_date) }}</strong> }
+                </div>
+                <div class="detail-item">
+                    <span>Lieu de naissance</span>
+                    @if (editing()) { <input pInputText formControlName="birth_place" /> } @else {
+                    <strong>{{ display(student.birth_place) }}</strong> }
+                </div>
+                <div class="detail-item">
+                    <span>État civil</span>
+                    @if (editing()) {
+                    <p-select formControlName="marital_status" [options]="maritalStatusOptions" optionLabel="label"
+                        optionValue="value" [showClear]="true" appendTo="body" class="w-full" />
+                    } @else { <strong>{{ maritalLabel() }}</strong> }
+                </div>
+                <div class="detail-item">
+                    <span>Nationalité</span>
+                    @if (editing()) { <input pInputText formControlName="nationality" /> } @else {
+                    <strong>{{ display(student.nationality) }}</strong> }
+                </div>
+                <div class="detail-item">
+                    <span>Email</span>
+                    @if (editing()) { <input pInputText formControlName="email" /> } @else {
+                    <strong>{{ display(student.email) }}</strong> }
+                </div>
+                <div class="detail-item">
+                    <span>Téléphone</span>
+                    @if (editing()) { <input pInputText formControlName="phone" /> } @else {
+                    <strong>{{ display(student.phone) }}</strong> }
+                </div>
+                <div class="detail-item">
+                    <span>Matricule</span>
+                    @if (editing()) { <input pInputText formControlName="matricule" /> } @else {
+                    <strong>{{ display(student.matricule) }}</strong> }
+                </div>
+                <ng-container formGroupName="origin">
+                    <div class="detail-item">
+                        <span>Province</span>
+                        @if (editing()) { <input pInputText formControlName="province" /> } @else {
+                        <strong>{{ display(student.origin?.province) }}</strong> }
+                    </div>
+                    <div class="detail-item">
+                        <span>Territoire</span>
+                        @if (editing()) { <input pInputText formControlName="territory" /> } @else {
+                        <strong>{{ display(student.origin?.territory) }}</strong> }
+                    </div>
+                    <div class="detail-item">
+                        <span>Secteur</span>
+                        @if (editing()) { <input pInputText formControlName="sector" /> } @else {
+                        <strong>{{ display(student.origin?.sector) }}</strong> }
+                    </div>
+                    <div class="detail-item">
+                        <span>Commune</span>
+                        @if (editing()) { <input pInputText formControlName="commune" /> } @else {
+                        <strong>{{ display(student.origin?.commune) }}</strong> }
+                    </div>
+                </ng-container>
+            </div>
+        </section>
+
+        <p-divider />
+
+        <section class="detail-section">
+            <div class="section-heading">
+                <i class="pi pi-graduation-cap text-primary"></i>
+                <div>
+                    <h4>Parcours académique</h4>
+                    <span>Inscription actuelle et scolarité antérieure.</span>
+                </div>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span>Faculté</span>
+                    @if (editing()) {
+                    <p-select formControlName="faculty_id" [options]="faculties()" optionLabel="label"
+                        optionValue="value" [filter]="true" appendTo="body" class="w-full" />
+                    } @else { <strong>{{ facultyLabel() }}</strong> }
+                </div>
+                <div class="detail-item">
+                    <span>Programme</span>
+                    @if (editing()) {
+                    <p-select formControlName="program_id" [options]="programs()" optionLabel="label"
+                        optionValue="value" [filter]="true" [showClear]="true" appendTo="body" class="w-full" />
+                    } @else { <strong>{{ programLabel() }}</strong> }
+                </div>
+                <div class="detail-item">
+                    <span>Niveau</span>
+                    @if (editing()) {
+                    <p-select formControlName="level_id" [options]="levels()" optionLabel="label" optionValue="value"
+                        [filter]="true" [showClear]="true" appendTo="body" class="w-full" />
+                    } @else { <strong>{{ levelLabel() }}</strong> }
+                </div>
+                <div class="detail-item">
+                    <span>Année académique</span>
+                    <strong>{{ yearLabel() }}</strong>
+                </div>
+                <ng-container formGroupName="academic_background">
+                    <div class="detail-item">
+                        <span>École</span>
+                        @if (editing()) { <input pInputText formControlName="school_name" /> } @else {
+                        <strong>{{ display(student.academic_background?.school_name) }}</strong> }
+                    </div>
+                    <div class="detail-item">
+                        <span>Option</span>
+                        @if (editing()) { <input pInputText formControlName="option" /> } @else {
+                        <strong>{{ display(student.academic_background?.option) }}</strong> }
+                    </div>
+                    <div class="detail-item">
+                        <span>Pourcentage</span>
+                        @if (editing()) {
+                        <p-inputnumber formControlName="percentage" [min]="0" [max]="100" class="w-full" />
+                        } @else {
+                        <strong>{{ student.academic_background?.percentage != null ? student.academic_background?.percentage + '%' : '—' }}</strong>
+                        }
+                    </div>
+                    <div class="detail-item">
+                        <span>Année de fin</span>
+                        @if (editing()) {
+                        <p-inputnumber formControlName="graduation_year" [useGrouping]="false" class="w-full" />
+                        } @else { <strong>{{ display(student.academic_background?.graduation_year) }}</strong> }
+                    </div>
+                    <div class="detail-item">
+                        <span>Pays des études</span>
+                        @if (editing()) { <input pInputText formControlName="study_country" /> } @else {
+                        <strong>{{ display(student.academic_background?.study_country) }}</strong> }
+                    </div>
+                    <div class="detail-item">
+                        <span>Ville des études</span>
+                        @if (editing()) { <input pInputText formControlName="study_city" /> } @else {
+                        <strong>{{ display(student.academic_background?.study_city) }}</strong> }
+                    </div>
+                </ng-container>
+            </div>
+        </section>
+
+        <p-divider />
+
+        <section class="detail-section">
+            <div class="section-heading">
+                <i class="pi pi-users text-primary"></i>
+                <div>
+                    <h4>Famille et urgence</h4>
+                    <span>Tuteur et personne à contacter.</span>
+                </div>
+            </div>
+            <div class="detail-grid">
+                <ng-container formGroupName="tutor">
+                    <div class="detail-item">
+                        <span>Nom du tuteur</span>
+                        @if (editing()) { <input pInputText formControlName="full_name" /> } @else {
+                        <strong>{{ display(student.tutor?.full_name) }}</strong> }
+                    </div>
+                    <div class="detail-item">
+                        <span>Email du tuteur</span>
+                        @if (editing()) { <input pInputText formControlName="email" /> } @else {
+                        <strong>{{ display(student.tutor?.email) }}</strong> }
+                    </div>
+                    <div class="detail-item">
+                        <span>Téléphone du tuteur</span>
+                        @if (editing()) { <input pInputText formControlName="phone" /> } @else {
+                        <strong>{{ display(student.tutor?.phone) }}</strong> }
+                    </div>
+                    <div class="detail-item">
+                        <span>Profession du tuteur</span>
+                        @if (editing()) { <input pInputText formControlName="profession" /> } @else {
+                        <strong>{{ display(student.tutor?.profession) }}</strong> }
+                    </div>
+                </ng-container>
+                <ng-container formGroupName="emergency_contact">
+                    <div class="detail-item">
+                        <span>Contact d’urgence</span>
+                        @if (editing()) { <input pInputText formControlName="full_name" /> } @else {
+                        <strong>{{ display(student.emergency_contact?.full_name) }}</strong> }
+                    </div>
+                    <div class="detail-item">
+                        <span>Email d’urgence</span>
+                        @if (editing()) { <input pInputText formControlName="email" /> } @else {
+                        <strong>{{ display(student.emergency_contact?.email) }}</strong> }
+                    </div>
+                    <div class="detail-item">
+                        <span>Téléphone d’urgence</span>
+                        @if (editing()) { <input pInputText formControlName="phone" /> } @else {
+                        <strong>{{ display(student.emergency_contact?.phone) }}</strong> }
+                    </div>
+                    <div class="detail-item">
+                        <span>Lien avec l’étudiant</span>
+                        @if (editing()) { <input pInputText formControlName="relationship" /> } @else {
+                        <strong>{{ display(student.emergency_contact?.relationship) }}</strong> }
+                    </div>
+                </ng-container>
+            </div>
+        </section>
+    </p-card>
+</form>
+}

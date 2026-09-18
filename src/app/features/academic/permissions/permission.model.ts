@@ -45,6 +45,7 @@ export const AcademicPermission = {
     CourseUnitDeleteAll: 'academic:course-unit:delete:all',
 
     ProfessorReadAll: 'academic:professor:read:all',
+    ProfessorReadOwn: 'academic:professor:read:own',
     ProfessorCreateAll: 'academic:professor:create:all',
     ProfessorUpdateAll: 'academic:professor:update:all',
     ProfessorDeleteAll: 'academic:professor:delete:all',
