@@ -1,8 +1,8 @@
-{
-  "/api": {
+[
+  {
+    "context": ["/api"],
     "target": "http://host.docker.internal:8085",
     "secure": false,
-    "changeOrigin": true,
-    "logLevel": "debug"
+    "changeOrigin": true
   }
-}
+]

@@ -40,10 +40,12 @@ describe('authGuard', () => {
 
         authService = TestBed.inject(AuthService);
         router = TestBed.inject(Router);
+        localStorage.clear();
         sessionStorage.clear();
     });
 
     afterEach(() => {
+        localStorage.clear();
         sessionStorage.clear();
     });
 

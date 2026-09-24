@@ -681,6 +681,7 @@ export class CandidateCreate implements OnInit {
     }
 
     private normalizePhone(value: string, country: CountryCode): string {
+        
         const normalized = value.trim();
 
         if (!normalized) {

@@ -11,6 +11,19 @@ services:
       - /app/node_modules
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    command:
+      [
+        "node_modules/.bin/ng",
+        "serve",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "4200",
+        "--poll",
+        "2000",
+        "--proxy-config",
+        "proxy.conf.docker.json"
+      ]
     environment:
       CHOKIDAR_USEPOLLING: "true"
     stdin_open: true

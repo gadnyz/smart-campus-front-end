@@ -1,7 +1,8 @@
-import { ApplicationConfig, provideZonelessChangeDetection } from '@angular/core';
+import { ApplicationConfig, inject, provideAppInitializer, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter, withEnabledBlockingInitialNavigation, withInMemoryScrolling } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from '@/app/core/auth/interceptors/auth.interceptor';
+import { AuthService } from '@/app/core/auth/services/auth.service';
 import { definePreset } from '@primeuix/themes';
 
 import Aura from '@primeuix/themes/aura';
@@ -48,6 +49,7 @@ export const appConfig: ApplicationConfig = {
     providers: [
         provideRouter(appRoutes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' }), withEnabledBlockingInitialNavigation()),
         provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
+        provideAppInitializer(() => inject(AuthService).restoreSession()),
         provideZonelessChangeDetection(),
         providePrimeNG({ theme: { preset: UNHPreset, options: { darkModeSelector: '.app-dark' } } })
     ]

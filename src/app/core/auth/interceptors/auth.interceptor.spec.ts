@@ -42,16 +42,16 @@ describe('authInterceptor', () => {
         authService = TestBed.inject(AuthService);
         router = TestBed.inject(Router);
         spyOn(router, 'navigate').and.resolveTo(true);
-        sessionStorage.clear();
+        localStorage.clear();
     });
 
     afterEach(() => {
         httpTesting.verify();
-        sessionStorage.clear();
+        localStorage.clear();
     });
 
     it('should add Authorization header for API requests when token exists', () => {
-        sessionStorage.setItem('access_token', 'my-token');
+        localStorage.setItem('access_token', 'my-token');
 
         httpClient.get('/api/v1/users').subscribe();
 
@@ -62,7 +62,7 @@ describe('authInterceptor', () => {
     });
 
     it('should add Authorization header for same-origin proxied API URLs', () => {
-        sessionStorage.setItem('access_token', 'my-token');
+        localStorage.setItem('access_token', 'my-token');
 
         httpClient.get('/api/v1/candidates?page=0&size=1').subscribe();
 
@@ -82,7 +82,7 @@ describe('authInterceptor', () => {
 
         for (const path of swaggerPaths) {
             it(`should attach Bearer token to ${path}`, () => {
-                sessionStorage.setItem('access_token', 'swagger-jwt');
+                localStorage.setItem('access_token', 'swagger-jwt');
 
                 httpClient.get(path).subscribe();
 
@@ -94,7 +94,7 @@ describe('authInterceptor', () => {
     });
 
     it('should propagate 403 responses without clearing the session (authorization vs authentication)', () => {
-        sessionStorage.setItem('access_token', 'my-token');
+        localStorage.setItem('access_token', 'my-token');
         spyOn(authService, 'clearSession');
 
         let status: number | undefined;
@@ -114,7 +114,7 @@ describe('authInterceptor', () => {
     });
 
     it('should propagate 500 responses without clearing the session', () => {
-        sessionStorage.setItem('access_token', 'my-token');
+        localStorage.setItem('access_token', 'my-token');
         spyOn(authService, 'clearSession');
 
         let status: number | undefined;
@@ -133,7 +133,7 @@ describe('authInterceptor', () => {
     });
 
     it('should not add Authorization header for public auth URLs', () => {
-        sessionStorage.setItem('access_token', 'my-token');
+        localStorage.setItem('access_token', 'my-token');
 
         httpClient.post('/api/v1/auth/login', {}).subscribe();
 
@@ -143,7 +143,7 @@ describe('authInterceptor', () => {
     });
 
     it('should not add Authorization header for non-API requests', () => {
-        sessionStorage.setItem('access_token', 'my-token');
+        localStorage.setItem('access_token', 'my-token');
 
         httpClient.get('assets/i18n/fr.json').subscribe();
 
@@ -161,8 +161,8 @@ describe('authInterceptor', () => {
     });
 
     it('should attempt to refresh token and retry request on 401 response', () => {
-        sessionStorage.setItem('access_token', 'old-token');
-        sessionStorage.setItem('refresh_token', 'refresh-token');
+        localStorage.setItem('access_token', 'old-token');
+        localStorage.setItem('refresh_token', 'refresh-token');
 
         spyOn(authService, 'refreshCurrentSession').and.returnValue(of(authResponse));
         spyOn(authService, 'clearSession').and.callThrough();
@@ -191,7 +191,7 @@ describe('authInterceptor', () => {
     });
 
     it('should clear session and redirect to login on 401 if refresh token is missing', () => {
-        sessionStorage.setItem('access_token', 'old-token');
+        localStorage.setItem('access_token', 'old-token');
         // no refresh token
 
         spyOn(authService, 'clearSession').and.callThrough();
@@ -213,8 +213,8 @@ describe('authInterceptor', () => {
     });
 
     it('should clear session and redirect to login on 401 if token refresh request fails', () => {
-        sessionStorage.setItem('access_token', 'old-token');
-        sessionStorage.setItem('refresh_token', 'refresh-token');
+        localStorage.setItem('access_token', 'old-token');
+        localStorage.setItem('refresh_token', 'refresh-token');
 
         spyOn(authService, 'refreshCurrentSession').and.returnValue(throwError(() => new Error('Refresh failed')));
         spyOn(authService, 'clearSession').and.callThrough();
@@ -236,8 +236,8 @@ describe('authInterceptor', () => {
     });
 
     it('should de-duplicate multiple concurrent refresh requests', () => {
-        sessionStorage.setItem('access_token', 'old-token');
-        sessionStorage.setItem('refresh_token', 'refresh-token');
+        localStorage.setItem('access_token', 'old-token');
+        localStorage.setItem('refresh_token', 'refresh-token');
 
         const refreshSubject = new Subject<AuthResponse>();
         const refreshSpy = spyOn(authService, 'refreshCurrentSession').and.returnValue(refreshSubject.asObservable());
