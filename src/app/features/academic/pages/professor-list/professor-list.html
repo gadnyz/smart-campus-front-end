@@ -3,25 +3,13 @@
 <app-content-subtopbar kicker="Academic" title="Professeurs" [actions]="actions()" />
 
 <div class="card">
-    <p-table
-        #dt
-        [value]="rows()"
-        [loading]="loading()"
-        [paginator]="true"
-        [rows]="10"
+    <p-table #dt [value]="rows()" [loading]="loading()" [paginator]="true" [rows]="10"
         [rowsPerPageOptions]="[10, 20, 50]"
-        [globalFilterFields]="['display_name', 'email', 'matricule', 'faculty_name', 'grade_label']"
-        [rowHover]="true"
-        dataKey="id"
-        sortField="grade_label"
-        [sortOrder]="1"
-        rowGroupMode="subheader"
-        groupRowsBy="grade_label"
+        [globalFilterFields]="['display_name', 'email', 'matricule', 'faculty_name', 'grade_label']" [rowHover]="true"
+        dataKey="id" sortField="grade_label" [sortOrder]="1" rowGroupMode="subheader" groupRowsBy="grade_label"
         responsiveLayout="scroll"
         currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} professeurs"
-        [showCurrentPageReport]="true"
-        [tableStyle]="{ 'min-width': '48rem' }"
-    >
+        [showCurrentPageReport]="true" [tableStyle]="{ 'min-width': '48rem' }">
         <ng-template pTemplate="caption">
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div class="font-semibold text-xl">Corps enseignant par grade</div>
@@ -57,16 +45,8 @@
                 <td>{{ row.faculty_name || '—' }}</td>
                 <td>{{ row.matricule || '—' }}</td>
                 <td>
-                    <button
-                        pButton
-                        type="button"
-                        icon="pi pi-arrow-right"
-                        rounded
-                        outlined
-                        severity="info"
-                        [attr.aria-label]="'Détail ' + row.display_name"
-                        (click)="openDetail(row)"
-                    ></button>
+                    <button pButton type="button" icon="pi pi-arrow-right" rounded outlined severity="info"
+                        [attr.aria-label]="'Détail ' + row.display_name" (click)="openDetail(row)"></button>
                 </td>
             </tr>
         </ng-template>
@@ -79,14 +59,8 @@
     </p-table>
 </div>
 
-<p-dialog
-    header="Nouveau professeur"
-    [visible]="dialogVisible()"
-    (visibleChange)="dialogVisible.set($event)"
-    [modal]="true"
-    [style]="{ width: '40rem' }"
-    [breakpoints]="{ '640px': '95vw' }"
->
+<p-dialog header="Nouveau professeur" [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)"
+    [modal]="true" [style]="{ width: '40rem' }" [breakpoints]="{ '640px': '95vw' }">
     <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="submit()">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -107,63 +81,28 @@
             </div>
             <div>
                 <label class="block text-sm text-color-secondary mb-1" for="gender">Genre *</label>
-                <p-select
-                    inputId="gender"
-                    formControlName="gender"
-                    [options]="genderOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    appendTo="body"
-                    class="w-full"
-                />
+                <p-select inputId="gender" formControlName="gender" [options]="genderOptions" optionLabel="label"
+                    optionValue="value" appendTo="body" class="w-full" />
             </div>
             <div>
                 <label class="block text-sm text-color-secondary mb-1" for="faculty_id">Faculté *</label>
-                <p-select
-                    inputId="faculty_id"
-                    formControlName="faculty_id"
-                    [options]="facultyOptions()"
-                    optionLabel="label"
-                    optionValue="value"
-                    appendTo="body"
-                    class="w-full"
-                />
+                <p-select formControlName="faculty_id" [options]="facultyOptions()" optionLabel="label"
+                    optionValue="value" appendTo="body" class="w-full" />
             </div>
             <div>
                 <label class="block text-sm text-color-secondary mb-1" for="professor_grade_id">Grade *</label>
-                <p-select
-                    inputId="professor_grade_id"
-                    formControlName="professor_grade_id"
-                    [options]="gradeOptions()"
-                    optionLabel="label"
-                    optionValue="value"
-                    appendTo="body"
-                    class="w-full"
-                />
+                <p-select inputId="professor_grade_id" formControlName="professor_grade_id" [options]="gradeOptions()"
+                    optionLabel="label" optionValue="value" appendTo="body" class="w-full" />
             </div>
             <div>
                 <label class="block text-sm text-color-secondary mb-1" for="marital_status">État civil</label>
-                <p-select
-                    inputId="marital_status"
-                    formControlName="marital_status"
-                    [options]="maritalStatusOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    [showClear]="true"
-                    appendTo="body"
-                    class="w-full"
-                />
+                <p-select inputId="marital_status" formControlName="marital_status" [options]="maritalStatusOptions"
+                    optionLabel="label" optionValue="value" [showClear]="true" appendTo="body" class="w-full" />
             </div>
             <div>
                 <label class="block text-sm text-color-secondary mb-1" for="birth_date">Date de naissance</label>
-                <p-datepicker
-                    inputId="birth_date"
-                    formControlName="birth_date"
-                    dateFormat="yy-mm-dd"
-                    [showIcon]="true"
-                    appendTo="body"
-                    class="w-full"
-                />
+                <p-datepicker inputId="birth_date" formControlName="birth_date" dateFormat="yy-mm-dd" [showIcon]="true"
+                    appendTo="body" class="w-full" />
             </div>
             <div>
                 <label class="block text-sm text-color-secondary mb-1" for="birth_place">Lieu de naissance</label>
@@ -183,8 +122,10 @@
             </div>
         </div>
         <div class="flex justify-end gap-2">
-            <button pButton type="button" label="Annuler" severity="secondary" outlined (click)="closeDialog()"></button>
-            <button pButton type="submit" label="Enregistrer" icon="pi pi-save" [loading]="saving()" [disabled]="saving()"></button>
+            <button pButton type="button" label="Annuler" severity="secondary" outlined
+                (click)="closeDialog()"></button>
+            <button pButton type="submit" label="Enregistrer" icon="pi pi-save" [loading]="saving()"
+                [disabled]="saving()"></button>
         </div>
     </form>
 </p-dialog>

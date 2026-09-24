@@ -13,7 +13,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
-import { forkJoin } from 'rxjs';
+import { forkJoin, map } from 'rxjs';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { DetailNavigationService } from '@/app/shared/navigation/detail-navigation.service';
 import { AcademicPermission } from '../../permissions/permission.model';
@@ -31,6 +31,7 @@ import { FacultyService } from '../../services/faculty.service';
 import { ProfessorGradeService } from '../../services/professor-grade.service';
 import { ProfessorService } from '../../services/professor.service';
 import { blankToNull, toApiDate } from '../../utils/academic-date';
+import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
 
 export interface ProfessorRow extends Professor {
     display_name: string;
@@ -139,21 +140,54 @@ export class ProfessorListPage implements OnInit {
         }
     ]);
 
-    ngOnInit(): void {
-        this.load();
-    }
+    private readonly facultyScope = inject(FacultyScopeService);
 
-    onGlobalFilter(table: Table, event: Event): void {
-        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
-    }
+    readonly facultyLocked = computed(() => this.facultyScope.isFacultyScoped());
 
-    openDetail(professor: ProfessorRow): void {
-        void this.router.navigate(['/academic/professors', professor.id]);
+    private load(): void {
+        this.loading.set(true);
+        const locked = this.facultyScope.scopedId();
+
+        forkJoin({
+            professors: locked
+                ? this.professorService.getByFaculty(locked)
+                : this.professorService.getAll(),
+            grades: this.professorGradeService.getAll(),
+            faculties: locked
+                ? this.facultyService.getById(locked).pipe(map((faculty) => [faculty]))
+                : this.facultyService.getAll()
+        }).subscribe({
+            next: ({ professors, grades, faculties }) => {
+                const sortedGrades = [...grades].sort((a, b) => a.name.localeCompare(b.name));
+                this.grades.set(sortedGrades);
+                this.faculties.set([...faculties].sort((a, b) => a.name.localeCompare(b.name)));
+                this.professors.set(professors);
+                const rows = this.rows();
+                this.detailNavigation.setContext({
+                    scope: this.navigationScope,
+                    listRoute: ['/academic/professors'],
+                    page: 0,
+                    size: rows.length,
+                    totalElements: rows.length,
+                    totalPages: 1,
+                    items: rows.map((row) => ({
+                        id: row.id,
+                        label: row.display_name
+                    }))
+                });
+                this.loading.set(false);
+            },
+            error: (error: HttpErrorResponse) => {
+                this.professors.set([]);
+                this.loading.set(false);
+                this.showError(error.error?.detail ?? 'Impossible de charger les professeurs.');
+            }
+        });
     }
 
     openCreateDialog(): void {
         this.form.reset({
-            faculty_id: null,
+            faculty_id: this.facultyScope.scopedId(),
             professor_grade_id: null,
             first_name: '',
             last_name: '',
@@ -167,9 +201,25 @@ export class ProfessorListPage implements OnInit {
             phone: '',
             matricule: ''
         });
+        if (this.facultyLocked()) {
+            this.form.controls.faculty_id.disable({ emitEvent: false });
+        } else {
+            this.form.controls.faculty_id.enable({ emitEvent: false });
+        }
         this.dialogVisible.set(true);
     }
 
+    ngOnInit(): void {
+        this.load();
+    }
+
+    onGlobalFilter(table: Table, event: Event): void {
+        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+    }
+
+    openDetail(professor: ProfessorRow): void {
+        void this.router.navigate(['/academic/professors', professor.id]);
+    }
     closeDialog(): void {
         this.dialogVisible.set(false);
     }
@@ -209,49 +259,14 @@ export class ProfessorListPage implements OnInit {
                     this.saving.set(false);
                     this.showError(
                         error.error?.detail ??
-                            (error.status === 409
-                                ? 'Un professeur existe déjà avec cet e-mail.'
-                                : 'Impossible d’enregistrer le professeur.')
+                        (error.status === 409
+                            ? 'Un professeur existe déjà avec cet e-mail.'
+                            : 'Impossible d’enregistrer le professeur.')
                     );
                 }
             });
     }
 
-    private load(): void {
-        this.loading.set(true);
-
-        forkJoin({
-            professors: this.professorService.getAll(),
-            grades: this.professorGradeService.getAll(),
-            faculties: this.facultyService.getAll()
-        }).subscribe({
-            next: ({ professors, grades, faculties }) => {
-                const sortedGrades = [...grades].sort((a, b) => a.name.localeCompare(b.name));
-                this.grades.set(sortedGrades);
-                this.faculties.set([...faculties].sort((a, b) => a.name.localeCompare(b.name)));
-                this.professors.set(professors);
-                const rows = this.rows();
-                this.detailNavigation.setContext({
-                    scope: this.navigationScope,
-                    listRoute: ['/academic/professors'],
-                    page: 0,
-                    size: rows.length,
-                    totalElements: rows.length,
-                    totalPages: 1,
-                    items: rows.map((row) => ({
-                        id: row.id,
-                        label: row.display_name
-                    }))
-                });
-                this.loading.set(false);
-            },
-            error: (error: HttpErrorResponse) => {
-                this.professors.set([]);
-                this.loading.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de charger les professeurs.');
-            }
-        });
-    }
 
     private showSuccess(detail: string): void {
         this.messageService.add({ severity: 'success', summary: 'Succès', detail, life: 3000 });

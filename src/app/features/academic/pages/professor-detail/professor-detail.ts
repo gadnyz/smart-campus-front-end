@@ -19,6 +19,7 @@ import { ToastModule } from 'primeng/toast';
 import { catchError, of, switchMap } from 'rxjs';
 import { resolveAvatarUrl } from '@/app/shared/utils/avatar-url';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
+import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import {
     DetailNavigationService,
@@ -80,6 +81,7 @@ export class ProfessorDetailPage implements OnInit {
     private readonly courseService = inject(CourseService);
     private readonly academicYearService = inject(AcademicYearService);
     private readonly permissionService = inject(PermissionService);
+    private readonly facultyScope = inject(FacultyScopeService);
     private readonly confirmationService = inject(ConfirmationService);
     private readonly messageService = inject(MessageService);
     private readonly fb = inject(FormBuilder);
@@ -189,6 +191,8 @@ export class ProfessorDetailPage implements OnInit {
         this.photoFailed.set(true);
     }
 
+    readonly facultyLocked = computed(() => this.facultyScope.isFacultyScoped());
+
     readonly facultyOptions = computed(() =>
         this.faculties().map((faculty) => ({ label: faculty.name, value: faculty.id }))
     );
@@ -291,9 +295,17 @@ export class ProfessorDetailPage implements OnInit {
         this.professorGradeService.getAll().subscribe({
             next: (grades) => this.grades.set(grades)
         });
-        this.facultyService.getAll().subscribe({
-            next: (faculties) => this.faculties.set(faculties)
-        });
+        const locked = this.facultyScope.scopedId();
+        if (locked) {
+            this.facultyService.getById(locked).subscribe({
+                next: (faculty) => this.faculties.set([faculty]),
+                error: () => this.faculties.set([])
+            });
+        } else {
+            this.facultyService.getAll().subscribe({
+                next: (faculties) => this.faculties.set(faculties)
+            });
+        }
 
         this.route.paramMap.subscribe((params) => {
             const id = params.get('id');
@@ -351,6 +363,11 @@ export class ProfessorDetailPage implements OnInit {
             phone: professor.phone ?? '',
             matricule: professor.matricule ?? ''
         });
+        if (this.facultyLocked()) {
+            this.professorForm.controls.faculty_id.disable({ emitEvent: false });
+        } else {
+            this.professorForm.controls.faculty_id.enable({ emitEvent: false });
+        }
         this.professorDialogVisible.set(true);
     }
 
@@ -564,7 +581,10 @@ export class ProfessorDetailPage implements OnInit {
             return;
         }
 
-        this.professorService.getAll().subscribe({
+        const locked = this.facultyScope.scopedId();
+        const request$ = locked ? this.professorService.getByFaculty(locked) : this.professorService.getAll();
+
+        request$.subscribe({
             next: (professors) => {
                 const sorted = [...professors].sort((a, b) =>
                     professorDisplayName(a).localeCompare(professorDisplayName(b))

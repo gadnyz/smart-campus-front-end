@@ -20,76 +20,33 @@
     @if (advancedOpen()) {
     <div class="advanced-search">
         <div class="advanced-grid">
-            <p-select
-                [options]="genderOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Genre"
-                [showClear]="true"
-                [ngModel]="genderFilter()"
-                (ngModelChange)="genderFilter.set($event)"
-            />
-            <p-select
-                [options]="faculties()"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Faculté"
-                [showClear]="true"
-                [loading]="loadingCatalog()"
-                [filter]="true"
-                [ngModel]="facultyFilter()"
-                (ngModelChange)="onFacultyChange($event)"
-            />
-            <p-select
-                [options]="programs()"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Programme"
-                [showClear]="true"
-                [filter]="true"
-                [ngModel]="programFilter()"
-                (ngModelChange)="programFilter.set($event)"
-            />
-            <p-select
-                [options]="levels()"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Niveau"
-                [showClear]="true"
-                [filter]="true"
-                [ngModel]="levelFilter()"
-                (ngModelChange)="levelFilter.set($event)"
-            />
-            <input
-                pInputText
-                placeholder="Nationalité"
-                [ngModel]="nationalityFilter()"
-                (ngModelChange)="nationalityFilter.set($event)"
-            />
-            <input
-                pInputText
-                placeholder="Matricule"
-                [ngModel]="matriculeFilter()"
-                (ngModelChange)="matriculeFilter.set($event)"
-            />
+            <p-select [options]="genderOptions" optionLabel="label" optionValue="value" placeholder="Genre"
+                [showClear]="true" [ngModel]="genderFilter()" (ngModelChange)="genderFilter.set($event)" />
+            <p-select [options]="faculties()" optionLabel="label" optionValue="value" placeholder="Faculté"
+                [showClear]="!facultyLocked()" [disabled]="facultyLocked()" [loading]="loadingCatalog()"
+                [filter]="!facultyLocked()" [ngModel]="facultyFilter()" (ngModelChange)="onFacultyChange($event)" />
+            <p-select [options]="programs()" optionLabel="label" optionValue="value" placeholder="Programme"
+                [showClear]="true" [filter]="true" [ngModel]="programFilter()"
+                (ngModelChange)="programFilter.set($event)" />
+            <p-select [options]="levels()" optionLabel="label" optionValue="value" placeholder="Niveau"
+                [showClear]="true" [filter]="true" [ngModel]="levelFilter()"
+                (ngModelChange)="levelFilter.set($event)" />
+            <input pInputText placeholder="Nationalité" [ngModel]="nationalityFilter()"
+                (ngModelChange)="nationalityFilter.set($event)" />
+            <input pInputText placeholder="Matricule" [ngModel]="matriculeFilter()"
+                (ngModelChange)="matriculeFilter.set($event)" />
         </div>
         <div class="advanced-actions">
-            <button pButton type="button" label="Réinitialiser" severity="secondary" outlined (click)="resetSearch()"></button>
+            <button pButton type="button" label="Réinitialiser" severity="secondary" outlined
+                (click)="resetSearch()"></button>
             <button pButton type="button" label="Filtrer" icon="pi pi-search" (click)="applySearch(0)"></button>
         </div>
     </div>
     }
 
-    <p-table
-        #dt
-        [value]="students()"
-        [loading]="loading()"
-        dataKey="id"
-        [rowHover]="true"
+    <p-table #dt [value]="students()" [loading]="loading()" dataKey="id" [rowHover]="true"
         [globalFilterFields]="['first_name', 'middle_name', 'last_name', 'email', 'matricule', 'faculty_name', 'program_name', 'nationality']"
-        responsiveLayout="scroll"
-        [tableStyle]="{ 'min-width': '64rem' }"
-    >
+        responsiveLayout="scroll" [tableStyle]="{ 'min-width': '64rem' }">
         <ng-template pTemplate="header">
             <tr>
                 <th>Étudiant</th>
@@ -118,14 +75,8 @@
                 <td>{{ student.program_name || student.program_code || '—' }}</td>
                 <td>{{ student.level_code || student.level_name || '—' }}</td>
                 <td class="actions-column">
-                    <button
-                        pButton
-                        type="button"
-                        icon="pi pi-arrow-right"
-                        label="Détails"
-                        size="small"
-                        (click)="openDetail(student)"
-                    ></button>
+                    <button pButton type="button" icon="pi pi-arrow-right" label="Détails" size="small"
+                        (click)="openDetail(student)"></button>
                 </td>
             </tr>
         </ng-template>
@@ -136,12 +87,6 @@
         </ng-template>
     </p-table>
 
-    <p-paginator
-        [first]="page() * size()"
-        [rows]="size()"
-        [totalRecords]="totalElements()"
-        [rowsPerPageOptions]="[10, 25, 50]"
-        [alwaysShow]="false"
-        (onPageChange)="onPageChange($event)"
-    />
+    <p-paginator [first]="page() * size()" [rows]="size()" [totalRecords]="totalElements()"
+        [rowsPerPageOptions]="[10, 25, 50]" [alwaysShow]="false" (onPageChange)="onPageChange($event)" />
 </p-card>

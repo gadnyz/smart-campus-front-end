@@ -73,15 +73,16 @@ export class AcademicCatalogService {
         }
 
         const cached = this.programsByFaculty.get(facultyId);
-
         if (cached) {
             return cached;
         }
 
-        const request$ = this.getPrograms().pipe(
-            map((programs) => programs.filter((program) => program.faculty_id === facultyId)),
-            shareReplay(1)
-        );
+        const request$ = this.http
+            .get<ApiListResponse<ProgramReference>>(
+                `${this.baseUrl}/api/v1/programs/faculty/${facultyId}`,
+                { params: this.defaultParams() }
+            )
+            .pipe(map(toContent), shareReplay(1));
 
         this.programsByFaculty.set(facultyId, request$);
         return request$;

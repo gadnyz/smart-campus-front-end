@@ -4,6 +4,7 @@ import {
     DashboardStatCard
 } from '@/app/shared/ui/dashboard/dashboard-stat-card/dashboard-stat-card';
 import { CandidateService } from '../../services/candidate.service';
+import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
 
 @Component({
     selector: 'app-candidate-stats-widget',
@@ -15,6 +16,7 @@ import { CandidateService } from '../../services/candidate.service';
 })
 export class CandidateStatsWidget implements OnInit {
     private readonly candidateService = inject(CandidateService);
+    private readonly facultyScope = inject(FacultyScopeService);
 
     readonly totalCandidates = signal<number | string>(0);
     readonly loading = signal(true);
@@ -30,7 +32,8 @@ export class CandidateStatsWidget implements OnInit {
     }));
 
     ngOnInit(): void {
-        this.candidateService.getAll({ page: 0, size: 1 }).subscribe({
+        const facultyId = this.facultyScope.scopedId() ?? undefined;
+        this.candidateService.getAll({ page: 0, size: 1, facultyId }).subscribe({
             next: (response) => {
                 this.totalCandidates.set(response.total_elements);
                 this.loading.set(false);

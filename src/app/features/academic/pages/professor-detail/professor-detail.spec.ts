@@ -70,6 +70,7 @@ describe('ProfessorDetailPage', () => {
         professorService = jasmine.createSpyObj<ProfessorService>('ProfessorService', [
             'getById',
             'getAll',
+            'getByFaculty',
             'update',
             'delete'
         ]);
@@ -80,15 +81,17 @@ describe('ProfessorDetailPage', () => {
         ]);
         courseService = jasmine.createSpyObj<CourseService>('CourseService', ['getAll']);
         const gradeService = jasmine.createSpyObj<ProfessorGradeService>('ProfessorGradeService', ['getAll']);
-        const facultyService = jasmine.createSpyObj<FacultyService>('FacultyService', ['getAll']);
+        const facultyService = jasmine.createSpyObj<FacultyService>('FacultyService', ['getAll', 'getById']);
         const yearService = jasmine.createSpyObj<AcademicYearService>('AcademicYearService', ['getCurrent']);
 
         professorService.getById.and.returnValue(of(professor));
         professorService.getAll.and.returnValue(of([professor]));
+        professorService.getByFaculty.and.returnValue(of([professor]));
         assignmentService.getByProfessor.and.returnValue(of([assignment]));
         courseService.getAll.and.returnValue(of([course]));
         gradeService.getAll.and.returnValue(of([{ id: 'g-1', code: 'PROF', name: 'Professeur' }]));
         facultyService.getAll.and.returnValue(of([{ id: 'fac-1', code: 'FST', name: 'Sciences' }]));
+        facultyService.getById.and.returnValue(of({ id: 'fac-1', code: 'FST', name: 'Sciences' }));
         yearService.getCurrent.and.returnValue(of(year));
 
         await TestBed.configureTestingModule({

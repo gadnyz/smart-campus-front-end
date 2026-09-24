@@ -136,6 +136,7 @@ export class Login implements AfterViewInit {
             .subscribe({
                 next: (response) => {
                     this.authService.storeSession(response);
+                    const user = response.user;
                     this.loading.set(false);
                     void this.router.navigate(['/']);
                 },

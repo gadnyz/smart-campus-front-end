@@ -47,6 +47,8 @@ import {
     formatCandidateGender,
     formatCandidatureStatus
 } from '../../utils/candidate-format';
+import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
+import { FacultyService } from '@/app/features/academic/services/faculty.service';
 
 type FacultyOption = {
     label: string;
@@ -82,6 +84,8 @@ export class CandidateManagement implements OnInit {
     private readonly academicReferenceService =
         inject(AdmissionAcademicReferenceService);
 
+    private readonly facultyService = inject(FacultyService);
+
     private readonly messageService =
         inject(MessageService);
 
@@ -111,12 +115,12 @@ export class CandidateManagement implements OnInit {
         label: string;
         value: CandidatureStatus;
     }[] = [
-        { label: 'Brouillon', value: 'DRAFT' },
-        { label: 'En attente', value: 'PENDING' },
-        { label: 'Validée', value: 'VALIDATED' },
-        { label: 'Rejetée', value: 'REJECTED' },
-        { label: 'Annulée', value: 'CANCELLED' }
-    ];
+            { label: 'Brouillon', value: 'DRAFT' },
+            { label: 'En attente', value: 'PENDING' },
+            { label: 'Validée', value: 'VALIDATED' },
+            { label: 'Rejetée', value: 'REJECTED' },
+            { label: 'Annulée', value: 'CANCELLED' }
+        ];
 
     readonly actions = computed<SubtopbarAction[]>(() => [
         {
@@ -138,11 +142,54 @@ export class CandidateManagement implements OnInit {
         }
     ]);
 
+
+    private readonly facultyScope = inject(FacultyScopeService);
+    readonly facultyLocked = computed(() => this.facultyScope.isFacultyScoped());
+
     ngOnInit(): void {
         this.applyQueryFilters();
+        const locked = this.facultyScope.scopedId();
+        if (locked) {
+            this.facultyFilter.set(locked);
+        }
         this.loadFaculties();
         this.loadCandidates(0);
     }
+    private loadFaculties(): void {
+        this.loadingFaculties.set(true);
+        const locked = this.facultyScope.scopedId();
+
+        if (locked) {
+            this.facultyService.getById(locked).subscribe({
+                next: (faculty) => {
+                    this.faculties.set([
+                        {
+                            label: faculty.code ? `${faculty.code} - ${faculty.name}` : faculty.name,
+                            value: faculty.id
+                        }
+                    ]);
+                    this.loadingFaculties.set(false);
+                },
+                error: () => {
+                    this.faculties.set([]);
+                    this.loadingFaculties.set(false);
+                }
+            });
+            return;
+        }
+
+        this.academicReferenceService.getFacultyOptions().subscribe({
+            next: (options) => {
+                this.faculties.set(options);
+                this.loadingFaculties.set(false);
+            },
+            error: () => {
+                this.faculties.set([]);
+                this.loadingFaculties.set(false);
+            }
+        });
+    }
+
 
     private applyQueryFilters(): void {
         const params = this.route.snapshot.queryParamMap;
@@ -161,15 +208,12 @@ export class CandidateManagement implements OnInit {
 
     loadCandidates(page: number): void {
         this.loading.set(true);
-
         this.candidateService
             .getAll({
                 page,
                 size: this.size(),
-                status:
-                    this.statusFilter() ?? undefined,
-                facultyId:
-                    this.facultyFilter() ?? undefined
+                status: this.statusFilter() ?? undefined,
+                facultyId: this.facultyScope.scopedId() ?? this.facultyFilter() ?? undefined
             })
             .subscribe({
                 next: (response) => {
@@ -285,22 +329,7 @@ export class CandidateManagement implements OnInit {
         return formatCandidateDateTime(candidate.submitted_at);
     }
 
-    private loadFaculties(): void {
-        this.loadingFaculties.set(true);
 
-        this.academicReferenceService
-            .getFacultyOptions()
-            .subscribe({
-                next: (options) => {
-                    this.faculties.set(options);
-                    this.loadingFaculties.set(false);
-                },
-                error: () => {
-                    this.faculties.set([]);
-                    this.loadingFaculties.set(false);
-                }
-            });
-    }
 
     private registerNavigationContext(
         response: PagedResponse<CandidateListItem>

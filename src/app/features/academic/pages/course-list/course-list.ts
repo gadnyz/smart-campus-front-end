@@ -14,7 +14,6 @@ import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
-import { AuthService } from '@/app/core/auth/services/auth.service';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { DetailNavigationService } from '@/app/shared/navigation/detail-navigation.service';
@@ -27,6 +26,7 @@ import { CourseService } from '../../services/course.service';
 import { CourseUnitService } from '../../services/course-unit.service';
 import { FacultyService } from '../../services/faculty.service';
 import { ProgramService } from '../../services/program.service';
+import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
 
 @Component({
     selector: 'app-course-list',
@@ -56,7 +56,6 @@ export class CourseListPage implements OnInit {
     private readonly facultyService = inject(FacultyService);
     private readonly programService = inject(ProgramService);
     private readonly router = inject(Router);
-    private readonly authService = inject(AuthService);
     private readonly messageService = inject(MessageService);
     private readonly permissionService = inject(PermissionService);
     private readonly fb = inject(FormBuilder);
@@ -128,6 +127,9 @@ export class CourseListPage implements OnInit {
         }
     ]);
 
+    private readonly facultyScope = inject(FacultyScopeService);
+    readonly facultyLocked = computed(() => this.facultyScope.isFacultyScoped());
+
     ngOnInit(): void {
         this.form.controls.faculty_id.valueChanges.subscribe((facultyId) => {
             this.form.controls.program_id.setValue(null);
@@ -152,16 +154,25 @@ export class CourseListPage implements OnInit {
             }
         });
 
-        if (this.canReadAll()) {
-            this.facultyService.getAll().subscribe({
-                next: (faculties) =>
-                    this.faculties.set([...faculties].sort((a, b) => a.name.localeCompare(b.name)))
+        const locked = this.facultyScope.scopedId();
+        if (locked) {
+            this.scopedFacultyId.set(locked);
+            this.selectedFacultyId.set(locked);
+            this.form.controls.faculty_id.disable({ emitEvent: false });
+            this.facultyService.getById(locked).subscribe({
+                next: (faculty) => this.faculties.set([faculty]),
+                error: () => void this.router.navigate(['/notfound'])
             });
+            this.loadPrograms(locked);
             this.load();
             return;
         }
 
-        this.resolveOwnFaculty();
+        this.facultyService.getAll().subscribe({
+            next: (faculties) =>
+                this.faculties.set([...faculties].sort((a, b) => a.name.localeCompare(b.name)))
+        });
+        this.load();
     }
 
     onGlobalFilter(table: Table, event: Event): void {
@@ -270,32 +281,6 @@ export class CourseListPage implements OnInit {
         return UE_BLOC_OPTIONS.find((item) => item.value === bloc)?.label ?? bloc;
     }
 
-    private resolveOwnFaculty(): void {
-        const session = this.authService.getCurrentUser();
-
-        if (!session?.id) {
-            void this.router.navigate(['/notfound']);
-            return;
-        }
-
-        this.facultyService.resolveAttachedFaculty(session.id, session.faculty_id).subscribe({
-            next: (faculty) => {
-                if (!faculty) {
-                    void this.router.navigate(['/notfound']);
-                    return;
-                }
-
-                this.scopedFacultyId.set(faculty.id);
-                this.selectedFacultyId.set(faculty.id);
-                this.faculties.set([faculty]);
-                this.form.controls.faculty_id.disable({ emitEvent: false });
-                this.loadPrograms(faculty.id);
-                this.load();
-            },
-            error: () => void this.router.navigate(['/notfound'])
-        });
-    }
-
     private loadPrograms(facultyId: string | null): void {
         if (!facultyId) {
             this.programs.set([]);
@@ -312,7 +297,7 @@ export class CourseListPage implements OnInit {
         const programLevelId = this.selectedProgramLevelId();
 
         if (!programLevelId) {
-            if (this.canReadAll() && !this.selectedFacultyId()) {
+            if (!this.facultyLocked() && this.canReadAll() && !this.selectedFacultyId()) {
                 this.loading.set(true);
                 this.courseService.getAll().subscribe({
                     next: (courses) => this.afterCourses(courses, null),

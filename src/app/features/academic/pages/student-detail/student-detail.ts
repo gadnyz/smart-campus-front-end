@@ -17,6 +17,7 @@ import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ToastModule } from 'primeng/toast';
 import { catchError, of, switchMap } from 'rxjs';
+import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { DetailNavigationService, DetailNavigationState } from '@/app/shared/navigation/detail-navigation.service';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
@@ -31,6 +32,7 @@ import {
     studentDisplayName
 } from '../../models/student.model';
 import { AcademicCatalogService } from '../../services/academic-catalog.service';
+import { FacultyService } from '../../services/faculty.service';
 import { StudentService } from '../../services/student.service';
 import { blankToNull, toApiDate, toDateValue } from '../../utils/academic-date';
 
@@ -62,7 +64,9 @@ export class StudentDetailPage implements OnInit {
     private readonly router = inject(Router);
     private readonly studentService = inject(StudentService);
     private readonly catalog = inject(AcademicCatalogService);
+    private readonly facultyService = inject(FacultyService);
     private readonly permissionService = inject(PermissionService);
+    private readonly facultyScope = inject(FacultyScopeService);
     private readonly messageService = inject(MessageService);
     private readonly fb = inject(FormBuilder);
     private readonly destroyRef = inject(DestroyRef);
@@ -162,6 +166,8 @@ export class StudentDetailPage implements OnInit {
     readonly genderLabel = computed(() => formatStudentGender(this.student()?.gender));
     readonly maritalLabel = computed(() => formatStudentMaritalStatus(this.student()?.marital_status));
 
+    readonly facultyLocked = computed(() => this.facultyScope.isFacultyScoped());
+
     readonly facultyLabel = computed(() => {
         const student = this.student();
         return (
@@ -242,10 +248,20 @@ export class StudentDetailPage implements OnInit {
     });
 
     ngOnInit(): void {
-        this.catalog.getFaculties().subscribe({
-            next: (faculties) =>
-                this.faculties.set(faculties.map((faculty) => ({ label: faculty.name, value: faculty.id })))
-        });
+        const locked = this.facultyScope.scopedId();
+        if (locked) {
+            this.facultyService.getById(locked).subscribe({
+                next: (faculty) =>
+                    this.faculties.set([{ label: faculty.name, value: faculty.id }]),
+                error: () => this.faculties.set([])
+            });
+            this.form.controls.faculty_id.disable({ emitEvent: false });
+        } else {
+            this.catalog.getFaculties().subscribe({
+                next: (faculties) =>
+                    this.faculties.set(faculties.map((faculty) => ({ label: faculty.name, value: faculty.id })))
+            });
+        }
         this.catalog.getLevels().subscribe({
             next: (levels) =>
                 this.levels.set(levels.map((level) => ({ label: `${level.code} — ${level.name}`, value: level.id })))
@@ -290,6 +306,11 @@ export class StudentDetailPage implements OnInit {
 
         this.patchForm(student);
         this.loadPrograms(student.faculty_id ?? null);
+        if (this.facultyLocked()) {
+            this.form.controls.faculty_id.disable({ emitEvent: false });
+        } else {
+            this.form.controls.faculty_id.enable({ emitEvent: false });
+        }
         this.editing.set(true);
     }
 

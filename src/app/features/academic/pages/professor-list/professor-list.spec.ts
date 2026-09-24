@@ -44,12 +44,18 @@ describe('ProfessorListPage', () => {
     ];
 
     beforeEach(async () => {
-        professorService = jasmine.createSpyObj<ProfessorService>('ProfessorService', ['getAll', 'create']);
+        professorService = jasmine.createSpyObj<ProfessorService>('ProfessorService', [
+            'getAll',
+            'getByFaculty',
+            'create'
+        ]);
         gradeService = jasmine.createSpyObj<ProfessorGradeService>('ProfessorGradeService', ['getAll']);
-        facultyService = jasmine.createSpyObj<FacultyService>('FacultyService', ['getAll']);
+        facultyService = jasmine.createSpyObj<FacultyService>('FacultyService', ['getAll', 'getById']);
         professorService.getAll.and.returnValue(of(professors));
+        professorService.getByFaculty.and.returnValue(of(professors));
         gradeService.getAll.and.returnValue(of(grades));
         facultyService.getAll.and.returnValue(of(faculties));
+        facultyService.getById.and.returnValue(of(faculties[0]));
 
         await TestBed.configureTestingModule({
             imports: [ProfessorListPage],

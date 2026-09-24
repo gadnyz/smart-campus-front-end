@@ -44,6 +44,7 @@ import {
     tap
 } from 'rxjs';
 
+import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import {
     DetailNavigationContext,
@@ -142,6 +143,8 @@ export class CandidateDetail implements OnInit {
 
     private readonly permissionService =
         inject(PermissionService);
+
+    private readonly facultyScope = inject(FacultyScopeService);
 
     private readonly confirmationService =
         inject(ConfirmationService);
@@ -1300,6 +1303,11 @@ export class CandidateDetail implements OnInit {
     private contextFacultyId(
         context: DetailNavigationContext
     ): string | undefined {
+        const scoped = this.facultyScope.scopedId();
+        if (scoped) {
+            return scoped;
+        }
+
         const facultyId =
             context.filters?.['facultyId'];
 

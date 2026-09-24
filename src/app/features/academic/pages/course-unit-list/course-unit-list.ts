@@ -12,7 +12,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
-import { AuthService } from '@/app/core/auth/services/auth.service';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { AcademicPermission } from '../../permissions/permission.model';
@@ -22,6 +21,7 @@ import { Program } from '../../models/program.model';
 import { CourseUnitService } from '../../services/course-unit.service';
 import { FacultyService } from '../../services/faculty.service';
 import { ProgramService } from '../../services/program.service';
+import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
 
 @Component({
     selector: 'app-course-unit-list',
@@ -48,10 +48,11 @@ export class CourseUnitListPage implements OnInit {
     private readonly facultyService = inject(FacultyService);
     private readonly programService = inject(ProgramService);
     private readonly router = inject(Router);
-    private readonly authService = inject(AuthService);
     private readonly messageService = inject(MessageService);
     private readonly permissionService = inject(PermissionService);
     private readonly fb = inject(FormBuilder);
+    private readonly facultyScope = inject(FacultyScopeService);
+    readonly facultyLocked = computed(() => this.facultyScope.isFacultyScoped());
 
     readonly units = signal<CourseUnit[]>([]);
     readonly faculties = signal<Faculty[]>([]);
@@ -67,10 +68,6 @@ export class CourseUnitListPage implements OnInit {
     readonly editingId = signal<string | null>(null);
 
     readonly blocOptions = UE_BLOC_OPTIONS;
-
-    readonly canReadAll = computed(() =>
-        this.permissionService.hasAnyPermission([AcademicPermission.CourseUnitReadAll])
-    );
 
     readonly canUpdate = computed(() =>
         this.permissionService.hasAnyPermission([AcademicPermission.CourseUnitUpdateAll])
@@ -127,15 +124,25 @@ export class CourseUnitListPage implements OnInit {
             this.formProgramId.set(programId);
         });
 
-        if (this.canReadAll()) {
-            this.facultyService.getAll().subscribe({
-                next: (faculties) =>
-                    this.faculties.set([...faculties].sort((a, b) => a.name.localeCompare(b.name)))
+        const locked = this.facultyScope.scopedId();
+        if (locked) {
+            this.scopedFacultyId.set(locked);
+            this.selectedFacultyId.set(locked);
+            this.form.controls.faculty_id.disable({ emitEvent: false });
+            this.facultyService.getById(locked).subscribe({
+                next: (faculty) => this.faculties.set([faculty]),
+                error: () => void this.router.navigate(['/notfound'])
             });
+            this.loadPrograms(locked);
+            this.load();
             return;
         }
 
-        this.resolveOwnFaculty();
+        this.facultyService.getAll().subscribe({
+            next: (faculties) =>
+                this.faculties.set([...faculties].sort((a, b) => a.name.localeCompare(b.name)))
+        });
+
     }
 
     onGlobalFilter(table: Table, event: Event): void {
@@ -292,31 +299,6 @@ export class CourseUnitListPage implements OnInit {
                 this.loading.set(false);
                 this.showError(error.error?.detail ?? 'Impossible de charger les UE.');
             }
-        });
-    }
-
-    private resolveOwnFaculty(): void {
-        const session = this.authService.getCurrentUser();
-
-        if (!session?.id) {
-            void this.router.navigate(['/notfound']);
-            return;
-        }
-
-        this.facultyService.resolveAttachedFaculty(session.id, session.faculty_id).subscribe({
-            next: (faculty) => {
-                if (!faculty) {
-                    void this.router.navigate(['/notfound']);
-                    return;
-                }
-
-                this.scopedFacultyId.set(faculty.id);
-                this.selectedFacultyId.set(faculty.id);
-                this.faculties.set([faculty]);
-                this.form.controls.faculty_id.disable({ emitEvent: false });
-                this.loadPrograms(faculty.id);
-            },
-            error: () => void this.router.navigate(['/notfound'])
         });
     }
 

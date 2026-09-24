@@ -163,7 +163,7 @@
                     <span>Faculté</span>
                     @if (editing()) {
                     <p-select formControlName="faculty_id" [options]="faculties()" optionLabel="label"
-                        optionValue="value" [filter]="true" appendTo="body" class="w-full" />
+                        optionValue="value" [filter]="!facultyLocked()" appendTo="body" class="w-full" />
                     } @else { <strong>{{ facultyLabel() }}</strong> }
                 </div>
                 <div class="detail-item">

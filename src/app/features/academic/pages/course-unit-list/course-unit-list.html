@@ -11,11 +11,11 @@
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div class="font-semibold text-xl">Liste des UE</div>
                 <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                    @if (canReadAll()) {
                     <p-select [options]="facultyOptions()" optionLabel="label" optionValue="value"
                         [ngModel]="selectedFacultyId()" (ngModelChange)="onFacultyFilterChange($event)"
-                        placeholder="Faculté" appendTo="body" class="w-full md:w-14rem" />
-                    }
+                        [showClear]="!facultyLocked()" [disabled]="facultyLocked()" placeholder="Faculté"
+                        appendTo="body" class="w-full md:w-14rem" />
+
                     <p-select [options]="programOptions()" optionLabel="label" optionValue="value"
                         [ngModel]="selectedProgramId()" (ngModelChange)="onProgramFilterChange($event)"
                         placeholder="Programme" appendTo="body" class="w-full md:w-14rem"
