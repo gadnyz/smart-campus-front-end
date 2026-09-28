@@ -29,7 +29,20 @@ describe('app-feature.registry (dynamic module registry)', () => {
         expect(paths).toContain('admission');
         expect(paths).toContain('settings');
         expect(paths).toContain('academic');
-        expect(paths).toContain('scheduling');
+
+        // Planification n'expose pour l'instant que de la configuration (Paramètres › Salles) :
+        // elle ne contribue donc aucune route opérationnelle. Les Emplois du temps et les Séances
+        // en rétabliront une.
+        expect(paths).not.toContain('scheduling');
+    });
+
+    it('should expose the scheduling settings tab and child route', () => {
+        const schedulingTab = appSettingsTabs.find((tab) => tab.key === 'scheduling');
+
+        expect(schedulingTab).toBeTruthy();
+        expect(schedulingTab?.routerLink).toEqual(['/settings/scheduling/rooms']);
+        expect(schedulingTab?.items?.some((item) => item.label === 'Salles')).toBeTrue();
+        expect(appSettingsChildRoutes.some((route) => route.path === 'scheduling')).toBeTrue();
     });
 
     it('should aggregate settings tabs with identity users entry', () => {

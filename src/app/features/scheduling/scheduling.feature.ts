@@ -2,31 +2,37 @@ import { AppFeature } from '@/app/core/modules/app-feature.model';
 import { SchedulingPermission } from './permissions/permission.model';
 
 /**
- * Module Scheduling — emplois du temps. Seule la gestion des Salles est branchée
- * pour l'instant ; Emplois du temps et Séances suivront dans une prochaine étape
- * (voir routes.ts et permissions/permission.model.ts).
+ * Module Planification. La gestion des salles est une donnée de référence : elle vit
+ * dans l'onglet Paramètres › Planification (sur le modèle de Paramètres › Academic ›
+ * Niveaux), pas dans le menu opérationnel.
+ *
+ * Les Emplois du temps et les Séances, qui sont des données d'exploitation, viendront
+ * dans une prochaine étape et rétabliront un `route` + `menu` opérationnels
+ * (voir permissions/permission.model.ts).
  */
 export const schedulingFeature: AppFeature = {
     key: 'scheduling',
-    label: 'Emplois du temps',
+    label: 'Planification',
     order: 18,
-    route: {
-        path: 'scheduling',
-        loadChildren: () => import('./routes')
+    settingsTab: {
+        key: 'scheduling',
+        label: 'Planification',
+        order: 28,
+        routerLink: ['/settings/scheduling/rooms'],
+        permissions: [SchedulingPermission.RoomUpdateAll],
+        mode: 'any',
+        items: [
+            {
+                label: 'Salles',
+                icon: 'pi pi-map-marker',
+                routerLink: ['/settings/scheduling/rooms'],
+                permissions: [SchedulingPermission.RoomUpdateAll],
+                order: 10
+            }
+        ]
     },
-    menu: [
-        {
-            label: 'Emplois du temps',
-            order: 18,
-            items: [
-                {
-                    label: 'Salles',
-                    icon: 'pi pi-fw pi-map-marker',
-                    routerLink: ['/scheduling/rooms'],
-                    permissions: [SchedulingPermission.RoomReadAll],
-                    order: 10
-                }
-            ]
-        }
-    ]
+    settingsRoute: {
+        path: 'scheduling',
+        loadChildren: () => import('./settings/routes')
+    }
 };
