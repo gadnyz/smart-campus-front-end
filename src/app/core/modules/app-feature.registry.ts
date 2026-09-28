@@ -3,6 +3,7 @@ import { coreSystemFeature } from '@/app/core/settings/core.feature';
 import { admissionFeature } from '@/app/features/admission/admission.feature';
 import { identityFeature } from '@/app/features/identity/identity.feature';
 import { academicFeature } from '@/app/features/academic/academic.feature';
+import { schedulingFeature } from '@/app/features/scheduling/scheduling.feature';
 import { AppFeature, DashboardWidget, FeatureMenuItem, SettingsTab } from './app-feature.model';
 
 const byOrder = <T extends { order?: number }>(a: T, b: T) => (a.order ?? 0) - (b.order ?? 0);
@@ -11,6 +12,7 @@ export const appFeatures: AppFeature[] = [
     coreSystemFeature,
     identityFeature,
     academicFeature,
+    schedulingFeature,
     admissionFeature
 ].sort(byOrder);
 
