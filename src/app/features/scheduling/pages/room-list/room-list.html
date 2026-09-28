@@ -27,9 +27,10 @@
                         optionLabel="label"
                         optionValue="value"
                         [ngModel]="typeFilter()"
-                        (ngModelChange)="onTypeFilterChange($event)"
+                        (ngModelChange)="onTypeFilterChange($event, dt)"
                         [showClear]="true"
                         placeholder="Type de salle"
+                        ariaLabel="Filtrer les salles par type"
                         appendTo="body"
                         class="w-full md:w-14rem"
                     />
@@ -110,7 +111,7 @@
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <label for="roomCapacity" class="block text-sm text-color-secondary mb-1">Capacité</label>
-                <p-inputnumber inputId="roomCapacity" formControlName="capacity" [min]="1" [showButtons]="true" class="w-full" />
+                <p-inputnumber inputId="roomCapacity" formControlName="capacity" [min]="1" [maxFractionDigits]="0" [showButtons]="true" class="w-full" />
                 @if (isInvalid('capacity')) {
                 <small class="text-red-500 block mt-1">La capacité doit être un entier positif.</small>
                 }

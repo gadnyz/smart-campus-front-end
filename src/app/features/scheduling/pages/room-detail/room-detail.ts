@@ -12,10 +12,10 @@ import { DialogModule } from 'primeng/dialog';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
+import { SkeletonModule } from 'primeng/skeleton';
 import { ToastModule } from 'primeng/toast';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { DetailNavigationService, DetailNavigationState } from '@/app/shared/navigation/detail-navigation.service';
-import { PermissionService } from '@/app/core/permissions/permission.service';
 import { SchedulingPermission } from '../../permissions/permission.model';
 import { ROOM_TYPE_OPTIONS, Room, RoomType, roomTypeLabel } from '../../models/room.model';
 import { RoomService } from '../../services/room.service';
@@ -35,6 +35,7 @@ import { RoomService } from '../../services/room.service';
         InputTextModule,
         InputNumber,
         SelectModule,
+        SkeletonModule,
         ContentSubtopbar
     ],
     templateUrl: './room-detail.html',
@@ -47,7 +48,6 @@ export class RoomDetailPage implements OnInit {
     private readonly roomService = inject(RoomService);
     private readonly confirmationService = inject(ConfirmationService);
     private readonly messageService = inject(MessageService);
-    private readonly permissionService = inject(PermissionService);
     private readonly fb = inject(FormBuilder);
     private readonly detailNavigation = inject(DetailNavigationService);
     private readonly navigationScope = 'scheduling.rooms';
@@ -60,14 +60,6 @@ export class RoomDetailPage implements OnInit {
 
     readonly typeOptions = ROOM_TYPE_OPTIONS;
     readonly roomTypeLabel = roomTypeLabel;
-
-    readonly canUpdate = computed(() =>
-        this.permissionService.hasAnyPermission([SchedulingPermission.RoomUpdateAll])
-    );
-
-    readonly canDelete = computed(() =>
-        this.permissionService.hasAnyPermission([SchedulingPermission.RoomDeleteAll])
-    );
 
     readonly canGoPrevious = computed(() => this.navigationState()?.hasPrevious ?? false);
     readonly canGoNext = computed(() => this.navigationState()?.hasNext ?? false);
@@ -250,9 +242,19 @@ export class RoomDetailPage implements OnInit {
                 this.room.set(room);
                 this.loading.set(false);
             },
-            error: () => {
+            error: (error: HttpErrorResponse) => {
                 this.loading.set(false);
-                this.goToNotFound();
+
+                // Seul un 404 signifie « cette salle n'existe pas ». Rediriger vers /notfound sur
+                // n'importe quelle erreur (cf. `faculty-detail.ts:247`) masquerait une panne serveur
+                // ou un refus d'autorisation derrière un faux « introuvable ».
+                if (error.status === 404) {
+                    this.goToNotFound();
+                    return;
+                }
+
+                this.room.set(null);
+                this.showError(error.error?.detail ?? 'Impossible de charger cette salle.');
             }
         });
     }
@@ -278,6 +280,10 @@ export class RoomDetailPage implements OnInit {
                     items: sorted.map((item) => ({ id: item.id, label: item.name }))
                 });
                 this.navigationState.set(this.detailNavigation.getState(this.navigationScope, id));
+            },
+            error: () => {
+                this.navigationState.set(null);
+                this.showError('Impossible de préparer la navigation entre les salles.');
             }
         });
     }

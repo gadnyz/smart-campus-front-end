@@ -39,5 +39,6 @@ export const ROOM_TYPE_OPTIONS: { label: string; value: RoomType }[] = [
 ];
 
 export function roomTypeLabel(type: RoomType | string | null | undefined): string {
-    return ROOM_TYPE_OPTIONS.find((option) => option.value === type)?.label ?? (type ?? '—');
+    // `||` et non `??` pour le repli : une chaîne vide doit afficher le tiret, pas une cellule vide.
+    return ROOM_TYPE_OPTIONS.find((option) => option.value === type)?.label ?? (type || '—');
 }

@@ -15,7 +15,6 @@ import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { DetailNavigationService } from '@/app/shared/navigation/detail-navigation.service';
-import { PermissionService } from '@/app/core/permissions/permission.service';
 import { SchedulingPermission } from '../../permissions/permission.model';
 import { ROOM_TYPE_OPTIONS, Room, RoomType, roomTypeLabel } from '../../models/room.model';
 import { RoomService } from '../../services/room.service';
@@ -46,7 +45,6 @@ export class RoomListPage implements OnInit {
     private readonly roomService = inject(RoomService);
     private readonly router = inject(Router);
     private readonly messageService = inject(MessageService);
-    private readonly permissionService = inject(PermissionService);
     private readonly fb = inject(FormBuilder);
     private readonly detailNavigation = inject(DetailNavigationService);
     private readonly navigationScope = 'scheduling.rooms';
@@ -65,10 +63,6 @@ export class RoomListPage implements OnInit {
         const rooms = this.rooms();
         return type ? rooms.filter((room) => room.type === type) : rooms;
     });
-
-    readonly canCreate = computed(() =>
-        this.permissionService.hasAnyPermission([SchedulingPermission.RoomCreateAll])
-    );
 
     readonly form = this.fb.nonNullable.group({
         name: ['', Validators.required],
@@ -98,8 +92,17 @@ export class RoomListPage implements OnInit {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
 
-    onTypeFilterChange(type: RoomType | null): void {
+    /**
+     * Le filtre par type est appliqué côté client (`GET /api/v1/rooms` n'expose aucun paramètre de
+     * requête). `table.first` doit être remis à zéro : sans cela, un filtrage effectué depuis la
+     * page 2+ laisse le tableau sur un offset désormais vide.
+     */
+    onTypeFilterChange(type: RoomType | null, table?: Table): void {
         this.typeFilter.set(type);
+
+        if (table) {
+            table.first = 0;
+        }
     }
 
     openDetail(room: Room): void {

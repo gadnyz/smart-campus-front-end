@@ -20,5 +20,6 @@ describe('room.model', () => {
     it('should fall back to a dash when the type is missing', () => {
         expect(roomTypeLabel(null)).toBe('—');
         expect(roomTypeLabel(undefined)).toBe('—');
+        expect(roomTypeLabel('')).toBe('—');
     });
 });
