@@ -1,0 +1,135 @@
+<p-toast />
+
+<app-content-subtopbar kicker="Emplois du temps" title="Salles" [actions]="actions()" />
+
+<div class="card">
+    <p-table
+        #dt
+        [value]="filteredRooms()"
+        [loading]="loading()"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 20, 50]"
+        [globalFilterFields]="['name', 'location']"
+        [rowHover]="true"
+        dataKey="id"
+        responsiveLayout="scroll"
+        currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} salles"
+        [showCurrentPageReport]="true"
+        [tableStyle]="{ 'min-width': '44rem' }"
+    >
+        <ng-template pTemplate="caption">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div class="font-semibold text-xl">Liste des salles</div>
+                <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                    <p-select
+                        [options]="typeOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        [ngModel]="typeFilter()"
+                        (ngModelChange)="onTypeFilterChange($event)"
+                        [showClear]="true"
+                        placeholder="Type de salle"
+                        appendTo="body"
+                        class="w-full md:w-14rem"
+                    />
+                    <p-iconfield>
+                        <p-inputicon styleClass="pi pi-search" />
+                        <input pInputText type="text" placeholder="Rechercher..." aria-label="Rechercher une salle" (input)="onGlobalFilter(dt, $event)" />
+                    </p-iconfield>
+                </div>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="name">Nom <p-sortIcon field="name" /></th>
+                <th pSortableColumn="location">Localisation <p-sortIcon field="location" /></th>
+                <th pSortableColumn="capacity">Capacité <p-sortIcon field="capacity" /></th>
+                <th pSortableColumn="type">Type <p-sortIcon field="type" /></th>
+                <th style="width: 6rem">Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-room>
+            <tr>
+                <td>{{ room.name }}</td>
+                <td>{{ room.location }}</td>
+                <td>{{ room.capacity }}</td>
+                <td>{{ roomTypeLabel(room.type) }}</td>
+                <td>
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-arrow-right"
+                        rounded
+                        outlined
+                        severity="info"
+                        [attr.aria-label]="'Détail ' + room.name"
+                        (click)="openDetail(room)"
+                    ></button>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="5">Aucune salle.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog
+    header="Nouvelle salle"
+    [visible]="dialogVisible()"
+    (visibleChange)="dialogVisible.set($event)"
+    [modal]="true"
+    [style]="{ width: '32rem' }"
+    [breakpoints]="{ '640px': '95vw' }"
+>
+    <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="submit()">
+        <div>
+            <label for="roomName" class="block text-sm text-color-secondary mb-1">Nom</label>
+            <input pInputText id="roomName" formControlName="name" placeholder="A101" class="w-full" />
+            @if (isInvalid('name')) {
+            <small class="text-red-500 block mt-1">Le nom est obligatoire.</small>
+            }
+        </div>
+        <div>
+            <label for="roomLocation" class="block text-sm text-color-secondary mb-1">Localisation</label>
+            <input pInputText id="roomLocation" formControlName="location" placeholder="Bâtiment A" class="w-full" />
+            @if (isInvalid('location')) {
+            <small class="text-red-500 block mt-1">La localisation est obligatoire.</small>
+            }
+        </div>
+        <div>
+            <label for="roomCoordinates" class="block text-sm text-color-secondary mb-1">Coordonnées</label>
+            <input pInputText id="roomCoordinates" formControlName="coordinates" placeholder="Étage 2, aile Est" class="w-full" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label for="roomCapacity" class="block text-sm text-color-secondary mb-1">Capacité</label>
+                <p-inputnumber inputId="roomCapacity" formControlName="capacity" [min]="1" [showButtons]="true" class="w-full" />
+                @if (isInvalid('capacity')) {
+                <small class="text-red-500 block mt-1">La capacité doit être un entier positif.</small>
+                }
+            </div>
+            <div>
+                <label for="roomType" class="block text-sm text-color-secondary mb-1">Type</label>
+                <p-select inputId="roomType" formControlName="type" [options]="typeOptions" optionLabel="label" optionValue="value" appendTo="body" class="w-full" />
+                @if (isInvalid('type')) {
+                <small class="text-red-500 block mt-1">Le type est obligatoire.</small>
+                }
+            </div>
+        </div>
+        <div>
+            <label for="roomLink" class="block text-sm text-color-secondary mb-1">Lien de visioconférence</label>
+            <input pInputText id="roomLink" formControlName="link" placeholder="https://meet.example.com/..." class="w-full" />
+        </div>
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined (click)="closeDialog()"></button>
+            <button pButton type="submit" label="Enregistrer" icon="pi pi-save" [loading]="saving()" [disabled]="saving()"></button>
+        </div>
+    </form>
+</p-dialog>
