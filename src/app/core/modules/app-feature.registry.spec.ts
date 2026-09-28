@@ -8,8 +8,14 @@ import {
 } from './app-feature.registry';
 
 describe('app-feature.registry (dynamic module registry)', () => {
-    it('should register core, identity and admission features sorted by order', () => {
-        expect(appFeatures.map((feature) => feature.key)).toEqual(['system', 'identity', 'admission']);
+    it('should register core, identity, academic, scheduling and admission features sorted by order', () => {
+        expect(appFeatures.map((feature) => feature.key)).toEqual([
+            'system',
+            'identity',
+            'Academique',
+            'scheduling',
+            'admission'
+        ]);
 
         for (let index = 1; index < appFeatures.length; index++) {
             expect(appFeatures[index].order ?? 0).toBeGreaterThanOrEqual(appFeatures[index - 1].order ?? 0);
@@ -23,6 +29,7 @@ describe('app-feature.registry (dynamic module registry)', () => {
         expect(paths).toContain('admission');
         expect(paths).toContain('settings');
         expect(paths).toContain('academic');
+        expect(paths).toContain('scheduling');
     });
 
     it('should aggregate settings tabs with identity users entry', () => {
