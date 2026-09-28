@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { AuthService } from '@/app/core/auth/services/auth.service';
 import { DetailNavigationService } from '@/app/shared/navigation/detail-navigation.service';
 import { Room } from '../../models/room.model';
@@ -29,15 +30,37 @@ describe('RoomDetailPage', () => {
         updated_at: '2026-01-01T00:00:00Z'
     };
 
-    async function createComponent(authorities: string[]): Promise<void> {
+    // `DetailNavigationService` persiste son contexte dans sessionStorage : sans ce nettoyage, le
+    // contexte écrit par un test fuite vers le suivant et les tests deviennent dépendants de l'ordre
+    // d'exécution (Jasmine le randomise). Même convention que `auth.guard.spec.ts`.
+    beforeEach(() => sessionStorage.clear());
+    afterEach(() => sessionStorage.clear());
+
+    /**
+     * Le vrai garde-fou des actions Modifier/Supprimer est `ContentSubtopbar.visibleActions`, qui
+     * filtre sur `action.permissions`. Les tests doivent donc interroger les boutons réellement
+     * rendus : asserter un `computed()` du composant laisserait passer une action dont la clé
+     * `permissions` aurait été oubliée (le défaut M15 de l'audit).
+     */
+    function renderedActionLabels(): string[] {
+        return fixture.debugElement
+            .queryAll(By.css('app-content-subtopbar button'))
+            .map((button) => ((button.nativeElement as HTMLElement).textContent ?? '').trim());
+    }
+
+    async function createComponent(
+        authorities: string[],
+        getById?: Observable<Room>,
+        getAll?: Observable<Room[]>
+    ): Promise<void> {
         roomService = jasmine.createSpyObj<RoomService>('RoomService', [
             'getById',
             'getAll',
             'update',
             'delete'
         ]);
-        roomService.getById.and.returnValue(of(room));
-        roomService.getAll.and.returnValue(of([room]));
+        roomService.getById.and.returnValue(getById ?? of(room));
+        roomService.getAll.and.returnValue(getAll ?? of([room]));
 
         await TestBed.configureTestingModule({
             imports: [RoomDetailPage],
@@ -78,52 +101,59 @@ describe('RoomDetailPage', () => {
         expect(component.loading()).toBeFalse();
     });
 
-    it('should hide update/delete actions without the matching permissions', async () => {
+    it('should not render update/delete actions without the matching permissions', async () => {
         await createComponent(['scheduling:room:read:all']);
-        expect(component.canUpdate()).toBeFalse();
-        expect(component.canDelete()).toBeFalse();
+
+        const labels = renderedActionLabels();
+
+        expect(labels).toContain('Liste');
+        expect(labels).not.toContain('Modifier');
+        expect(labels).not.toContain('Supprimer');
     });
 
-    it('should show update/delete actions with the matching permissions', async () => {
+    it('should render update/delete actions with the matching permissions', async () => {
         await createComponent([
             'scheduling:room:read:all',
             'scheduling:room:update:all',
             'scheduling:room:delete:all'
         ]);
-        expect(component.canUpdate()).toBeTrue();
-        expect(component.canDelete()).toBeTrue();
+
+        const labels = renderedActionLabels();
+
+        expect(labels).toContain('Modifier');
+        expect(labels).toContain('Supprimer');
     });
 
     it('should navigate to notfound when the room does not exist', async () => {
-        roomService = jasmine.createSpyObj<RoomService>('RoomService', ['getById', 'getAll', 'update', 'delete']);
-        roomService.getById.and.returnValue(throwError(() => ({ status: 404 })));
-        roomService.getAll.and.returnValue(of([]));
-
-        await TestBed.configureTestingModule({
-            imports: [RoomDetailPage],
-            providers: [
-                provideRouter([]),
-                DetailNavigationService,
-                { provide: RoomService, useValue: roomService },
-                {
-                    provide: ActivatedRoute,
-                    useValue: { paramMap: paramMap$, snapshot: { paramMap: paramMap$.value } }
-                },
-                {
-                    provide: AuthService,
-                    useValue: { getCurrentUser: () => ({ id: 'admin', email: 'admin@unh.edu', authorities: [] }) }
-                }
-            ]
-        }).compileComponents();
-
-        router = TestBed.inject(Router);
-        spyOn(router, 'navigate');
-        fixture = TestBed.createComponent(RoomDetailPage);
-        component = fixture.componentInstance;
-        fixture.detectChanges();
-        await fixture.whenStable();
+        await createComponent(['scheduling:room:read:all'], throwError(() => ({ status: 404 })));
 
         expect(router.navigate).toHaveBeenCalledWith(['/notfound']);
+    });
+
+    it('should keep the user on the page and explain the failure on a server error', async () => {
+        await createComponent(
+            ['scheduling:room:read:all'],
+            throwError(() => ({ status: 500, error: { detail: 'Panne serveur' } }))
+        );
+
+        // Un 500 n'est pas un « introuvable » : rediriger vers /notfound masquerait l'incident.
+        expect(router.navigate).not.toHaveBeenCalledWith(['/notfound']);
+        expect(component.room()).toBeNull();
+        expect(component.loading()).toBeFalse();
+        expect((fixture.nativeElement as HTMLElement).textContent).toContain('n’a pas pu être chargée');
+    });
+
+    it('should still display the room when the prev/next navigation context cannot be built', async () => {
+        await createComponent(
+            ['scheduling:room:read:all'],
+            undefined,
+            throwError(() => ({ status: 500 }))
+        );
+
+        expect(component.room()).toEqual(room);
+        expect(component.navigationState()).toBeNull();
+        expect(component.canGoPrevious()).toBeFalse();
+        expect(component.canGoNext()).toBeFalse();
     });
 
     it('should update the room', async () => {

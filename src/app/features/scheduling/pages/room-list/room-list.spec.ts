@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
+import { Table } from 'primeng/table';
 import { of, throwError } from 'rxjs';
 import { AuthService } from '@/app/core/auth/services/auth.service';
 import { DetailNavigationService } from '@/app/shared/navigation/detail-navigation.service';
@@ -37,6 +39,22 @@ describe('RoomListPage', () => {
             updated_at: '2026-01-01T00:00:00Z'
         }
     ];
+
+    // `DetailNavigationService` persiste son contexte dans sessionStorage : on le vide entre les
+    // tests pour ne pas les rendre dépendants de l'ordre d'exécution (cf. `auth.guard.spec.ts`).
+    beforeEach(() => sessionStorage.clear());
+    afterEach(() => sessionStorage.clear());
+
+    /**
+     * Le vrai garde-fou de l'action « Nouvelle salle » est `ContentSubtopbar.visibleActions`, qui
+     * filtre sur `action.permissions` : on interroge donc les boutons réellement rendus plutôt qu'un
+     * `computed()` du composant, qui ne prouverait rien sur ce qui est affiché.
+     */
+    function renderedActionLabels(): string[] {
+        return fixture.debugElement
+            .queryAll(By.css('app-content-subtopbar button'))
+            .map((button) => ((button.nativeElement as HTMLElement).textContent ?? '').trim());
+    }
 
     async function createComponent(authorities: string[]): Promise<void> {
         roomService = jasmine.createSpyObj<RoomService>('RoomService', ['getAll', 'create']);
@@ -77,14 +95,24 @@ describe('RoomListPage', () => {
         expect(roomService.getAll).toHaveBeenCalledTimes(1);
     });
 
-    it('should hide the create action without scheduling:room:create:all', async () => {
+    it('should not render the create action without scheduling:room:create:all', async () => {
         await createComponent(['scheduling:room:read:all']);
-        expect(component.canCreate()).toBeFalse();
+        expect(renderedActionLabels()).not.toContain('Nouvelle salle');
     });
 
-    it('should show the create action with scheduling:room:create:all', async () => {
+    it('should render the create action with scheduling:room:create:all', async () => {
         await createComponent(['scheduling:room:read:all', 'scheduling:room:create:all']);
-        expect(component.canCreate()).toBeTrue();
+        expect(renderedActionLabels()).toContain('Nouvelle salle');
+    });
+
+    it('should reset the table pagination when the type filter changes', async () => {
+        await createComponent(['scheduling:room:read:all']);
+        const table = fixture.debugElement.query(By.directive(Table)).componentInstance as Table;
+        table.first = 10;
+
+        component.onTypeFilterChange('LABORATORY', table);
+
+        expect(table.first).toBe(0);
     });
 
     it('should navigate to the room detail', async () => {
