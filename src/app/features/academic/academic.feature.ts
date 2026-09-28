@@ -22,21 +22,21 @@ export const academicFeature: AppFeature = {
                     icon: 'pi pi-fw pi-building',
                     routerLink: ['/academic/my-faculty'],
                     permissions: [AcademicPermission.FacultyReadOwn],
-                    hiddenWhenPermissions: [AcademicPermission.FacultyReadAll],
+                    hiddenWhenPermissions: [AcademicPermission.FacultyUpdateAll],
                     order: 5
                 },
                 {
                     label: 'Facultés',
                     icon: 'pi pi-fw pi-building',
                     routerLink: ['/academic/faculties'],
-                    permissions: [AcademicPermission.FacultyReadAll],
+                    permissions: [AcademicPermission.FacultyUpdateAll],
                     order: 10
                 },
                 {
                     label: 'Unités d’enseignement',
                     icon: 'pi pi-fw pi-th-large',
                     routerLink: ['/academic/course-units'],
-                    permissions: [AcademicPermission.CourseUnitReadAll, AcademicPermission.FacultyReadOwn],
+                    permissions: [AcademicPermission.CourseUnitUpdateAll, AcademicPermission.FacultyReadOwn],
                     mode: 'any',
                     order: 15
                 },
@@ -44,7 +44,7 @@ export const academicFeature: AppFeature = {
                     label: 'Cours',
                     icon: 'pi pi-fw pi-book',
                     routerLink: ['/academic/courses'],
-                    permissions: [AcademicPermission.CourseReadAll, AcademicPermission.CourseReadOwn],
+                    permissions: [AcademicPermission.CourseUpdateAll, AcademicPermission.CourseReadOwn],
                     mode: 'any',
                     order: 20
                 },
@@ -54,21 +54,21 @@ export const academicFeature: AppFeature = {
                     routerLink: ['/academic/my-courses'],
                     permissions: [AcademicPermission.CourseReadOwn, AcademicPermission.ProfessorReadOwn],
                     mode: 'any',
-                    hiddenWhenPermissions: [AcademicPermission.CourseReadAll],
+                    hiddenWhenPermissions: [AcademicPermission.CourseUpdateAll],
                     order: 25
                 },
                 {
                     label: 'Professeurs',
                     icon: 'pi pi-fw pi-users',
                     routerLink: ['/academic/professors'],
-                    permissions: [AcademicPermission.ProfessorReadAll],
+                    permissions: [AcademicPermission.ProfessorUpdateAll],
                     order: 30
                 },
                 {
                     label: 'Étudiants',
                     icon: 'pi pi-fw pi-id-card',
                     routerLink: ['/academic/students'],
-                    permissions: [AcademicPermission.StudentReadAll],
+                    permissions: [AcademicPermission.StudentUpdateAll],
                     order: 40
                 }
             ]
@@ -80,10 +80,10 @@ export const academicFeature: AppFeature = {
         order: 25,
         routerLink: ['/settings/academic/years'],
         permissions: [
-            AcademicPermission.AcademicYearReadAll,
-            AcademicPermission.SemesterReadAll,
-            AcademicPermission.LevelReadAll,
-            AcademicPermission.ProfessorGradeReadAll
+            AcademicPermission.AcademicYearUpdateAll,
+            AcademicPermission.SemesterUpdateAll,
+            AcademicPermission.LevelUpdateAll,
+            AcademicPermission.ProfessorGradeUpdateAll
         ],
         mode: 'any',
         items: [
@@ -91,28 +91,28 @@ export const academicFeature: AppFeature = {
                 label: 'Années académiques',
                 icon: 'pi pi-calendar',
                 routerLink: ['/settings/academic/years'],
-                permissions: [AcademicPermission.AcademicYearReadAll],
+                permissions: [AcademicPermission.AcademicYearUpdateAll],
                 order: 10
             },
             {
                 label: 'Semestres',
                 icon: 'pi pi-clock',
                 routerLink: ['/settings/academic/semesters'],
-                permissions: [AcademicPermission.SemesterReadAll],
+                permissions: [AcademicPermission.SemesterUpdateAll],
                 order: 20
             },
             {
                 label: 'Niveaux',
                 icon: 'pi pi-sort-alt',
                 routerLink: ['/settings/academic/levels'],
-                permissions: [AcademicPermission.LevelReadAll],
+                permissions: [AcademicPermission.LevelUpdateAll],
                 order: 30
             },
             {
                 label: 'Grades professeurs',
                 icon: 'pi pi-star',
                 routerLink: ['/settings/academic/professor-grades'],
-                permissions: [AcademicPermission.ProfessorGradeReadAll],
+                permissions: [AcademicPermission.ProfessorGradeUpdateAll],
                 order: 40
             }
         ]

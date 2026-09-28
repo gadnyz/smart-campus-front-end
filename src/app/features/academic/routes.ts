@@ -30,7 +30,7 @@ export default [
         component: FacultyListPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.FacultyReadAll]
+            permissions: [AcademicPermission.FacultyUpdateAll]
         }
     },
     {
@@ -38,7 +38,7 @@ export default [
         component: FacultyDetailPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.FacultyReadAll, AcademicPermission.FacultyReadOwn],
+            permissions: [AcademicPermission.FacultyUpdateAll, AcademicPermission.FacultyReadOwn],
             mode: 'any'
         }
     },
@@ -47,7 +47,7 @@ export default [
         component: CourseUnitListPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.CourseUnitReadAll, AcademicPermission.FacultyReadOwn],
+            permissions: [AcademicPermission.CourseUnitUpdateAll, AcademicPermission.FacultyReadOwn],
             mode: 'any'
         }
     },
@@ -56,7 +56,7 @@ export default [
         component: CourseUnitDetailPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.CourseUnitReadAll, AcademicPermission.FacultyReadOwn],
+            permissions: [AcademicPermission.CourseUnitUpdateAll, AcademicPermission.FacultyReadOwn],
             mode: 'any'
         }
     },
@@ -65,7 +65,7 @@ export default [
         component: CourseListPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.CourseReadAll, AcademicPermission.CourseReadOwn],
+            permissions: [AcademicPermission.CourseUpdateAll, AcademicPermission.CourseReadOwn],
             mode: 'any'
         }
     },
@@ -74,7 +74,7 @@ export default [
         component: CourseDetailPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.CourseReadAll, AcademicPermission.CourseReadOwn],
+            permissions: [AcademicPermission.CourseUpdateAll, AcademicPermission.CourseReadOwn],
             mode: 'any'
         }
     },
@@ -92,7 +92,7 @@ export default [
         component: ProfessorListPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.ProfessorReadAll]
+            permissions: [AcademicPermission.ProfessorUpdateAll]
         }
     },
     {
@@ -100,7 +100,7 @@ export default [
         component: ProfessorDetailPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.ProfessorReadAll, AcademicPermission.ProfessorReadOwn],
+            permissions: [AcademicPermission.ProfessorUpdateAll, AcademicPermission.ProfessorReadOwn],
             mode: 'any'
         }
     },
@@ -109,7 +109,7 @@ export default [
         component: StudentListPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.StudentReadAll]
+            permissions: [AcademicPermission.StudentUpdateAll]
         }
     },
     {
@@ -117,7 +117,7 @@ export default [
         component: StudentDetailPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.StudentReadAll]
+            permissions: [AcademicPermission.StudentUpdateAll]
         }
     },
     { path: '', component: AcademicHomeRedirect }

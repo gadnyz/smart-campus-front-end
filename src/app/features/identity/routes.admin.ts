@@ -14,7 +14,7 @@ export const identityAdminRoutes: Routes = [
         component: UserManagement,
         canActivate: [permissionGuard],
         data: {
-            permissions: [IdentityPermission.UserReadAll],
+            permissions: [IdentityPermission.UserUpdateAll],
             mode: 'any'
         }
     },
@@ -32,7 +32,7 @@ export const identityAdminRoutes: Routes = [
         component: UserDetail,
         canActivate: [permissionGuard],
         data: {
-            permissions: [IdentityPermission.UserReadAll],
+            permissions: [IdentityPermission.UserUpdateAll],
             mode: 'any'
         }
     },
@@ -41,7 +41,7 @@ export const identityAdminRoutes: Routes = [
         component: RoleManagement,
         canActivate: [permissionGuard],
         data: {
-            permissions: [IdentityPermission.RoleReadAll],
+            permissions: [IdentityPermission.RoleUpdateAll],
             mode: 'any'
         }
     },
@@ -50,7 +50,7 @@ export const identityAdminRoutes: Routes = [
         component: ProfileManagement,
         canActivate: [permissionGuard],
         data: {
-            permissions: [IdentityPermission.ProfileReadAll],
+            permissions: [IdentityPermission.ProfileUpdateAll],
             mode: 'any'
         }
     },

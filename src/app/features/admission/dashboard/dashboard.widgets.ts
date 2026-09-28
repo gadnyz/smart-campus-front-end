@@ -8,7 +8,7 @@ export const admissionDashboardWidgets: DashboardWidget[] = [
         title: 'Candidatures',
         module: 'admission',
         component: CandidateStatsWidget,
-        permissions: [AdmissionPermission.AdmissionCandidateReadAll],
+        permissions: [AdmissionPermission.AdmissionCandidateUpdateAll],
         mode: 'any',
         size: 'sm',
         order: 16

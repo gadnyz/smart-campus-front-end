@@ -10,7 +10,7 @@ export default [
         component: CandidateManagement,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AdmissionPermission.AdmissionCandidateReadAll],
+            permissions: [AdmissionPermission.AdmissionCandidateUpdateAll],
             mode: 'any'
         }
     },
@@ -22,7 +22,7 @@ export default [
         data: {
             permissions: [AdmissionPermission.AdmissionCandidateReadOwn],
             mode: 'any',
-            hiddenWhenPermissions: [AdmissionPermission.AdmissionCandidateReadAll]
+            hiddenWhenPermissions: [AdmissionPermission.AdmissionCandidateUpdateAll]
         }
     },
     {
@@ -30,7 +30,7 @@ export default [
         component: CandidateDetail,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AdmissionPermission.AdmissionCandidateReadAll],
+            permissions: [AdmissionPermission.AdmissionCandidateUpdateAll],
             mode: 'any'
         }
     },

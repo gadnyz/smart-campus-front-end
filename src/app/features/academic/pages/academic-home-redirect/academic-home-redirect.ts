@@ -13,7 +13,7 @@ export class AcademicHomeRedirect implements OnInit {
     private readonly permissionService = inject(PermissionService);
 
     ngOnInit(): void {
-        if (this.permissionService.hasAnyPermission([AcademicPermission.FacultyReadAll])) {
+        if (this.permissionService.hasAnyPermission([AcademicPermission.FacultyUpdateAll])) {
             void this.router.navigate(['/academic/faculties']);
             return;
         }
@@ -23,7 +23,7 @@ export class AcademicHomeRedirect implements OnInit {
             return;
         }
 
-        if (this.permissionService.hasAnyPermission([AcademicPermission.CourseReadAll])) {
+        if (this.permissionService.hasAnyPermission([AcademicPermission.CourseUpdateAll])) {
             void this.router.navigate(['/academic/courses']);
             return;
         }
@@ -33,12 +33,12 @@ export class AcademicHomeRedirect implements OnInit {
             return;
         }
 
-        if (this.permissionService.hasAnyPermission([AcademicPermission.ProfessorReadAll])) {
+        if (this.permissionService.hasAnyPermission([AcademicPermission.ProfessorUpdateAll])) {
             void this.router.navigate(['/academic/professors']);
             return;
         }
 
-        if (this.permissionService.hasAnyPermission([AcademicPermission.StudentReadAll])) {
+        if (this.permissionService.hasAnyPermission([AcademicPermission.StudentUpdateAll])) {
             void this.router.navigate(['/academic/students']);
             return;
         }

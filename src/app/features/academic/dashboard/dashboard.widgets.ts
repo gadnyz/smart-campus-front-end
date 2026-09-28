@@ -9,7 +9,7 @@ export const academicDashboardWidgets: DashboardWidget[] = [
         title: 'Facultés',
         module: 'academic',
         component: FacultyStatsWidget,
-        permissions: [AcademicPermission.FacultyReadAll],
+        permissions: [AcademicPermission.FacultyUpdateAll],
         mode: 'any',
         size: 'sm',
         order: 15
@@ -19,7 +19,7 @@ export const academicDashboardWidgets: DashboardWidget[] = [
         title: 'Professeurs',
         module: 'academic',
         component: ProfessorStatsWidget,
-        permissions: [AcademicPermission.ProfessorReadAll],
+        permissions: [AcademicPermission.ProfessorUpdateAll],
         mode: 'any',
         size: 'sm',
         order: 16

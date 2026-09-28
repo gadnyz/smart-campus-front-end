@@ -12,7 +12,7 @@ export default [
         component: AcademicYearsPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.AcademicYearReadAll],
+            permissions: [AcademicPermission.AcademicYearUpdateAll],
             mode: 'any'
         }
     },
@@ -21,7 +21,7 @@ export default [
         component: SemestersPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.SemesterReadAll],
+            permissions: [AcademicPermission.SemesterUpdateAll],
             mode: 'any'
         }
     },
@@ -30,7 +30,7 @@ export default [
         component: LevelsPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.LevelReadAll],
+            permissions: [AcademicPermission.LevelUpdateAll],
             mode: 'any'
         }
     },
@@ -39,7 +39,7 @@ export default [
         component: ProfessorGradesPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.ProfessorGradeReadAll],
+            permissions: [AcademicPermission.ProfessorGradeUpdateAll],
             mode: 'any'
         }
     },

@@ -19,7 +19,7 @@ export const admissionFeature: AppFeature = {
                     label: 'Candidatures',
                     icon: 'pi pi-fw pi-id-card',
                     routerLink: ['/admission/candidates'],
-                    permissions: [AdmissionPermission.AdmissionCandidateReadAll],
+                    permissions: [AdmissionPermission.AdmissionCandidateUpdateAll],
                     order: 10
                 },
                 {
@@ -27,7 +27,7 @@ export const admissionFeature: AppFeature = {
                     icon: 'pi pi-fw pi-folder-open',
                     routerLink: ['/admission/my-application'],
                     permissions: [AdmissionPermission.AdmissionCandidateReadOwn],
-                    hiddenWhenPermissions: [AdmissionPermission.AdmissionCandidateReadAll],
+                    hiddenWhenPermissions: [AdmissionPermission.AdmissionCandidateUpdateAll],
                     order: 5
                 }
             ],
