@@ -14,6 +14,25 @@ export const schedulingFeature: AppFeature = {
     key: 'scheduling',
     label: 'Planification',
     order: 18,
+    route: {
+        path: 'scheduling',
+        loadChildren: () => import('./timetable/routes')
+    },
+    menu: [
+        {
+            label: 'Planification',
+            order: 18,
+            items: [
+                {
+                    label: 'Horaires',
+                    icon: 'pi pi-fw pi-calendar',
+                    routerLink: ['/scheduling/timetable'],
+                    permissions: [SchedulingPermission.TimetableReadAll],
+                    order: 10
+                }
+            ]
+        }
+    ],
     settingsTab: {
         key: 'scheduling',
         label: 'Planification',
@@ -35,4 +54,6 @@ export const schedulingFeature: AppFeature = {
         path: 'scheduling',
         loadChildren: () => import('./settings/routes')
     }
+
+
 };

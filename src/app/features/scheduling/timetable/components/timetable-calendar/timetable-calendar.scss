@@ -1,0 +1,30 @@
+.timetable-calendar {
+    .fc-day-today,
+    .fc-timegrid-col.fc-day-today {
+        background: color-mix(in srgb, var(--p-primary-color) 10%, transparent);
+    }
+
+    .fc-col-header-cell.fc-day-today,
+    .fc-col-header-cell.timetable-today {
+        background: var(--p-primary-100);
+        color: var(--p-primary-700);
+    }
+
+    &.timetable-current-range {
+        outline: 1px solid var(--p-primary-200);
+        outline-offset: 2px;
+    }
+}
+
+@media print {
+    .timetable-calendar {
+        .fc-header-toolbar,
+        .fc-button {
+            display: none;
+        }
+
+        .fc {
+            height: auto;
+        }
+    }
+}

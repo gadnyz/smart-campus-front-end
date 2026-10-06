@@ -1,0 +1,64 @@
+<app-content-subtopbar kicker="Planification" title="Horaires" />
+
+<div class="card flex flex-col gap-4">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <p-select
+                [options]="programOptions()"
+                optionLabel="label"
+                optionValue="value"
+                [ngModel]="programId()"
+                (ngModelChange)="onProgramChange($event)"
+                [showClear]="true"
+                [disabled]="loadingPrograms()"
+                placeholder="Programme"
+                ariaLabel="Filtrer par programme"
+                appendTo="body"
+                class="w-full sm:w-16rem"
+            />
+            <p-select
+                [options]="programLevelOptions()"
+                optionLabel="label"
+                optionValue="value"
+                [ngModel]="programLevelId()"
+                (ngModelChange)="onProgramLevelChange($event)"
+                [showClear]="true"
+                [disabled]="programId() === null"
+                placeholder="Niveau"
+                ariaLabel="Filtrer par niveau de programme"
+                appendTo="body"
+                class="w-full sm:w-16rem"
+            />
+        </div>
+
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <p-button
+                label="Horaires en attente de validation"
+                icon="pi pi-inbox"
+                severity="secondary"
+                [outlined]="true"
+                [badge]="draftBadge()"
+                badgeSeverity="warn"
+                (onClick)="openDrafts()"
+                ariaLabel="Afficher les horaires en attente de validation"
+            />
+            @if (canCreate()) {
+                <p-button
+                    label="Nouveau"
+                    icon="pi pi-plus"
+                    (onClick)="openCreate()"
+                    ariaLabel="Créer un nouvel horaire"
+                />
+            }
+        </div>
+    </div>
+
+    @if (loadError()) {
+        <div class="flex flex-wrap items-center gap-3" role="alert">
+            <span>{{ loadError() }}</span>
+            <p-button label="Réessayer" severity="secondary" [outlined]="true" (onClick)="loadPrograms()" />
+        </div>
+    }
+
+    <app-timetable-calendar [events]="events()" (rangeChange)="onRangeChange($event)" (eventSelected)="onEventSelected($event)" />
+</div>

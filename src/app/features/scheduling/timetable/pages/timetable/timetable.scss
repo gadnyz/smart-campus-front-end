@@ -1,0 +1,12 @@
+:host {
+    display: block;
+}
+
+@media print {
+    app-content-subtopbar,
+    .p-button,
+    p-select,
+    [role='alert'] {
+        display: none;
+    }
+}
