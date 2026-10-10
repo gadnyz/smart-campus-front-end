@@ -6,9 +6,9 @@ import { SchedulingPermission } from './permissions/permission.model';
  * dans l'onglet Paramètres › Planification (sur le modèle de Paramètres › Academic ›
  * Niveaux), pas dans le menu opérationnel.
  *
- * Les Emplois du temps et les Séances, qui sont des données d'exploitation, viendront
- * dans une prochaine étape et rétabliront un `route` + `menu` opérationnels
- * (voir permissions/permission.model.ts).
+ * Les horaires (emplois du temps hebdomadaires et leurs sessions) sont des données
+ * d'exploitation : ils vivent dans le menu opérationnel, sous `/scheduling/timetable`
+ * (calendrier, horaires en attente, création et édition — voir timetable/routes.ts).
  */
 export const schedulingFeature: AppFeature = {
     key: 'scheduling',

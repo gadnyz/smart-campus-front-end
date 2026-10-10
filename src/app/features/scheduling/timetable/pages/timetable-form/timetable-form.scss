@@ -1,0 +1,22 @@
+.timetable-form-header {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 1rem;
+}
+
+.timetable-form-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+:host ::ng-deep .timetable-lines td {
+    vertical-align: top;
+}
+
+:host ::ng-deep .timetable-line-issues td {
+    padding-top: 0;
+    border-top: none;
+}

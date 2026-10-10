@@ -30,10 +30,9 @@ describe('app-feature.registry (dynamic module registry)', () => {
         expect(paths).toContain('settings');
         expect(paths).toContain('academic');
 
-        // Planification n'expose pour l'instant que de la configuration (Paramètres › Salles) :
-        // elle ne contribue donc aucune route opérationnelle. Les Emplois du temps et les Séances
-        // en rétabliront une.
-        expect(paths).not.toContain('scheduling');
+        // Planification : les horaires sont des données d'exploitation, sous une route
+        // opérationnelle ; les salles restent dans Paramètres (voir le test suivant).
+        expect(paths).toContain('scheduling');
     });
 
     it('should expose the scheduling settings tab and child route', () => {

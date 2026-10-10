@@ -32,23 +32,20 @@
         </div>
 
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <p-button
-                label="Horaires en attente de validation"
-                icon="pi pi-inbox"
-                severity="secondary"
-                [outlined]="true"
-                [badge]="draftBadge()"
-                badgeSeverity="warn"
-                (onClick)="openDrafts()"
-                ariaLabel="Afficher les horaires en attente de validation"
-            />
-            @if (canCreate()) {
+            @if (canListPending()) {
                 <p-button
-                    label="Nouveau"
-                    icon="pi pi-plus"
-                    (onClick)="openCreate()"
-                    ariaLabel="Créer un nouvel horaire"
+                    label="Horaires en attente"
+                    icon="pi pi-inbox"
+                    severity="secondary"
+                    [outlined]="true"
+                    [badge]="draftBadge()"
+                    badgeSeverity="warn"
+                    [routerLink]="pendingLink"
+                    ariaLabel="Afficher les horaires en attente (brouillons)"
                 />
+            }
+            @if (canCreate()) {
+                <p-button label="Ajouter un horaire" icon="pi pi-plus" [routerLink]="newTimetableLink" ariaLabel="Ajouter un horaire" />
             }
         </div>
     </div>

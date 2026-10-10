@@ -1,0 +1,62 @@
+<p-toast />
+
+<app-content-subtopbar kicker="Planification" title="Horaires en attente" [actions]="actions" />
+
+<div class="card">
+    @if (loadError()) {
+        <div class="flex flex-wrap items-center gap-3 mb-3" role="alert">
+            <span>{{ loadError() }}</span>
+            <p-button label="Réessayer" severity="secondary" [outlined]="true" (onClick)="reload()" />
+        </div>
+    }
+
+    <p-table
+        [value]="timetables()"
+        [lazy]="true"
+        (onLazyLoad)="onLazyLoad($event)"
+        [loading]="loading()"
+        [paginator]="true"
+        [rows]="pageSize"
+        [totalRecords]="totalRecords()"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} horaires"
+        [rowHover]="true"
+        dataKey="id"
+        [tableStyle]="{ 'min-width': '40rem' }"
+    >
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Programme</th>
+                <th>Niveau</th>
+                <th>Semaine de début</th>
+                <th style="width: 6rem">Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-timetable>
+            <tr>
+                <td>{{ timetable.program_name }}</td>
+                <td>{{ timetable.program_level_name }}</td>
+                <td>{{ formatWeekStart(timetable.week_start) }}</td>
+                <td>
+                    @if (canEdit()) {
+                        <p-button
+                            icon="pi pi-pencil"
+                            severity="info"
+                            [rounded]="true"
+                            [outlined]="true"
+                            (onClick)="edit(timetable)"
+                            [ariaLabel]="'Modifier l’horaire ' + timetable.program_level_name + ' du ' + formatWeekStart(timetable.week_start)"
+                        />
+                    }
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="4">Aucun horaire en attente.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
