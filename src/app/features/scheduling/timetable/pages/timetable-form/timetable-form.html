@@ -3,23 +3,10 @@
 
 <app-content-subtopbar kicker="Planification" [title]="title()" [actions]="actions" />
 
-@if (loadError()) {
-    <div class="card" role="alert">{{ loadError() }}</div>
-}
-
-<div class="card flex flex-col gap-4" [attr.aria-busy]="loading()">
-    <div class="flex flex-wrap items-center justify-between gap-2">
-        <h2 class="m-0 text-xl font-semibold">En-tête</h2>
-        <span class="text-sm text-muted-color" aria-live="polite">
-            @if (headerSyncing()) {
-                <i class="pi pi-spin pi-spinner mr-1" aria-hidden="true"></i>Enregistrement de l’horaire…
-            } @else if (timetable(); as current) {
-                <i class="pi pi-check-circle mr-1" aria-hidden="true"></i>{{ timetableStatusLabel(current.status) }}
-            } @else {
-                L’horaire sera créé dès que l’en-tête sera complet.
-            }
-        </span>
-    </div>
+<div class="card flex flex-col gap-5" [attr.aria-busy]="loading()">
+    @if (loadError()) {
+        <p class="m-0 text-red-500" role="alert">{{ loadError() }}</p>
+    }
 
     <form class="timetable-form-header" [formGroup]="headerForm">
         <div>
@@ -31,6 +18,7 @@
                 optionLabel="label"
                 optionValue="value"
                 [filter]="true"
+                [loading]="programsLoading()"
                 placeholder="Programme"
                 appendTo="body"
                 class="w-full"
@@ -58,19 +46,15 @@
                 dateFormat="dd/mm/yy"
                 [firstDayOfWeek]="1"
                 [minDate]="minWeekDate"
+                [disabledDays]="nonMondays"
                 [showIcon]="true"
+                placeholder="Lundi"
                 appendTo="body"
                 class="w-full"
             />
-            @if (weekRange()) {
-                <small class="block mt-1 text-muted-color">{{ weekRange() }}</small>
-            }
         </div>
     </form>
 
-    @if (headerLocked() && !validated()) {
-        <small class="text-muted-color">L’en-tête est verrouillé : des sessions sont déjà enregistrées pour cet horaire.</small>
-    }
     @if (headerError()) {
         <div class="flex flex-wrap items-center gap-3" role="alert">
             <span class="text-red-500">{{ headerError() }}</span>
@@ -79,185 +63,217 @@
             }
         </div>
     }
-</div>
 
-<div class="card flex flex-col gap-4">
-    <h2 class="m-0 text-xl font-semibold">Sessions</h2>
+    <div class="flex flex-col gap-3">
+        <h2 class="m-0 text-lg font-semibold">Sessions</h2>
 
-    @if (validated()) {
-        <p class="m-0" role="status">Cet horaire est validé : ses sessions sont en lecture seule.</p>
-    }
+        @if (validated()) {
+            <p class="m-0" role="status">Cet horaire est validé : ses sessions sont en lecture seule.</p>
+        }
 
-    <p-table [value]="lineRows()" [tableStyle]="{ 'min-width': '60rem' }" styleClass="timetable-lines">
-        <ng-template pTemplate="header">
-            <tr>
-                <th style="width: 2.5rem">#</th>
-                <th style="min-width: 16rem">Cours</th>
-                <th style="width: 8rem">Début</th>
-                <th style="width: 8rem">Fin</th>
-                <th style="min-width: 14rem">Jours</th>
-                <th style="min-width: 10rem">Salle</th>
-                <th style="width: 11rem">Type</th>
-                <th style="width: 4rem"><span class="sr-only">Actions</span></th>
-            </tr>
-        </ng-template>
+        <p-table [value]="lineRows()" [tableStyle]="{ 'min-width': '48rem' }" styleClass="timetable-lines">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="width: 2.5rem">#</th>
+                    <th>Cours</th>
+                    <th style="width: 9rem">Horaire</th>
+                    <th>Jours</th>
+                    <th style="width: 10rem">Salle</th>
+                    <th style="width: 10rem">Type</th>
+                    <th style="width: 6.5rem"><span class="sr-only">Actions</span></th>
+                </tr>
+            </ng-template>
 
-        <ng-template pTemplate="body" let-row let-i="rowIndex">
-            <tr [formGroup]="row">
-                <td>{{ i + 1 }}</td>
-                <td>
-                    <p-select
-                        formControlName="course_id"
-                        [options]="courses()"
-                        optionLabel="name"
-                        optionValue="id"
-                        [filter]="true"
-                        placeholder="Cours"
-                        appendTo="body"
-                        class="w-full"
-                        [ariaLabel]="'Cours de la ligne ' + (i + 1)"
-                        (onChange)="onLineCourseChange(row)"
-                    />
-                    @if (row.controls.course_id.value) {
-                        @let professors = assignmentOptions(row);
-                        <div class="mt-1">
-                            @if (!assignmentsLoaded(row) && professors.length === 0) {
-                                <small class="text-muted-color">Chargement des professeurs…</small>
-                            } @else if (professors.length === 0) {
-                                <small class="text-red-500">Aucun professeur affecté à ce cours pour l’année de l’horaire.</small>
-                            } @else if (professors.length === 1) {
-                                <small class="text-muted-color"><i class="pi pi-user mr-1" aria-hidden="true"></i>{{ professors[0].label }}</small>
-                            } @else {
-                                <p-select
-                                    formControlName="course_assignment_id"
-                                    [options]="professors"
-                                    optionLabel="label"
-                                    optionValue="value"
-                                    placeholder="Professeur"
-                                    appendTo="body"
-                                    size="small"
-                                    class="w-full"
-                                    [ariaLabel]="'Professeur de la ligne ' + (i + 1)"
+            <ng-template pTemplate="body" let-row let-i="rowIndex">
+                <tr>
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ courseLabel(row) }}</td>
+                    <td class="tabular-nums">{{ hoursLabel(row) }}</td>
+                    <td>{{ daysLabel(row) }}</td>
+                    <td>{{ roomLabel(row) }}</td>
+                    <td>{{ typeLabel(row) }}</td>
+                    <td>
+                        @if (!readOnly()) {
+                            <div class="flex gap-1">
+                                <p-button
+                                    icon="pi pi-pencil"
+                                    severity="info"
+                                    [rounded]="true"
+                                    [text]="true"
+                                    (onClick)="openSessionDialog(i)"
+                                    [ariaLabel]="'Modifier la ligne ' + (i + 1)"
                                 />
-                            }
-                        </div>
-                    }
-                </td>
-                <td>
-                    <p-datepicker
-                        formControlName="start"
-                        [timeOnly]="true"
-                        hourFormat="24"
-                        [stepMinute]="5"
-                        appendTo="body"
-                        class="w-full"
-                        [ariaLabel]="'Heure de début de la ligne ' + (i + 1)"
-                    />
-                </td>
-                <td>
-                    <p-datepicker
-                        formControlName="end"
-                        [timeOnly]="true"
-                        hourFormat="24"
-                        [stepMinute]="5"
-                        appendTo="body"
-                        class="w-full"
-                        [ariaLabel]="'Heure de fin de la ligne ' + (i + 1)"
-                    />
-                </td>
-                <td>
-                    <p-multiselect
-                        formControlName="days"
-                        [options]="weekDayOptions"
-                        optionLabel="label"
-                        optionValue="value"
-                        display="chip"
-                        [showToggleAll]="true"
-                        placeholder="Jours"
-                        appendTo="body"
-                        class="w-full"
-                        [ariaLabel]="'Jours de la ligne ' + (i + 1)"
-                    />
-                </td>
-                <td>
-                    <p-select
-                        formControlName="room_id"
-                        [options]="rooms()"
-                        optionLabel="name"
-                        optionValue="id"
-                        [filter]="true"
-                        placeholder="Salle"
-                        appendTo="body"
-                        class="w-full"
-                        [ariaLabel]="'Salle de la ligne ' + (i + 1)"
-                    />
-                </td>
-                <td>
-                    <p-select
-                        formControlName="session_type"
-                        [options]="sessionTypeOptions"
-                        optionLabel="label"
-                        optionValue="value"
-                        appendTo="body"
-                        class="w-full"
-                        [ariaLabel]="'Type de la ligne ' + (i + 1)"
-                    />
-                </td>
-                <td>
-                    @if (!readOnly()) {
-                        <p-button
-                            icon="pi pi-trash"
-                            severity="danger"
-                            [rounded]="true"
-                            [text]="true"
-                            (onClick)="removeLine(i)"
-                            [ariaLabel]="'Supprimer la ligne ' + (i + 1)"
-                        />
-                    }
-                </td>
-            </tr>
-            @let issues = lineIssues(row, i);
-            @if (issues.length > 0) {
-                <tr class="timetable-line-issues">
-                    <td></td>
-                    <td colspan="7">
-                        <ul class="m-0 pl-4" role="alert">
-                            @for (issue of issues; track $index) {
-                                <li class="text-red-500 text-sm">{{ issue }}</li>
-                            }
-                        </ul>
+                                <p-button
+                                    icon="pi pi-trash"
+                                    severity="danger"
+                                    [rounded]="true"
+                                    [text]="true"
+                                    (onClick)="removeLine(i)"
+                                    [ariaLabel]="'Supprimer la ligne ' + (i + 1)"
+                                />
+                            </div>
+                        }
                     </td>
                 </tr>
-            }
-        </ng-template>
+                @let issues = lineIssues(row, i);
+                @if (issues.length > 0) {
+                    <tr class="timetable-line-issues">
+                        <td></td>
+                        <td colspan="6">
+                            <ul class="m-0 pl-4" role="alert">
+                                @for (issue of issues; track $index) {
+                                    <li class="text-red-500 text-sm">{{ issue }}</li>
+                                }
+                            </ul>
+                        </td>
+                    </tr>
+                }
+            </ng-template>
 
-        <ng-template pTemplate="emptymessage">
-            <tr>
-                <td colspan="8">Aucune session. Ajoutez une ligne pour planifier un cours.</td>
-            </tr>
-        </ng-template>
-    </p-table>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="7">Aucune session. Ajoutez une ligne pour planifier un cours.</td>
+                </tr>
+            </ng-template>
+        </p-table>
 
-    @if (!readOnly()) {
+        @if (!readOnly()) {
+            <div>
+                <p-button label="Ajouter une ligne" icon="pi pi-plus" [text]="true" (onClick)="openSessionDialog()" />
+            </div>
+        }
+    </div>
+
+    <div class="timetable-form-footer">
+        @if (saveError()) {
+            <p class="m-0 mr-auto text-red-500" role="alert">{{ saveError() }}</p>
+        }
+        <p-button label="Annuler" severity="secondary" [outlined]="true" (onClick)="cancel()" />
+        @if (!readOnly()) {
+            <p-button
+                label="Enregistrer"
+                icon="pi pi-check"
+                [loading]="saving()"
+                [disabled]="saving() || headerSyncing() || !timetable()"
+                (onClick)="save()"
+                ariaLabel="Enregistrer les sessions de l’horaire"
+            />
+        }
+    </div>
+</div>
+
+<p-dialog
+    [header]="dialogTitle()"
+    [visible]="dialogVisible()"
+    (visibleChange)="dialogVisible.set($event)"
+    [modal]="true"
+    [draggable]="false"
+    [style]="{ width: '34rem' }"
+    [breakpoints]="{ '640px': '95vw' }"
+    appendTo="body"
+>
+    <form class="session-form" [formGroup]="sessionForm" (ngSubmit)="submitSession()">
         <div>
-            <p-button label="Ajouter une ligne" icon="pi pi-plus" [text]="true" (onClick)="addLine()" />
+            <label for="session-course" class="block text-sm mb-1">Cours</label>
+            <p-select
+                inputId="session-course"
+                formControlName="course_id"
+                [options]="courses()"
+                optionLabel="name"
+                optionValue="id"
+                [filter]="true"
+                placeholder="Cours"
+                emptyMessage="Aucun cours pour ce niveau"
+                appendTo="body"
+                class="w-full"
+                (onChange)="onSessionCourseChange()"
+            />
         </div>
-    }
-</div>
+        @if (sessionForm.controls.course_id.value) {
+            <div>
+                <label for="session-professor" class="block text-sm mb-1">Professeur</label>
+                <p-select
+                    inputId="session-professor"
+                    formControlName="course_assignment_id"
+                    [options]="assignmentOptions(sessionForm)"
+                    optionLabel="label"
+                    optionValue="value"
+                    [loading]="!assignmentsLoaded(sessionForm)"
+                    placeholder="Professeur"
+                    emptyMessage="Aucun professeur affecté cette année"
+                    appendTo="body"
+                    class="w-full"
+                />
+            </div>
+        }
+        <div class="session-form-pair">
+            <div>
+                <label for="session-start" class="block text-sm mb-1">Début</label>
+                <p-datepicker inputId="session-start" formControlName="start" [timeOnly]="true" hourFormat="24" [stepMinute]="5" appendTo="body" class="w-full" />
+            </div>
+            <div>
+                <label for="session-end" class="block text-sm mb-1">Fin</label>
+                <p-datepicker inputId="session-end" formControlName="end" [timeOnly]="true" hourFormat="24" [stepMinute]="5" appendTo="body" class="w-full" />
+            </div>
+        </div>
+        <div>
+            <label for="session-days" class="block text-sm mb-1">Jours</label>
+            <p-multiselect
+                inputId="session-days"
+                formControlName="days"
+                [options]="weekDayOptions"
+                optionLabel="label"
+                optionValue="value"
+                display="chip"
+                [showToggleAll]="true"
+                placeholder="Jours"
+                appendTo="body"
+                class="w-full"
+            />
+        </div>
+        <div class="session-form-pair">
+            <div>
+                <label for="session-room" class="block text-sm mb-1">Salle</label>
+                <p-select
+                    inputId="session-room"
+                    formControlName="room_id"
+                    [options]="rooms()"
+                    optionLabel="name"
+                    optionValue="id"
+                    [filter]="true"
+                    [loading]="roomsLoading()"
+                    placeholder="Salle"
+                    appendTo="body"
+                    class="w-full"
+                />
+            </div>
+            <div>
+                <label for="session-type" class="block text-sm mb-1">Type</label>
+                <p-select
+                    inputId="session-type"
+                    formControlName="session_type"
+                    [options]="sessionTypeOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    appendTo="body"
+                    class="w-full"
+                />
+            </div>
+        </div>
 
-<div class="card timetable-form-footer">
-    @if (saveError()) {
-        <p class="m-0 mr-auto text-red-500" role="alert">{{ saveError() }}</p>
-    }
-    <p-button label="Annuler" severity="secondary" [outlined]="true" (onClick)="cancel()" />
-    @if (!readOnly()) {
-        <p-button
-            label="Enregistrer"
-            icon="pi pi-check"
-            [loading]="saving()"
-            [disabled]="saving() || headerSyncing() || !timetable()"
-            (onClick)="save()"
-            ariaLabel="Enregistrer les sessions de l’horaire"
-        />
-    }
-</div>
+        @let sessionErrors = sessionIssues();
+        @if (sessionErrors.length > 0) {
+            <ul class="m-0 pl-4" role="alert">
+                @for (issue of sessionErrors; track $index) {
+                    <li class="text-red-500 text-sm">{{ issue }}</li>
+                }
+            </ul>
+        }
+        <button type="submit" hidden></button>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Annuler" severity="secondary" [outlined]="true" (onClick)="closeSessionDialog()" />
+        <p-button label="Valider" icon="pi pi-check" (onClick)="submitSession()" ariaLabel="Valider la session" />
+    </ng-template>
+</p-dialog>

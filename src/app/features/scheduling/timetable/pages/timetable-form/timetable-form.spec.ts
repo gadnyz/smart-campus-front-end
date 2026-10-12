@@ -2,7 +2,7 @@ import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmationService } from 'primeng/api';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { AuthService } from '@/app/core/auth/services/auth.service';
 import {
@@ -205,10 +205,10 @@ describe('TimetableFormPage', () => {
         component.headerForm.controls.week_start.setValue(week);
     }
 
-    function addFilledLine(values: { days?: number[]; start?: Date; end?: Date } = {}): void {
-        component.addLine();
-        const line = component.lines.at(component.lines.length - 1);
-        line.patchValue({
+    /** Ouvre la fenêtre « Ajouter une ligne » et la remplit, sans la valider. */
+    function fillSession(values: { days?: number[]; start?: Date; end?: Date } = {}): void {
+        component.openSessionDialog();
+        component.sessionForm.patchValue({
             course_id: 'course-1',
             start: values.start ?? at(8),
             end: values.end ?? at(10),
@@ -216,7 +216,12 @@ describe('TimetableFormPage', () => {
             room_id: 'room-1',
             session_type: 'LECTURE'
         });
-        component.onLineCourseChange(line);
+        component.onSessionCourseChange();
+    }
+
+    function addFilledLine(values: { days?: number[]; start?: Date; end?: Date } = {}): void {
+        fillSession(values);
+        component.submitSession();
     }
 
     describe('création', () => {
@@ -252,6 +257,13 @@ describe('TimetableFormPage', () => {
             expect(timetableService.delete).toHaveBeenCalledOnceWith('tt-1');
             expect(timetableService.create).toHaveBeenCalledTimes(2);
             expect(timetableService.create.calls.mostRecent().args[0].week_start).toBe('2026-10-12');
+        });
+
+        it('should bring a typed date back to the Monday of its week', () => {
+            createComponent();
+            component.headerForm.controls.week_start.setValue(new Date(2026, 9, 8));
+            expect(component.headerForm.controls.week_start.value).toEqual(new Date(2026, 9, 5));
+            jasmine.clock().tick(400);
         });
 
         it('should not recreate the timetable when another day of the same week is picked', () => {
@@ -305,6 +317,9 @@ describe('TimetableFormPage', () => {
             expect(line.controls.course_id.value).toBeNull();
             expect(line.controls.course_assignment_id.value).toBeNull();
             expect(line.controls.room_id.value).toBe('room-1');
+
+            component.save();
+            expect(component.lineIssues(line, 0)).toEqual(['Session incomplète : modifiez-la pour la compléter.']);
         });
     });
 
@@ -322,18 +337,28 @@ describe('TimetableFormPage', () => {
             expect(component.assignmentOptions(line).map((option) => option.value)).toEqual(['ca-1']);
         });
 
-        it('should not apply a late answer to a line whose course has changed', () => {
+        it('should not apply a late answer to a session whose course has changed', () => {
             const answer = new Subject<CourseAssignment[]>();
             createComponent({ assignments: answer });
             fillHeader();
             jasmine.clock().tick(400);
-            addFilledLine();
+            fillSession();
+            expect(component.assignmentsLoaded(component.sessionForm)).toBeFalse();
 
-            const line = component.lines.at(0);
-            line.controls.course_id.setValue('course-2');
+            component.sessionForm.controls.course_id.setValue('course-2');
             answer.next([assignment({})]);
 
-            expect(line.controls.course_assignment_id.value).toBeNull();
+            expect(component.sessionForm.controls.course_assignment_id.value).toBeNull();
+        });
+
+        it('should explain that no professor is assigned for the year', () => {
+            createComponent({ assignments: of([assignment({ academic_year_id: 'year-0' })]) });
+            fillHeader();
+            jasmine.clock().tick(400);
+            fillSession();
+            component.submitSession();
+
+            expect(component.sessionIssues()).toEqual(['Aucun professeur n’est affecté à ce cours pour l’année de l’horaire.']);
         });
     });
 
@@ -349,35 +374,76 @@ describe('TimetableFormPage', () => {
             expect(component.saveError()).toBe('Ajoutez au moins une session.');
         });
 
-        it('should flag missing fields, inverted hours and empty days without calling the API', () => {
+        it('should validate a session only when the dialog is submitted', () => {
             createComponent();
             fillHeader();
             jasmine.clock().tick(400);
-            addFilledLine({ days: [], start: at(10), end: at(9) });
-            component.addLine();
+            fillSession({ days: [], start: at(10), end: at(9) });
+            expect(component.sessionIssues()).toEqual([]);
 
-            component.save();
+            component.submitSession();
 
-            expect(entryService.create).not.toHaveBeenCalled();
-            expect(component.lineIssues(component.lines.at(0), 0)).toEqual([
-                'L’heure de fin doit être après l’heure de début.',
-                'Sélectionnez au moins un jour.'
+            expect(component.sessionIssues()).toEqual(['L’heure de fin doit être après l’heure de début.', 'Sélectionnez au moins un jour.']);
+            expect(component.lines.length).toBe(0);
+            expect(component.dialogVisible()).toBeTrue();
+
+            component.openSessionDialog();
+            expect(component.sessionIssues()).toEqual([]);
+            component.submitSession();
+            expect(component.sessionIssues()).toEqual([
+                'Choisissez un cours.',
+                'Renseignez l’heure de début et de fin.',
+                'Sélectionnez au moins un jour.',
+                'Choisissez une salle.'
             ]);
-            expect(component.lineIssues(component.lines.at(1), 1)).toContain('Choisissez un cours.');
-            expect(component.lineIssues(component.lines.at(1), 1)).toContain('Choisissez une salle.');
         });
 
-        it('should reject lines overlapping on a same day', () => {
+        it('should list a validated session and close the dialog', () => {
+            createComponent();
+            fillHeader();
+            jasmine.clock().tick(400);
+            addFilledLine({ days: [3, 1] });
+            fixture.detectChanges();
+
+            expect(component.dialogVisible()).toBeFalse();
+            expect(component.lines.length).toBe(1);
+            const line = component.lines.at(0);
+            expect(component.courseLabel(line)).toBe('Algèbre');
+            expect(component.hoursLabel(line)).toBe('08:00 – 10:00');
+            expect(component.daysLabel(line)).toBe('Lundi, Mercredi');
+            expect(component.roomLabel(line)).toBe('A101');
+            expect(component.typeLabel(line)).toBe('Cours');
+        });
+
+        it('should refuse a session overlapping another line, but not the line it edits', () => {
             createComponent();
             fillHeader();
             jasmine.clock().tick(400);
             addFilledLine({ days: [1, 3] });
-            addFilledLine({ days: [3], start: at(9), end: at(11) });
 
-            component.save();
+            fillSession({ days: [3], start: at(9), end: at(11) });
+            component.submitSession();
+            expect(component.sessionIssues()).toEqual(['Chevauche la ligne 1 sur un même jour.']);
+            expect(component.lines.length).toBe(1);
 
-            expect(entryService.create).not.toHaveBeenCalled();
-            expect(component.lineIssues(component.lines.at(0), 0)).toEqual(['Chevauche la ligne 2 sur un même jour.']);
+            component.openSessionDialog(0);
+            component.sessionForm.controls.start.setValue(at(9));
+            component.submitSession();
+            expect(component.sessionIssues()).toEqual([]);
+            expect(component.hoursLabel(component.lines.at(0))).toBe('09:00 – 10:00');
+        });
+
+        it('should load rooms once, on the first opening of the dialog', () => {
+            createComponent();
+            const rooms = TestBed.inject(RoomService) as jasmine.SpyObj<RoomService>;
+            expect(rooms.getAll).not.toHaveBeenCalled();
+
+            component.openSessionDialog();
+            component.closeSessionDialog();
+            component.openSessionDialog();
+
+            expect(rooms.getAll).toHaveBeenCalledTimes(1);
+            expect(component.rooms().length).toBe(1);
         });
 
         it('should create one session per selected day and go back to the pending list', () => {
@@ -460,6 +526,24 @@ describe('TimetableFormPage', () => {
             expect(entryService.update).toHaveBeenCalledOnceWith('e-fri', jasmine.objectContaining({ start_hour: '15:00:00', date: '2026-10-09' }));
             expect(entryService.create).toHaveBeenCalledOnceWith({ timetable_id: 'tt-1', entries: [jasmine.objectContaining({ date: '2026-10-06' })] });
             expect(router.navigate).toHaveBeenCalled();
+        });
+
+        it('should edit a saved line through the dialog and keep its saved sessions', () => {
+            createEditComponent();
+            const line = component.lines.at(0);
+            expect(component.roomLabel(line)).toBe('A101');
+            expect(component.courseLabel(line)).toBe('Algèbre');
+
+            component.openSessionDialog(0);
+            expect(component.dialogTitle()).toBe('Modifier la session');
+            expect(component.sessionForm.controls.days.value).toEqual([1, 3]);
+            component.sessionForm.controls.session_type.setValue('EXAM');
+            component.submitSession();
+
+            expect(component.lines.length).toBe(2);
+            expect(line.controls.session_type.value).toBe('EXAM');
+            expect(line.controls.entry_ids.value).toEqual({ 1: 'e-mon', 3: 'e-wed' });
+            expect(component.lines.dirty).toBeTrue();
         });
 
         it('should be read only once validated', () => {

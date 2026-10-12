@@ -26,6 +26,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePicker } from 'primeng/datepicker';
+import { DialogModule } from 'primeng/dialog';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
@@ -45,8 +46,8 @@ import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subto
 import { Room } from '../../../models/room.model';
 import { SchedulingPermission } from '../../../permissions/permission.model';
 import { RoomService } from '../../../services/room.service';
-import { SESSION_TYPE_OPTIONS, SessionType, TimetableEntry } from '../../models/timetable-entry.model';
-import { CreateTimetableRequest, Timetable, timetableStatusLabel } from '../../models/timetable.model';
+import { SESSION_TYPE_OPTIONS, SessionType, TimetableEntry, sessionTypeLabel } from '../../models/timetable-entry.model';
+import { CreateTimetableRequest, Timetable } from '../../models/timetable.model';
 import { SessionLine, WEEK_DAY_OPTIONS, WeekDay, weekDayLabel } from '../../models/timetable-session.model';
 import { TimetableEntryService } from '../../services/timetable-entry.service';
 import { TimetableService } from '../../services/timetable.service';
@@ -54,7 +55,7 @@ import { programLevelOptions } from '../../utils/program-level';
 import { readBatchErrors, timetableErrorMessage } from '../../utils/timetable-error';
 import { TIMETABLE_PATH } from '../../utils/timetable-routes';
 import { PlannedEntry, SavePlan, findOverlappingLines, groupEntriesIntoLines, planSave } from '../../utils/timetable-session';
-import { addDays, formatWeekStart, isEndAfterStart, mondayOf, parseApiDate, parseApiTime, toApiDate, toApiTime } from '../../utils/timetable-time';
+import { formatEntryTime, isEndAfterStart, mondayOf, parseApiDate, parseApiTime, toApiDate, toApiTime } from '../../utils/timetable-time';
 import { LeaveConfirmable } from './timetable-form-leave.guard';
 
 type LineForm = FormGroup<{
@@ -94,7 +95,11 @@ function endAfterStart(group: AbstractControl): ValidationErrors | null {
 
 /**
  * Création et édition d'un horaire hebdomadaire, sur le modèle d'un devis Odoo : un en-tête
- * (programme, niveau, semaine) et un tableau de sessions éditable.
+ * (programme, niveau, semaine) et la liste des sessions, saisies une à une dans une fenêtre.
+ *
+ * <p>Les références sont chargées à la demande et sans message d'attente : les salles à la
+ * première ouverture de la fenêtre, les professeurs d'un cours quand il est choisi. Les erreurs
+ * ne s'affichent qu'à la soumission (validation de la fenêtre ou enregistrement).
  *
  * <p>L'horaire est créé dès que l'en-tête est complet, pour que les sessions puissent s'y
  * rattacher. Tant qu'aucune session n'est enregistrée, modifier l'en-tête supprime puis recrée
@@ -107,7 +112,7 @@ function endAfterStart(group: AbstractControl): ValidationErrors | null {
     selector: 'app-timetable-form-page',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [ReactiveFormsModule, ButtonModule, ConfirmDialogModule, DatePicker, MultiSelectModule, SelectModule, TableModule, ToastModule, ContentSubtopbar],
+    imports: [ReactiveFormsModule, ButtonModule, ConfirmDialogModule, DatePicker, DialogModule, MultiSelectModule, SelectModule, TableModule, ToastModule, ContentSubtopbar],
     templateUrl: './timetable-form.html',
     styleUrl: './timetable-form.scss',
     providers: [ConfirmationService, MessageService]
@@ -131,8 +136,9 @@ export class TimetableFormPage implements LeaveConfirmable {
 
     readonly weekDayOptions = WEEK_DAY_OPTIONS;
     readonly sessionTypeOptions = SESSION_TYPE_OPTIONS;
-    readonly timetableStatusLabel = timetableStatusLabel;
     readonly minWeekDate = mondayOf(new Date());
+    /** Seul le lundi, jour de début de la semaine, est sélectionnable. */
+    readonly nonMondays = [0, 2, 3, 4, 5, 6];
 
     readonly programs = signal<Program[]>([]);
     readonly rooms = signal<Room[]>([]);
@@ -155,9 +161,16 @@ export class TimetableFormPage implements LeaveConfirmable {
     readonly saveError = signal<string | null>(null);
     readonly lineErrors = signal<Record<number, string[]>>({});
     readonly submitted = signal(false);
+    readonly programsLoading = signal(true);
+    readonly roomsLoading = signal(false);
+
+    readonly dialogVisible = signal(false);
+    /** Ligne modifiée dans la fenêtre, ou `null` pour une nouvelle session. */
+    readonly editingIndex = signal<number | null>(null);
+    readonly sessionSubmitted = signal(false);
+    readonly dialogTitle = computed(() => (this.editingIndex() === null ? 'Nouvelle session' : 'Modifier la session'));
 
     private readonly selectedProgramId = signal<string | null>(null);
-    private readonly weekStart = signal<string | null>(null);
 
     readonly headerForm = this.fb.group({
         program_id: this.fb.control<string | null>(null, Validators.required),
@@ -165,6 +178,8 @@ export class TimetableFormPage implements LeaveConfirmable {
         week_start: this.fb.control<Date | null>(null, Validators.required)
     });
     readonly lines = this.fb.array<LineForm>([]);
+    /** Formulaire de la fenêtre de saisie, recopié dans `lines` à la validation. */
+    readonly sessionForm = this.createLine();
 
     readonly title = computed(() => (this.editId() ? 'Modifier un horaire' : 'Nouvel horaire'));
     readonly actions: SubtopbarAction[] = [
@@ -182,10 +197,6 @@ export class TimetableFormPage implements LeaveConfirmable {
     readonly headerLocked = computed(() => this.persisted().length > 0 || this.validated());
     readonly programOptions = computed(() => this.programs().map((program) => ({ label: program.name, value: program.id })));
     readonly levelOptions = computed(() => programLevelOptions(this.programs(), this.selectedProgramId()));
-    readonly weekRange = computed(() => {
-        const start = this.weekStart();
-        return start ? `Du lundi ${formatWeekStart(start)} au dimanche ${formatWeekStart(addDays(start, 6))}` : null;
-    });
 
     /** Horaire créé par cette page et pas encore rempli : supprimé si l'utilisateur abandonne. */
     private createdHere = false;
@@ -204,8 +215,11 @@ export class TimetableFormPage implements LeaveConfirmable {
 
         this.headerForm.controls.program_level_id.valueChanges.pipe(takeUntilDestroyed()).subscribe((levelId) => this.onLevelChanged(levelId));
 
+        // Une date saisie au clavier est ramenée au lundi : le champ affiche le jour de début.
         this.headerForm.controls.week_start.valueChanges.pipe(takeUntilDestroyed()).subscribe((week) => {
-            this.weekStart.set(week ? toApiDate(mondayOf(week)) : null);
+            if (week && week.getDay() !== 1) {
+                this.headerForm.controls.week_start.setValue(mondayOf(week), { emitEvent: false });
+            }
         });
 
         this.levelChanges
@@ -241,12 +255,57 @@ export class TimetableFormPage implements LeaveConfirmable {
             });
     }
 
-    // ----- Tableau des sessions -----
+    // ----- Sessions -----
 
-    addLine(): void {
-        this.lines.push(this.createLine());
+    openSessionDialog(index: number | null = null): void {
+        this.ensureRooms();
+        const source = index === null ? null : this.lines.at(index);
+        this.sessionForm.reset(
+            source
+                ? source.getRawValue()
+                : { course_id: null, course_assignment_id: null, start: null, end: null, days: [], room_id: null, session_type: 'LECTURE', note: '', entry_ids: {} }
+        );
+        this.editingIndex.set(index);
+        this.sessionSubmitted.set(false);
+        this.dialogVisible.set(true);
+        const courseId = this.sessionForm.controls.course_id.value;
+        if (courseId) {
+            this.ensureAssignments(courseId);
+        }
+    }
+
+    closeSessionDialog(): void {
+        this.dialogVisible.set(false);
+    }
+
+    onSessionCourseChange(): void {
+        this.sessionForm.controls.course_assignment_id.setValue(null);
+        const courseId = this.sessionForm.controls.course_id.value;
+        if (courseId) {
+            this.ensureAssignments(courseId);
+        }
+    }
+
+    /** Valide la fenêtre : la session rejoint la liste, ou remplace la ligne modifiée. */
+    submitSession(): void {
+        this.sessionSubmitted.set(true);
+        if (this.sessionIssues().length > 0) {
+            return;
+        }
+        const value = this.sessionForm.getRawValue();
+        const index = this.editingIndex();
+        if (index === null) {
+            const line = this.createLine();
+            line.setValue({ ...value, entry_ids: {} });
+            this.lines.push(line);
+        } else {
+            const line = this.lines.at(index);
+            line.setValue({ ...value, entry_ids: line.controls.entry_ids.value });
+        }
         this.lines.markAsDirty();
+        this.lineErrors.set({});
         this.refreshRows();
+        this.dialogVisible.set(false);
     }
 
     removeLine(index: number): void {
@@ -256,12 +315,48 @@ export class TimetableFormPage implements LeaveConfirmable {
         this.refreshRows();
     }
 
-    onLineCourseChange(line: LineForm): void {
-        line.controls.course_assignment_id.setValue(null);
-        const courseId = line.controls.course_id.value;
-        if (courseId) {
-            this.ensureAssignments(courseId);
+    /** Erreurs de la fenêtre, affichées seulement après une tentative de validation. */
+    sessionIssues(): string[] {
+        if (!this.sessionSubmitted()) {
+            return [];
         }
+        const form = this.sessionForm;
+        const controls = form.controls;
+        const issues: string[] = [];
+
+        if (controls.course_id.invalid) {
+            issues.push('Choisissez un cours.');
+        } else if (controls.course_assignment_id.invalid) {
+            issues.push(
+                this.assignmentsLoaded(form) && this.assignmentOptions(form).length === 0
+                    ? 'Aucun professeur n’est affecté à ce cours pour l’année de l’horaire.'
+                    : 'Choisissez le professeur.'
+            );
+        }
+        if (controls.start.invalid || controls.end.invalid) {
+            issues.push('Renseignez l’heure de début et de fin.');
+        } else if (form.hasError('endBeforeStart')) {
+            issues.push('L’heure de fin doit être après l’heure de début.');
+        }
+        if (controls.days.invalid) {
+            issues.push('Sélectionnez au moins un jour.');
+        }
+        if (controls.room_id.invalid) {
+            issues.push('Choisissez une salle.');
+        }
+        if (issues.length === 0) {
+            const overlapping = this.overlappingLines(form, this.editingIndex());
+            if (overlapping.length > 0) {
+                issues.push(`Chevauche la ligne ${overlapping.map((other) => other + 1).join(', ')} sur un même jour.`);
+            }
+        }
+        return issues;
+    }
+
+    /** Erreurs d'une ligne de la liste, connues seulement après « Enregistrer ». */
+    lineIssues(line: LineForm, index: number): string[] {
+        const incomplete = this.submitted() && line.invalid ? ['Session incomplète : modifiez-la pour la compléter.'] : [];
+        return [...incomplete, ...(this.lineErrors()[index] ?? [])];
     }
 
     assignmentsLoaded(line: LineForm): boolean {
@@ -289,28 +384,32 @@ export class TimetableFormPage implements LeaveConfirmable {
         return options;
     }
 
-    lineIssues(line: LineForm, index: number): string[] {
-        const issues: string[] = [];
-        const shown = (control: AbstractControl) => control.invalid && (control.touched || this.submitted());
-        const controls = line.controls;
+    courseLabel(line: LineForm): string {
+        const courseId = line.controls.course_id.value;
+        if (!courseId) {
+            return '—';
+        }
+        const course = this.courses().find((item) => item.id === courseId);
+        return course?.name ?? this.savedEntry(line, (entry) => entry.course_id === courseId)?.course_name ?? '—';
+    }
 
-        if (shown(controls.course_id)) {
-            issues.push('Choisissez un cours.');
-        } else if (shown(controls.course_assignment_id) && this.assignmentOptions(line).length > 0) {
-            issues.push('Choisissez le professeur.');
-        }
-        if (shown(controls.start) || shown(controls.end)) {
-            issues.push('Renseignez l’heure de début et de fin.');
-        } else if (line.hasError('endBeforeStart')) {
-            issues.push('L’heure de fin doit être après l’heure de début.');
-        }
-        if (shown(controls.days)) {
-            issues.push('Sélectionnez au moins un jour.');
-        }
-        if (shown(controls.room_id)) {
-            issues.push('Choisissez une salle.');
-        }
-        return [...issues, ...(this.lineErrors()[index] ?? [])];
+    roomLabel(line: LineForm): string {
+        const roomId = line.controls.room_id.value;
+        const room = this.rooms().find((item) => item.id === roomId);
+        return room?.name ?? this.savedEntry(line, (entry) => entry.room_id === roomId)?.room_name ?? '—';
+    }
+
+    hoursLabel(line: LineForm): string {
+        const { start, end } = line.controls;
+        return start.value && end.value ? `${formatEntryTime(toApiTime(start.value))} – ${formatEntryTime(toApiTime(end.value))}` : '—';
+    }
+
+    daysLabel(line: LineForm): string {
+        return [...line.controls.days.value].sort((a, b) => a - b).map(weekDayLabel).join(', ') || '—';
+    }
+
+    typeLabel(line: LineForm): string {
+        return sessionTypeLabel(line.controls.session_type.value);
     }
 
     // ----- Enregistrement -----
@@ -412,14 +511,31 @@ export class TimetableFormPage implements LeaveConfirmable {
                     return of([] as Program[]);
                 })
             ),
-            rooms: this.roomService.getAll().pipe(catchError(() => of([] as Room[]))),
             year: this.catalog.getCurrentAcademicYear().pipe(catchError(() => of(null)))
         })
             .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(({ programs, rooms, year }) => {
+            .subscribe(({ programs, year }) => {
                 this.programs.set(programs);
-                this.rooms.set([...rooms].sort((a, b) => a.name.localeCompare(b.name)));
                 this.currentYear.set(year);
+                this.programsLoading.set(false);
+            });
+    }
+
+    /** Les salles ne servent qu'à la saisie : chargées à la première ouverture de la fenêtre. */
+    private ensureRooms(): void {
+        if (this.roomsLoading() || this.rooms().length > 0) {
+            return;
+        }
+        this.roomsLoading.set(true);
+        this.roomService
+            .getAll()
+            .pipe(
+                catchError(() => of([] as Room[])),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe((rooms) => {
+                this.rooms.set([...rooms].sort((a, b) => a.name.localeCompare(b.name)));
+                this.roomsLoading.set(false);
             });
     }
 
@@ -434,7 +550,6 @@ export class TimetableFormPage implements LeaveConfirmable {
                     this.persisted.set(entries);
                     this.createdHere = false;
                     this.selectedProgramId.set(timetable.program_id);
-                    this.weekStart.set(timetable.week_start);
                     this.lastLevelId = timetable.program_level_id;
                     this.headerForm.setValue(
                         {
@@ -491,7 +606,7 @@ export class TimetableFormPage implements LeaveConfirmable {
         if (options.length !== 1) {
             return;
         }
-        for (const line of this.lines.controls) {
+        for (const line of [...this.lines.controls, this.sessionForm]) {
             if (line.controls.course_id.value === courseId && !line.controls.course_assignment_id.value) {
                 line.controls.course_assignment_id.setValue(options[0].id);
             }
@@ -782,6 +897,31 @@ export class TimetableFormPage implements LeaveConfirmable {
         } else {
             this.lines.enable({ emitEvent: false });
         }
+    }
+
+    /** Séance enregistrée d'une ligne qui satisfait `match`, pour afficher ses libellés. */
+    private savedEntry(line: LineForm, match: (entry: TimetableEntry) => boolean): TimetableEntry | undefined {
+        const ids = Object.values(line.controls.entry_ids.value);
+        return this.persisted().find((entry) => ids.includes(entry.id) && match(entry));
+    }
+
+    /** Index des autres lignes que `form` chevaucherait, en ignorant la ligne `skip` qu'il remplace. */
+    private overlappingLines(form: LineForm, skip: number | null): number[] {
+        const toLine = (group: LineForm) => {
+            const value = group.getRawValue();
+            return {
+                days: value.days,
+                start_hour: value.start ? toApiTime(value.start) : '',
+                end_hour: value.end ? toApiTime(value.end) : ''
+            };
+        };
+        const candidate = toLine(form);
+        return this.lines.controls.flatMap((line, index) => {
+            if (index === skip) {
+                return [];
+            }
+            return findOverlappingLines([candidate, toLine(line)]).size > 0 ? [index] : [];
+        });
     }
 
     private describe(error: unknown): string {
