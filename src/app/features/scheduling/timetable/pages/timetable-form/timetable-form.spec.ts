@@ -415,6 +415,20 @@ describe('TimetableFormPage', () => {
             expect(component.typeLabel(line)).toBe('Cours');
         });
 
+        it('should send the note of a session with each of its days', () => {
+            createComponent();
+            fillHeader();
+            jasmine.clock().tick(400);
+            fillSession({ days: [1, 2] });
+            component.sessionForm.controls.note.setValue('Apporter la calculatrice');
+            component.submitSession();
+
+            component.save();
+
+            const entries = entryService.create.calls.mostRecent().args[0].entries;
+            expect(entries.map((item) => item.note)).toEqual(['Apporter la calculatrice', 'Apporter la calculatrice']);
+        });
+
         it('should refuse a session overlapping another line, but not the line it edits', () => {
             createComponent();
             fillHeader();
@@ -588,6 +602,94 @@ describe('TimetableFormPage', () => {
 
             expect(component.loadError()).toBe('Horaire introuvable');
             expect(component.loading()).toBeFalse();
+        });
+    });
+
+    describe('statut', () => {
+        function openSaved(status: Timetable['status'] = 'DRAFT', entries = [entry({ id: 'e-mon', date: '2026-10-05' })], authorities?: string[]): void {
+            createComponent({ edit: { timetable: timetable({ status }), entries }, authorities });
+            timetableService.changeStatus.and.callFake((id, payload) => of(timetable({ id, status: payload.status })));
+            spyOn(confirmationService, 'confirm').and.callFake((confirmation) => {
+                confirmation.accept?.();
+                return confirmationService;
+            });
+        }
+
+        const labels = () => component.statusActions().map((action) => action.label);
+
+        it('should walk through submit, validate and reopen', () => {
+            openSaved();
+            expect(component.statusLabel()).toBe('Brouillon');
+            expect(labels()).toEqual(['Soumettre']);
+
+            component.changeStatus(component.statusActions()[0]);
+            expect(timetableService.changeStatus).toHaveBeenCalledWith('tt-1', { status: 'SUBMITTED' });
+            expect(component.statusLabel()).toBe('Soumis');
+            expect(labels()).toEqual(['Renvoyer en brouillon', 'Valider']);
+
+            component.changeStatus(component.statusActions()[1]);
+            expect(component.statusLabel()).toBe('Validé');
+            expect(component.readOnly()).toBeTrue();
+            expect(component.lines.disabled).toBeTrue();
+            expect(labels()).toEqual(['Rouvrir']);
+
+            component.changeStatus(component.statusActions()[0]);
+            expect(timetableService.changeStatus.calls.mostRecent().args[1]).toEqual({ status: 'SUBMITTED' });
+            expect(component.readOnly()).toBeFalse();
+            expect(component.lines.enabled).toBeTrue();
+        });
+
+        it('should show the actions in the subtitle bar and the status at the top right', () => {
+            openSaved('SUBMITTED');
+            fixture.detectChanges();
+            const html = fixture.nativeElement as HTMLElement;
+            const buttons = Array.from(html.querySelectorAll('app-content-subtopbar button')).map((button) => button.textContent?.trim());
+
+            expect(buttons).toEqual(['Renvoyer en brouillon', 'Valider', 'Retour aux horaires']);
+            expect(html.querySelector('.timetable-form-top p-tag')?.textContent).toContain('Soumis');
+
+            (html.querySelectorAll('app-content-subtopbar button')[1] as HTMLButtonElement).click();
+            expect(timetableService.changeStatus).toHaveBeenCalledWith('tt-1', { status: 'VALIDATED' });
+        });
+
+        it('should send a submitted timetable back to draft', () => {
+            openSaved('SUBMITTED');
+            component.changeStatus(component.statusActions()[0]);
+            expect(timetableService.changeStatus).toHaveBeenCalledWith('tt-1', { status: 'DRAFT' });
+            expect(labels()).toEqual(['Soumettre']);
+        });
+
+        it('should ask to save modified sessions first', () => {
+            openSaved();
+            component.lines.markAsDirty();
+            component.changeStatus(component.statusActions()[0]);
+
+            expect(confirmationService.confirm).not.toHaveBeenCalled();
+            expect(component.statusError()).toBe('Enregistrez d’abord les sessions modifiées.');
+        });
+
+        it('should refuse to submit a timetable without any saved session', () => {
+            openSaved('DRAFT', []);
+            component.changeStatus(component.statusActions()[0]);
+
+            expect(timetableService.changeStatus).not.toHaveBeenCalled();
+            expect(component.statusError()).toBe('Enregistrez au moins une session avant de soumettre l’horaire.');
+        });
+
+        it('should report a refused transition', () => {
+            openSaved();
+            timetableService.changeStatus.and.returnValue(throwError(() => new HttpErrorResponse({ status: 400, error: { detail: 'Transition interdite' } })));
+            component.changeStatus(component.statusActions()[0]);
+
+            expect(component.statusError()).toBe('Transition interdite');
+            expect(component.statusLabel()).toBe('Brouillon');
+            expect(component.statusChanging()).toBeFalse();
+        });
+
+        it('should offer no transition without the timetable update right', () => {
+            openSaved('DRAFT', undefined, ['scheduling:timetable-entry:update:all']);
+            expect(component.statusLabel()).toBe('Brouillon');
+            expect(component.statusActions()).toEqual([]);
         });
     });
 

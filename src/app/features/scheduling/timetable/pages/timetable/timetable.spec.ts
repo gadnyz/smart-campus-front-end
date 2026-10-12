@@ -54,12 +54,13 @@ describe('TimetablePage (calendrier)', () => {
         expect(component.programLevelOptions()).toEqual([{ label: 'L1 (commun)', value: 'pl-1' }]);
     });
 
-    it('should count drafts and link to the pending list and the creation page', () => {
+    it('should count drafts and submitted timetables and link to the pending list and the creation page', () => {
         createComponent(['scheduling:timetable:read:all', 'scheduling:timetable:create:all']);
 
         expect(timetableService.list).toHaveBeenCalledWith({ status: 'DRAFT', page: 0, size: 1 });
-        expect(component.draftBadge()).toBe('4');
-        expect(link('Afficher les horaires en attente (brouillons)')).not.toBeNull();
+        expect(timetableService.list).toHaveBeenCalledWith({ status: 'SUBMITTED', page: 0, size: 1 });
+        expect(component.draftBadge()).toBe('8');
+        expect(link('Afficher les horaires en attente (brouillons et soumis)')).not.toBeNull();
         expect(link('Ajouter un horaire')).not.toBeNull();
         expect(component.pendingLink).toBe('/scheduling/timetable/pending');
         expect(component.newTimetableLink).toBe('/scheduling/timetable/new');
@@ -69,7 +70,7 @@ describe('TimetablePage (calendrier)', () => {
         createComponent(['scheduling:timetable-entry:read:all']);
 
         expect(timetableService.list).not.toHaveBeenCalled();
-        expect(link('Afficher les horaires en attente (brouillons)')).toBeNull();
+        expect(link('Afficher les horaires en attente (brouillons et soumis)')).toBeNull();
         expect(link('Ajouter un horaire')).toBeNull();
     });
 });

@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { EventClickArg, EventInput } from '@fullcalendar/core';
+import { forkJoin, map } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { PermissionService } from '@/app/core/permissions/permission.service';
@@ -10,6 +11,7 @@ import { Program, ProgramService } from '@/app/features/academic/academic.public
 import { ContentSubtopbar } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { SchedulingPermission } from '../../../permissions/permission.model';
 import { TimetableCalendar, TimetableCalendarRange } from '../../components/timetable-calendar/timetable-calendar';
+import { TimetableStatus } from '../../models/timetable.model';
 import { TimetableService } from '../../services/timetable.service';
 import { programLevelOptions } from '../../utils/program-level';
 import { TIMETABLE_PATH } from '../../utils/timetable-routes';
@@ -103,12 +105,13 @@ export class TimetablePage implements OnInit {
         void event;
     }
 
+    /** Horaires en attente : brouillons et soumis. L'API ne filtre qu'un statut par requête. */
     private refreshDraftCount(): void {
-        this.timetableService
-            .list({ status: 'DRAFT', page: 0, size: 1 })
+        const count = (status: TimetableStatus) => this.timetableService.list({ status, page: 0, size: 1 }).pipe(map((page) => page.total_elements));
+        forkJoin([count('DRAFT'), count('SUBMITTED')])
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
-                next: (page) => this.draftCount.set(page.total_elements),
+                next: ([drafts, submitted]) => this.draftCount.set(drafts + submitted),
                 error: () => this.draftCount.set(0)
             });
     }

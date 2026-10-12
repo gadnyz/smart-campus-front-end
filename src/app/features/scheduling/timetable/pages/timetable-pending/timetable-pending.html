@@ -1,10 +1,21 @@
 <p-toast />
 
-<app-content-subtopbar kicker="Planification" title="Horaires en attente" [actions]="actions" />
+<app-content-subtopbar kicker="Planification" title="Liste des horaires" [actions]="actions" />
 
-<div class="card">
+<div class="card flex flex-col gap-3">
+    <p-selectbutton
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="status()"
+        (ngModelChange)="onStatusChange($event)"
+        [allowEmpty]="false"
+        ariaLabelledBy="pending-status"
+    />
+    <span id="pending-status" class="sr-only">Statut des horaires affichés</span>
+
     @if (loadError()) {
-        <div class="flex flex-wrap items-center gap-3 mb-3" role="alert">
+        <div class="flex flex-wrap items-center gap-3" role="alert">
             <span>{{ loadError() }}</span>
             <p-button label="Réessayer" severity="secondary" [outlined]="true" (onClick)="reload()" />
         </div>
@@ -13,6 +24,7 @@
     <p-table
         [value]="timetables()"
         [lazy]="true"
+        [first]="first()"
         (onLazyLoad)="onLazyLoad($event)"
         [loading]="loading()"
         [paginator]="true"
@@ -29,6 +41,7 @@
                 <th>Programme</th>
                 <th>Niveau</th>
                 <th>Semaine de début</th>
+                <th style="width: 8rem">Statut</th>
                 <th style="width: 6rem">Actions</th>
             </tr>
         </ng-template>
@@ -38,15 +51,17 @@
                 <td>{{ timetable.program_name }}</td>
                 <td>{{ timetable.program_level_name }}</td>
                 <td>{{ formatWeekStart(timetable.week_start) }}</td>
+                <td><p-tag [value]="statusLabel(timetable.status)" [severity]="statusSeverity(timetable.status)" /></td>
                 <td>
                     @if (canEdit()) {
+                        @let validated = timetable.status === 'VALIDATED';
                         <p-button
-                            icon="pi pi-pencil"
+                            [icon]="validated ? 'pi pi-eye' : 'pi pi-pencil'"
                             severity="info"
                             [rounded]="true"
                             [outlined]="true"
                             (onClick)="edit(timetable)"
-                            [ariaLabel]="'Modifier l’horaire ' + timetable.program_level_name + ' du ' + formatWeekStart(timetable.week_start)"
+                            [ariaLabel]="(validated ? 'Ouvrir l’horaire ' : 'Modifier l’horaire ') + timetable.program_level_name + ' du ' + formatWeekStart(timetable.week_start)"
                         />
                     }
                 </td>
@@ -55,7 +70,7 @@
 
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="4">Aucun horaire en attente.</td>
+                <td colspan="5">{{ emptyMessage() }}</td>
             </tr>
         </ng-template>
     </p-table>

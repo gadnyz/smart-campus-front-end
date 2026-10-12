@@ -54,6 +54,75 @@ export function timetableStatusLabel(status: TimetableStatus): string {
     return labels[status];
 }
 
+export function timetableStatusSeverity(status: TimetableStatus): 'secondary' | 'warn' | 'success' {
+    const severities: Record<TimetableStatus, 'secondary' | 'warn' | 'success'> = {
+        DRAFT: 'secondary',
+        SUBMITTED: 'warn',
+        VALIDATED: 'success'
+    };
+    return severities[status];
+}
+
+/** Un changement de statut proposé à l'utilisateur. */
+export interface TimetableStatusAction {
+    target: TimetableStatus;
+    label: string;
+    icon: string;
+    severity: 'info' | 'secondary' | 'success' | 'warn';
+    confirmation: string;
+    success: string;
+}
+
+/**
+ * Transitions du circuit hebdomadaire, alignées sur celles que le backend accepte :
+ * DRAFT → SUBMITTED, SUBMITTED → VALIDATED ou DRAFT, VALIDATED → SUBMITTED (réouverture).
+ */
+export function timetableStatusActions(status: TimetableStatus): TimetableStatusAction[] {
+    switch (status) {
+        case 'DRAFT':
+            return [
+                {
+                    target: 'SUBMITTED',
+                    label: 'Soumettre',
+                    icon: 'pi pi-send',
+                    severity: 'info',
+                    confirmation: 'L’horaire sera soumis pour validation. Ses sessions restent modifiables jusqu’à la validation.',
+                    success: 'Horaire soumis pour validation.'
+                }
+            ];
+        case 'SUBMITTED':
+            return [
+                {
+                    target: 'DRAFT',
+                    label: 'Renvoyer en brouillon',
+                    icon: 'pi pi-replay',
+                    severity: 'secondary',
+                    confirmation: 'L’horaire repassera en brouillon.',
+                    success: 'Horaire renvoyé en brouillon.'
+                },
+                {
+                    target: 'VALIDATED',
+                    label: 'Valider',
+                    icon: 'pi pi-verified',
+                    severity: 'success',
+                    confirmation: 'Une fois validé, l’horaire est publié aux étudiants et ses sessions ne sont plus modifiables.',
+                    success: 'Horaire validé et publié aux étudiants.'
+                }
+            ];
+        case 'VALIDATED':
+            return [
+                {
+                    target: 'SUBMITTED',
+                    label: 'Rouvrir',
+                    icon: 'pi pi-lock-open',
+                    severity: 'warn',
+                    confirmation: 'L’horaire ne sera plus visible des étudiants et repassera en « Soumis » : ses sessions redeviendront modifiables.',
+                    success: 'Horaire rouvert : il n’est plus publié aux étudiants.'
+                }
+            ];
+    }
+}
+
 export function asTimetable(raw: unknown): Timetable {
     const source = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
     const status = source['status'];

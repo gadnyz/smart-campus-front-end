@@ -104,6 +104,45 @@ describe('TimetablePendingPage', () => {
         expect(timetableService.list.calls.mostRecent().args[0]).toEqual({ status: 'DRAFT', page: 1, size: 10, sort: ['weekStart,asc'] });
     });
 
+    it('should switch to submitted timetables from the first page, and show their status', () => {
+        createComponent(['scheduling:timetable:read:all']);
+        component.onLazyLoad({ first: 10, rows: 10 });
+        timetableService.list.and.returnValue(
+            of({ content: [{ ...draft, id: 'tt-2', status: 'SUBMITTED' }], page: 0, size: 10, total_elements: 1, total_pages: 1 })
+        );
+
+        component.onStatusChange('SUBMITTED');
+        fixture.detectChanges();
+
+        expect(component.first()).toBe(0);
+        expect(timetableService.list.calls.mostRecent().args[0]).toEqual({ status: 'SUBMITTED', page: 0, size: 10, sort: ['weekStart,asc'] });
+        expect((fixture.nativeElement as HTMLElement).querySelector('p-tag')?.textContent).toContain('Soumis');
+    });
+
+    it('should list validated timetables, to open them', () => {
+        createComponent(['scheduling:timetable:read:all', 'scheduling:timetable:update:all']);
+        timetableService.list.and.returnValue(
+            of({ content: [{ ...draft, status: 'VALIDATED' }], page: 0, size: 10, total_elements: 1, total_pages: 1 })
+        );
+
+        component.onStatusChange('VALIDATED');
+        fixture.detectChanges();
+
+        expect(timetableService.list.calls.mostRecent().args[0]).toEqual({ status: 'VALIDATED', page: 0, size: 10, sort: ['weekStart,asc'] });
+        expect(component.emptyMessage()).toBe('Aucun horaire validé.');
+        const html = fixture.nativeElement as HTMLElement;
+        expect(html.querySelector('p-tag')?.textContent).toContain('Validé');
+        expect(html.querySelector('[aria-label^="Ouvrir l’horaire"]')).not.toBeNull();
+    });
+
+    it('should ignore a click on the active status', () => {
+        createComponent(['scheduling:timetable:read:all']);
+        const calls = timetableService.list.calls.count();
+        component.onStatusChange(null);
+        component.onStatusChange('DRAFT');
+        expect(timetableService.list.calls.count()).toBe(calls);
+    });
+
     it('should report a loading error', () => {
         createComponent(['scheduling:timetable:read:all'], true);
         expect(component.loadError()).toBe('Impossible de charger les horaires en attente.');

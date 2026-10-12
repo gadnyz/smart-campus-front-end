@@ -1,11 +1,18 @@
 <p-toast />
 <p-confirmdialog appendTo="body" [style]="{ width: '28rem' }" />
 
-<app-content-subtopbar kicker="Planification" [title]="title()" [actions]="actions" />
+<app-content-subtopbar kicker="Planification" [title]="title()" [actions]="actions()" />
 
 <div class="card flex flex-col gap-5" [attr.aria-busy]="loading()">
-    @if (loadError()) {
-        <p class="m-0 text-red-500" role="alert">{{ loadError() }}</p>
+    @if (statusLabel() || statusError() || loadError()) {
+        <div class="timetable-form-top">
+            @if (statusError() || loadError()) {
+                <p class="m-0 text-red-500" role="alert">{{ statusError() ?? loadError() }}</p>
+            }
+            @if (statusLabel()) {
+                <p-tag class="timetable-form-status" [value]="statusLabel()!" [severity]="statusSeverity()" />
+            }
+        </div>
     }
 
     <form class="timetable-form-header" [formGroup]="headerForm">
@@ -65,11 +72,7 @@
     }
 
     <div class="flex flex-col gap-3">
-        <h2 class="m-0 text-lg font-semibold">Sessions</h2>
-
-        @if (validated()) {
-            <p class="m-0" role="status">Cet horaire est validé : ses sessions sont en lecture seule.</p>
-        }
+        <h2 class="m-0 text-sm font-semibold uppercase tracking-wide text-muted-color">Sessions</h2>
 
         <p-table [value]="lineRows()" [tableStyle]="{ 'min-width': '48rem' }" styleClass="timetable-lines">
             <ng-template pTemplate="header">
@@ -261,6 +264,20 @@
             </div>
         </div>
 
+        <div>
+            <label for="session-note" class="block text-sm mb-1">Note</label>
+            <textarea
+                pTextarea
+                id="session-note"
+                formControlName="note"
+                rows="3"
+                maxlength="500"
+                [autoResize]="true"
+                placeholder="Consignes, matériel, rattrapage…"
+                class="w-full"
+            ></textarea>
+        </div>
+
         @let sessionErrors = sessionIssues();
         @if (sessionErrors.length > 0) {
             <ul class="m-0 pl-4" role="alert">
@@ -272,8 +289,7 @@
         <button type="submit" hidden></button>
     </form>
 
-    <ng-template pTemplate="footer">
-        <p-button label="Annuler" severity="secondary" [outlined]="true" (onClick)="closeSessionDialog()" />
+    <!-- <ng-template pTemplate="footer">
         <p-button label="Valider" icon="pi pi-check" (onClick)="submitSession()" ariaLabel="Valider la session" />
-    </ng-template>
+    </ng-template> -->
 </p-dialog>

@@ -30,6 +30,8 @@ import { DialogModule } from 'primeng/dialog';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { Textarea } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import {
@@ -47,7 +49,14 @@ import { Room } from '../../../models/room.model';
 import { SchedulingPermission } from '../../../permissions/permission.model';
 import { RoomService } from '../../../services/room.service';
 import { SESSION_TYPE_OPTIONS, SessionType, TimetableEntry, sessionTypeLabel } from '../../models/timetable-entry.model';
-import { CreateTimetableRequest, Timetable } from '../../models/timetable.model';
+import {
+    CreateTimetableRequest,
+    Timetable,
+    TimetableStatusAction,
+    timetableStatusActions,
+    timetableStatusLabel,
+    timetableStatusSeverity
+} from '../../models/timetable.model';
 import { SessionLine, WEEK_DAY_OPTIONS, WeekDay, weekDayLabel } from '../../models/timetable-session.model';
 import { TimetableEntryService } from '../../services/timetable-entry.service';
 import { TimetableService } from '../../services/timetable.service';
@@ -112,7 +121,7 @@ function endAfterStart(group: AbstractControl): ValidationErrors | null {
     selector: 'app-timetable-form-page',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [ReactiveFormsModule, ButtonModule, ConfirmDialogModule, DatePicker, DialogModule, MultiSelectModule, SelectModule, TableModule, ToastModule, ContentSubtopbar],
+    imports: [ReactiveFormsModule, ButtonModule, ConfirmDialogModule, DatePicker, DialogModule, MultiSelectModule, SelectModule, TableModule, TagModule, Textarea, ToastModule, ContentSubtopbar],
     templateUrl: './timetable-form.html',
     styleUrl: './timetable-form.scss',
     providers: [ConfirmationService, MessageService]
@@ -159,6 +168,8 @@ export class TimetableFormPage implements LeaveConfirmable {
     readonly existingTimetableId = signal<string | null>(null);
     readonly saving = signal(false);
     readonly saveError = signal<string | null>(null);
+    readonly statusChanging = signal(false);
+    readonly statusError = signal<string | null>(null);
     readonly lineErrors = signal<Record<number, string[]>>({});
     readonly submitted = signal(false);
     readonly programsLoading = signal(true);
@@ -182,9 +193,19 @@ export class TimetableFormPage implements LeaveConfirmable {
     readonly sessionForm = this.createLine();
 
     readonly title = computed(() => (this.editId() ? 'Modifier un horaire' : 'Nouvel horaire'));
-    readonly actions: SubtopbarAction[] = [
-        { label: 'Retour aux horaires', icon: 'pi pi-arrow-left', severity: 'secondary', outlined: true, routerLink: TIMETABLE_PATH }
-    ];
+    /** Barre d'actions à la manière d'Odoo : les transitions du statut, puis le retour. */
+    readonly actions = computed<SubtopbarAction[]>(() => [
+        { label: 'Retour', icon: 'pi pi-arrow-left', severity: 'secondary', outlined: true, routerLink: TIMETABLE_PATH },
+        ...this.statusActions().map((action) => ({
+            label: action.label,
+            icon: action.icon,
+            severity: action.severity,
+            outlined: action.severity === 'secondary',
+            loading: this.statusChanging(),
+            disabled: this.statusChanging() || this.saving(),
+            command: () => this.changeStatus(action)
+        })),
+    ]);
     readonly canEditEntries = computed(() =>
         this.permissionService.hasAnyPermission([
             SchedulingPermission.TimetableEntryCreateAll,
@@ -194,6 +215,19 @@ export class TimetableFormPage implements LeaveConfirmable {
     );
     readonly validated = computed(() => this.timetable()?.status === 'VALIDATED');
     readonly readOnly = computed(() => this.validated() || !this.canEditEntries());
+    readonly canChangeStatus = computed(() => this.permissionService.hasAnyPermission([SchedulingPermission.TimetableUpdateAll]));
+    readonly statusActions = computed<TimetableStatusAction[]>(() => {
+        const timetable = this.timetable();
+        return timetable && this.canChangeStatus() ? timetableStatusActions(timetable.status) : [];
+    });
+    readonly statusLabel = computed(() => {
+        const timetable = this.timetable();
+        return timetable ? timetableStatusLabel(timetable.status) : null;
+    });
+    readonly statusSeverity = computed(() => {
+        const timetable = this.timetable();
+        return timetable ? timetableStatusSeverity(timetable.status) : 'secondary';
+    });
     readonly headerLocked = computed(() => this.persisted().length > 0 || this.validated());
     readonly programOptions = computed(() => this.programs().map((program) => ({ label: program.name, value: program.id })));
     readonly levelOptions = computed(() => programLevelOptions(this.programs(), this.selectedProgramId()));
@@ -417,6 +451,7 @@ export class TimetableFormPage implements LeaveConfirmable {
     save(): void {
         this.submitted.set(true);
         this.saveError.set(null);
+        this.statusError.set(null);
         this.lineErrors.set({});
 
         const timetable = this.timetable();
@@ -487,6 +522,36 @@ export class TimetableFormPage implements LeaveConfirmable {
                     subscriber.complete();
                 }
             });
+        });
+    }
+
+    // ----- Statut -----
+
+    /**
+     * Le statut porte sur ce qui est enregistré : des sessions modifiées mais pas enregistrées
+     * seraient soumises ou validées sans que le validateur les voie.
+     */
+    changeStatus(action: TimetableStatusAction): void {
+        this.statusError.set(null);
+        const timetable = this.timetable();
+        if (!timetable || this.statusChanging()) {
+            return;
+        }
+        if (this.lines.dirty && !this.readOnly()) {
+            this.statusError.set('Enregistrez d’abord les sessions modifiées.');
+            return;
+        }
+        if (action.target === 'SUBMITTED' && timetable.status === 'DRAFT' && this.persisted().length === 0) {
+            this.statusError.set('Enregistrez au moins une session avant de soumettre l’horaire.');
+            return;
+        }
+        this.confirmationService.confirm({
+            header: action.label,
+            message: action.confirmation,
+            icon: 'pi pi-question-circle',
+            acceptLabel: action.label,
+            rejectLabel: 'Annuler',
+            accept: () => this.applyStatus(timetable, action)
         });
     }
 
@@ -884,6 +949,28 @@ export class TimetableFormPage implements LeaveConfirmable {
             note: value.note,
             entry_ids: value.entry_ids
         }));
+    }
+
+    private applyStatus(timetable: Timetable, action: TimetableStatusAction): void {
+        this.statusChanging.set(true);
+        this.timetableService
+            .changeStatus(timetable.id, { status: action.target })
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (updated) => {
+                    this.timetable.set(updated);
+                    this.statusChanging.set(false);
+                    // Un horaire qui a franchi une étape n'est plus un brouillon abandonné.
+                    this.createdHere = false;
+                    this.submitted.set(false);
+                    this.applyFormState();
+                    this.messageService.add({ severity: 'success', summary: 'Horaire', detail: action.success });
+                },
+                error: (error: unknown) => {
+                    this.statusChanging.set(false);
+                    this.statusError.set(this.describe(error));
+                }
+            });
     }
 
     private applyFormState(): void {
