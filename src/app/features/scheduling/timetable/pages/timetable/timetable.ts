@@ -1,14 +1,13 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { EventClickArg, EventInput } from '@fullcalendar/core';
 import { forkJoin, map } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { Program, ProgramService } from '@/app/features/academic/academic.public-api';
-import { ContentSubtopbar } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
+import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { SchedulingPermission } from '../../../permissions/permission.model';
 import { TimetableCalendar, TimetableCalendarRange } from '../../components/timetable-calendar/timetable-calendar';
 import { TimetableStatus } from '../../models/timetable.model';
@@ -25,7 +24,7 @@ interface SelectOption {
     selector: 'app-timetable-page',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [FormsModule, RouterLink, ButtonModule, SelectModule, ContentSubtopbar, TimetableCalendar],
+    imports: [FormsModule, ButtonModule, SelectModule, ContentSubtopbar, TimetableCalendar],
     templateUrl: './timetable.html',
     styleUrl: './timetable.scss'
 })
@@ -49,13 +48,36 @@ export class TimetablePage implements OnInit {
     readonly visibleRange = signal<TimetableCalendarRange | null>(null);
     readonly draftCount = signal(0);
 
-    readonly canCreate = computed(() => this.permissionService.hasAnyPermission([SchedulingPermission.TimetableCreateAll]));
     readonly canListPending = computed(() => this.permissionService.hasAnyPermission([SchedulingPermission.TimetableReadAll]));
 
     readonly draftBadge = computed(() => {
         const count = this.draftCount();
         return count > 0 ? String(count) : undefined;
     });
+
+    /** Actions de la barre de sous-titre ; chacune n'apparaît qu'avec le droit qu'elle exige. */
+    readonly actions = computed<SubtopbarAction[]>(() => [
+        {
+            label: 'Horaires en attente',
+            icon: 'pi pi-inbox',
+            severity: 'secondary',
+            outlined: true,
+            routerLink: this.pendingLink,
+            badge: this.draftBadge(),
+            badgeSeverity: 'warn',
+            ariaLabel: 'Afficher les horaires en attente (brouillons et soumis)',
+            permissions: [SchedulingPermission.TimetableReadAll]
+        },
+        {
+            label: 'Ajouter un horaire',
+            icon: 'pi pi-plus',
+            severity: 'primary',
+            outlined: false,
+            routerLink: this.newTimetableLink,
+            ariaLabel: 'Ajouter un horaire',
+            permissions: [SchedulingPermission.TimetableCreateAll]
+        }
+    ]);
 
     readonly programOptions = computed<SelectOption[]>(() => this.programs().map((program) => ({ label: program.name, value: program.id })));
 

@@ -1,7 +1,7 @@
-<app-content-subtopbar kicker="Planification" title="Horaires" />
+<app-content-subtopbar kicker="Planification" title="Horaires" [actions]="actions()" />
 
 <div class="card flex flex-col gap-4">
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
             <p-select
                 [options]="programOptions()"
@@ -29,24 +29,6 @@
                 appendTo="body"
                 class="w-full sm:w-16rem"
             />
-        </div>
-
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-            @if (canListPending()) {
-                <p-button
-                    label="Horaires en attente"
-                    icon="pi pi-inbox"
-                    severity="secondary"
-                    [outlined]="true"
-                    [badge]="draftBadge()"
-                    badgeSeverity="warn"
-                    [routerLink]="pendingLink"
-                    ariaLabel="Afficher les horaires en attente (brouillons et soumis)"
-                />
-            }
-            @if (canCreate()) {
-                <p-button label="Ajouter un horaire" icon="pi pi-plus" [routerLink]="newTimetableLink" ariaLabel="Ajouter un horaire" />
-            }
         </div>
     </div>
 

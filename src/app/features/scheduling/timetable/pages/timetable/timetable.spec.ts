@@ -42,8 +42,9 @@ describe('TimetablePage (calendrier)', () => {
         fixture.detectChanges();
     }
 
+    /** Les actions vivent dans la barre de sous-titre, pas dans la carte du calendrier. */
     function link(label: string): HTMLElement | null {
-        return (fixture.nativeElement as HTMLElement).querySelector(`[aria-label="${label}"]`);
+        return (fixture.nativeElement as HTMLElement).querySelector(`app-content-subtopbar button[aria-label="${label}"]`);
     }
 
     it('should load every program in a single call and label common levels', () => {
@@ -60,6 +61,9 @@ describe('TimetablePage (calendrier)', () => {
         expect(timetableService.list).toHaveBeenCalledWith({ status: 'DRAFT', page: 0, size: 1 });
         expect(timetableService.list).toHaveBeenCalledWith({ status: 'SUBMITTED', page: 0, size: 1 });
         expect(component.draftBadge()).toBe('8');
+        fixture.detectChanges();
+        expect(link('Afficher les horaires en attente (brouillons et soumis)')?.textContent).toContain('8');
+        expect((fixture.nativeElement as HTMLElement).querySelector('.card [aria-label="Ajouter un horaire"]')).toBeNull();
         expect(link('Afficher les horaires en attente (brouillons et soumis)')).not.toBeNull();
         expect(link('Ajouter un horaire')).not.toBeNull();
         expect(component.pendingLink).toBe('/scheduling/timetable/pending');

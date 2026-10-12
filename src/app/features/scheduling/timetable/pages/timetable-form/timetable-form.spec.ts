@@ -566,7 +566,7 @@ describe('TimetableFormPage', () => {
             expect(component.readOnly()).toBeTrue();
             expect(component.lines.disabled).toBeTrue();
             const html = fixture.nativeElement as HTMLElement;
-            expect(html.textContent).toContain('Cet horaire est validé');
+            expect(html.querySelector('.timetable-form-top p-tag')?.textContent).toContain('Validé');
             expect(html.querySelector('[aria-label="Enregistrer les sessions de l’horaire"]')).toBeNull();
         });
 
@@ -645,10 +645,10 @@ describe('TimetableFormPage', () => {
             const html = fixture.nativeElement as HTMLElement;
             const buttons = Array.from(html.querySelectorAll('app-content-subtopbar button')).map((button) => button.textContent?.trim());
 
-            expect(buttons).toEqual(['Renvoyer en brouillon', 'Valider', 'Retour aux horaires']);
+            expect(buttons).toEqual(['Retour', 'Renvoyer en brouillon', 'Valider']);
             expect(html.querySelector('.timetable-form-top p-tag')?.textContent).toContain('Soumis');
 
-            (html.querySelectorAll('app-content-subtopbar button')[1] as HTMLButtonElement).click();
+            (html.querySelectorAll('app-content-subtopbar button')[2] as HTMLButtonElement).click();
             expect(timetableService.changeStatus).toHaveBeenCalledWith('tt-1', { status: 'VALIDATED' });
         });
 

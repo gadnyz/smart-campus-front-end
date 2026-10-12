@@ -9,7 +9,12 @@
         <button pButton type="button" [label]="action.label" [icon]="action.icon ?? ''"
             [severity]="action.severity || 'secondary'" [outlined]="action.outlined ?? true"
             [text]="action.text ?? false" [routerLink]="action.routerLink ?? null" (click)="action.command?.()"
-            [disabled]="action.disabled ?? false" [loading]="action.loading ?? false" size="small"></button>
+            [disabled]="action.disabled ?? false" [loading]="action.loading ?? false"
+            [attr.aria-label]="action.ariaLabel ?? null" size="small">
+            @if (action.badge) {
+            <p-badge class="content-subtopbar-badge" [value]="action.badge" [severity]="action.badgeSeverity ?? 'secondary'" />
+            }
+        </button>
         }
     </div>
 </div>
