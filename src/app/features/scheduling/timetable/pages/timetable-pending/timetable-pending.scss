@@ -1,0 +1,4 @@
+@use '../../styles/stacked-table' as stacked;
+
+// Téléphone : une carte par horaire plutôt qu'un tableau de 40rem à faire défiler.
+@include stacked.stacked-table('.timetable-stack');

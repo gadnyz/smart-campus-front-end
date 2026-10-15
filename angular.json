@@ -29,6 +29,7 @@
               }
             ],
             "styles": [
+              "public/layers.css",
               "public/styles.scss",
               "public/tailwind.css"
             ],
@@ -100,6 +101,7 @@
               }
             ],
             "styles": [
+              "public/layers.css",
               "public/styles.scss"
             ],
             "scripts": []

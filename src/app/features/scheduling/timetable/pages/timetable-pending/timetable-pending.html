@@ -35,6 +35,7 @@
         [rowHover]="true"
         dataKey="id"
         [tableStyle]="{ 'min-width': '40rem' }"
+        styleClass="timetable-stack"
     >
         <ng-template pTemplate="header">
             <tr>
@@ -48,11 +49,11 @@
 
         <ng-template pTemplate="body" let-timetable>
             <tr>
-                <td>{{ timetable.program_name }}</td>
-                <td>{{ timetable.program_level_name }}</td>
-                <td>{{ formatWeekStart(timetable.week_start) }}</td>
-                <td><p-tag [value]="statusLabel(timetable.status)" [severity]="statusSeverity(timetable.status)" /></td>
-                <td>
+                <td data-label="Programme">{{ timetable.program_name }}</td>
+                <td data-label="Niveau">{{ timetable.program_level_name }}</td>
+                <td data-label="Semaine">{{ formatWeekStart(timetable.week_start) }}</td>
+                <td data-label="Statut"><p-tag [value]="statusLabel(timetable.status)" [severity]="statusSeverity(timetable.status)" /></td>
+                <td class="stack-actions">
                     @if (canEdit()) {
                         @let validated = timetable.status === 'VALIDATED';
                         <p-button

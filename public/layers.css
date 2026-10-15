@@ -1,0 +1,7 @@
+/*
+ * Ordre des couches CSS de l'application, chargé avant toute autre feuille (voir angular.json).
+ * Premier déclaré, premier écrasé : Tailwind reprend theme, base, components et utilities ;
+ * app-typography (public/layout/_typography.scss) s'intercale entre son reset et ses
+ * utilitaires, pour que les classes text-sm, m-0… puissent surcharger la typographie de base.
+ */
+@layer theme, base, app-typography, components, utilities;

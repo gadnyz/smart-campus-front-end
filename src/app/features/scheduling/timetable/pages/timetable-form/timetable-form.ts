@@ -795,14 +795,15 @@ export class TimetableFormPage implements LeaveConfirmable {
         }
         // 409 : un horaire existe peut-être déjà pour ce niveau et cette semaine.
         this.timetableService
-            .list({ programLevelId: key.programLevelId, week: key.weekStart, page: 0, size: 1 })
+            // Sans filtre `week` (500 côté backend) : les horaires de la promotion, puis la semaine voulue.
+            .list({ programLevelId: key.programLevelId, page: 0, size: 100 })
             .pipe(
                 catchError(() => of(null)),
                 takeUntilDestroyed(this.destroyRef)
             )
             .subscribe((page) => {
-                const existing = page?.content[0];
-                if (existing && existing.week_start === key.weekStart) {
+                const existing = page?.content.find((timetable) => timetable.week_start === key.weekStart);
+                if (existing) {
                     this.existingTimetableId.set(existing.id);
                 }
             });

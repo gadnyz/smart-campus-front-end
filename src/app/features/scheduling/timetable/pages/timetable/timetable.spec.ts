@@ -67,7 +67,7 @@ describe('TimetablePage (calendrier)', () => {
         timetableService.list.and.callFake((query: TimetableListQuery = {}) =>
             of(
                 query.programLevelId
-                    ? { content: [validated], page: 0, size: 1, total_elements: 1, total_pages: 1 }
+                    ? { content: [validated, { ...validated, id: 'tt-2', week_start: '2026-10-12' }, { ...validated, id: 'tt-far', week_start: '2026-11-30' }], page: 0, size: 100, total_elements: 3, total_pages: 1 }
                     : { content: [], page: 0, size: 1, total_elements: 4, total_pages: 4 }
             )
         );
@@ -140,9 +140,12 @@ describe('TimetablePage (calendrier)', () => {
         component.onRangeChange({ start: new Date(2026, 9, 5), end: new Date(2026, 9, 19), viewType: 'timeGridWeek' });
         fixture.detectChanges();
 
-        expect(timetableService.list).toHaveBeenCalledWith({ programLevelId: 'pl-1', week: '2026-10-05', status: 'VALIDATED', page: 0, size: 1 });
-        expect(timetableService.list).toHaveBeenCalledWith({ programLevelId: 'pl-1', week: '2026-10-12', status: 'VALIDATED', page: 0, size: 1 });
+        // Sans filtre `week` (500 côté backend) : une seule liste des horaires validés de la promotion.
+        expect(timetableService.list).toHaveBeenCalledWith({ programLevelId: 'pl-1', status: 'VALIDATED', page: 0, size: 100 });
+        expect(timetableService.list.calls.allArgs().some(([query]) => !!query && 'week' in query)).toBeFalse();
         expect(entryService.getForWeek).toHaveBeenCalledWith('tt-1', '2026-10-05');
+        expect(entryService.getForWeek).toHaveBeenCalledWith('tt-2', '2026-10-12');
+        expect(entryService.getForWeek).not.toHaveBeenCalledWith('tt-far', jasmine.anything());
         expect(component.events().length).toBe(2);
         expect(component.events()[0].title).toBe('Algèbre');
         expect(component.emptyText()).toBe('Aucun horaire validé sur cette période.');

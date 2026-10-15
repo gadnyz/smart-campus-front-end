@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { EventContentArg } from '@fullcalendar/core';
-import { TimetableCalendar } from './timetable-calendar';
+import { TimetableCalendar, compactDayLabel, responsiveOptions } from './timetable-calendar';
 
 describe('TimetableCalendar', () => {
     let calendar: TimetableCalendar;
@@ -32,6 +32,27 @@ describe('TimetableCalendar', () => {
     it('should name the professor next to the course in the list', () => {
         expect(listContent('Algèbre', 'Ada Lovelace')).toBe('Algèbre — Ada Lovelace');
         expect(listContent('Algèbre')).toBe('Algèbre');
+    });
+
+    it('should keep the full toolbar on wide screens', () => {
+        expect(responsiveOptions(false)).toEqual({
+            headerToolbar: { left: 'prev,next today', center: 'title', right: 'timeGridDay,timeGridWeek,dayGridMonth,listWeek' },
+            footerToolbar: false,
+            height: '70vh'
+        });
+    });
+
+    it('should move the view switch below the calendar and size it to its content on phones', () => {
+        expect(responsiveOptions(true)).toEqual({
+            headerToolbar: { left: 'prev,next', center: 'title', right: 'today' },
+            footerToolbar: { center: 'timeGridDay,timeGridWeek,dayGridMonth,listWeek' },
+            height: 'auto'
+        });
+    });
+
+    it('should abbreviate day headers to their initial and day of month', () => {
+        expect(compactDayLabel(new Date(2026, 9, 12))).toBe('L 12');
+        expect(compactDayLabel(new Date(2026, 9, 18))).toBe('D 18');
     });
 
     it('should insert the professor name as text, never as HTML', () => {

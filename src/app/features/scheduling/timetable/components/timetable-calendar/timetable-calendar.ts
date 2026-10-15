@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, effect, inject, input, output, viewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, effect, inject, input, output, viewChild, ViewEncapsulation } from '@angular/core';
 import { FullCalendarModule, FullCalendarComponent } from '@fullcalendar/angular';
 import { CalendarOptions, EventClickArg, EventInput } from '@fullcalendar/core';
 import frLocale from '@fullcalendar/core/locales/fr';
@@ -11,6 +11,35 @@ export interface TimetableCalendarRange {
     start: Date;
     end: Date;
     viewType: string;
+}
+
+/** Sous ce seuil (téléphones), une semaine en grille ne tient pas : colonnes de ~34 px. */
+export const COMPACT_QUERY = '(max-width: 639.98px)';
+
+const VIEW_BUTTONS = 'timeGridDay,timeGridWeek,dayGridMonth,listWeek';
+
+/** En-tête de jour compact : initiale du jour et quantième (« L 12 »). */
+export function compactDayLabel(date: Date): string {
+    const weekday = new Intl.DateTimeFormat('fr-FR', { weekday: 'narrow' }).format(date);
+    return `${weekday} ${date.getDate()}`;
+}
+
+/**
+ * Réglages qui dépendent de la largeur. Sur téléphone : barre réduite (navigation, titre,
+ * aujourd'hui), choix de la vue en pied de calendrier, hauteur selon le contenu.
+ */
+export function responsiveOptions(compact: boolean): Pick<CalendarOptions, 'headerToolbar' | 'footerToolbar' | 'height'> {
+    return compact
+        ? {
+              headerToolbar: { left: 'prev,next', center: 'title', right: 'today' },
+              footerToolbar: { center: VIEW_BUTTONS },
+              height: 'auto'
+          }
+        : {
+              headerToolbar: { left: 'prev,next today', center: 'title', right: VIEW_BUTTONS },
+              footerToolbar: false,
+              height: '70vh'
+          };
 }
 
 @Component({
@@ -34,13 +63,16 @@ export class TimetableCalendar {
 
     private readonly calendar = viewChild(FullCalendarComponent);
     private readonly host = inject(ElementRef<HTMLElement>);
+    private readonly compactMedia = window.matchMedia(COMPACT_QUERY);
+    private compact = this.compactMedia.matches;
 
     readonly options: CalendarOptions = {
         plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
-        initialView: 'timeGridWeek',
+        // Sur téléphone, la liste de la semaine se lit ; la grille hebdomadaire non.
+        initialView: this.compactMedia.matches ? 'listWeek' : 'timeGridWeek',
         locale: frLocale,
         firstDay: 1,
-        height: '70vh',
+        ...responsiveOptions(this.compactMedia.matches),
         allDaySlot: false,
         nowIndicator: true,
         slotMinTime: '00:00:00',
@@ -62,11 +94,6 @@ export class TimetableCalendar {
                 }
             }
         },
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'timeGridDay,timeGridWeek,dayGridMonth,listWeek'
-        },
         buttonText: {
             today: "Aujourd'hui",
             day: 'Jour',
@@ -75,6 +102,8 @@ export class TimetableCalendar {
             list: 'Liste'
         },
         noEventsContent: () => this.emptyText(),
+        // Grille horaire sur téléphone : « L 12 » au lieu de « lun. 12/10 », qui se chevauchaient.
+        dayHeaderContent: (arg) => (this.compact && arg.view.type.startsWith('timeGrid') ? compactDayLabel(arg.date) : arg.text),
         dayHeaderClassNames: (arg) => (arg.isToday ? ['timetable-today'] : []),
         dayCellClassNames: (arg) => (arg.isToday ? ['timetable-today'] : []),
         datesSet: (arg) => {
@@ -90,6 +119,20 @@ export class TimetableCalendar {
     };
 
     constructor() {
+        // Rotation d'écran, fenêtre redimensionnée : on bascule les réglages sans recréer le calendrier.
+        const onWidthChange = (event: MediaQueryListEvent) => {
+            this.compact = event.matches;
+            const api = this.calendar()?.getApi();
+            if (!api) {
+                return;
+            }
+            for (const [name, value] of Object.entries(responsiveOptions(event.matches))) {
+                api.setOption(name as keyof CalendarOptions, value);
+            }
+        };
+        this.compactMedia.addEventListener('change', onWidthChange);
+        inject(DestroyRef).onDestroy(() => this.compactMedia.removeEventListener('change', onWidthChange));
+
         effect(() => {
             const date = this.initialDate();
             const api = this.calendar()?.getApi();

@@ -11,7 +11,6 @@ import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subto
 import { SchedulingPermission } from '../../../permissions/permission.model';
 import { TimetableCalendar, TimetableCalendarRange } from '../../components/timetable-calendar/timetable-calendar';
 import { TimetableSessionDialog } from '../../components/timetable-session-dialog/timetable-session-dialog';
-import { TimetableEntry } from '../../models/timetable-entry.model';
 import { TimetableStatus } from '../../models/timetable.model';
 import { CalendarSession } from '../../models/timetable-view.model';
 import { ProfessorLabelService } from '../../services/professor-label.service';
@@ -21,6 +20,9 @@ import { TimetableService } from '../../services/timetable.service';
 import { programLevelOptions } from '../../utils/program-level';
 import { toCalendarEvent, toCalendarSession, weeksInRange } from '../../utils/timetable-events';
 import { TIMETABLE_PATH } from '../../utils/timetable-routes';
+
+/** Horaires validés d'une promotion lus en une fois : une semaine par horaire, soit deux années. */
+const VALIDATED_PAGE_SIZE = 100;
 
 interface SelectOption {
     label: string;
@@ -167,17 +169,27 @@ export class TimetablePage implements OnInit {
     }
 
     private loadWeeks(levelId: string, range: TimetableCalendarRange, labels: ReadonlyMap<string, string>): Observable<EventInput[]> {
-        const weeks = weeksInRange(range.start, range.end).map((week) =>
-            this.timetableService.list({ programLevelId: levelId, week, status: 'VALIDATED', page: 0, size: 1 }).pipe(
-                switchMap((page) => {
-                    const timetable = page.content[0];
-                    return timetable ? this.entryService.getForWeek(timetable.id, week) : of([] as TimetableEntry[]);
-                }),
-                map((entries) => entries.map((entry) => toCalendarEvent(toCalendarSession(entry, labels)))),
-                catchError(() => of([] as EventInput[]))
-            )
+        // Pas de filtre `week` : le backend renvoie 500 dès qu'il est fourni (paramètre date non typé
+        // côté PostgreSQL dans TimetableRepository.findAllByFilters). On liste les horaires VALIDÉS
+        // de la promotion et on garde ceux des semaines affichées.
+        const weeks = new Set(weeksInRange(range.start, range.end));
+        return this.timetableService.list({ programLevelId: levelId, status: 'VALIDATED', page: 0, size: VALIDATED_PAGE_SIZE }).pipe(
+            switchMap((page) => {
+                const timetables = page.content.filter((timetable) => weeks.has(timetable.week_start));
+                if (timetables.length === 0) {
+                    return of([] as EventInput[]);
+                }
+                return forkJoin(
+                    timetables.map((timetable) =>
+                        this.entryService.getForWeek(timetable.id, timetable.week_start).pipe(
+                            map((entries) => entries.map((entry) => toCalendarEvent(toCalendarSession(entry, labels)))),
+                            catchError(() => of([] as EventInput[]))
+                        )
+                    )
+                ).pipe(map((groups) => groups.flat()));
+            }),
+            catchError(() => of([] as EventInput[]))
         );
-        return weeks.length === 0 ? of([]) : forkJoin(weeks).pipe(map((groups) => groups.flat()));
     }
 
     /** Horaires en attente : brouillons et soumis. L'API ne filtre qu'un statut par requête. */

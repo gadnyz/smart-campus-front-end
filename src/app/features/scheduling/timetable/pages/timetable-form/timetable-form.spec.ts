@@ -287,7 +287,7 @@ describe('TimetableFormPage', () => {
             jasmine.clock().tick(400);
 
             expect(component.headerError()).toBe('Existe déjà');
-            expect(timetableService.list).toHaveBeenCalledWith({ programLevelId: 'pl-1', week: '2026-10-05', page: 0, size: 1 });
+            expect(timetableService.list).toHaveBeenCalledWith({ programLevelId: 'pl-1', page: 0, size: 100 });
             expect(component.existingTimetableId()).toBe('tt-existing');
 
             component.openExisting();

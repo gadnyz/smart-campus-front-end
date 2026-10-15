@@ -36,6 +36,7 @@ const EMPTY_MESSAGES: Record<TimetableStatus, string> = {
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FormsModule, ButtonModule, SelectButtonModule, TableModule, TagModule, ToastModule, ContentSubtopbar],
     templateUrl: './timetable-pending.html',
+    styleUrl: './timetable-pending.scss',
     providers: [MessageService]
 })
 export class TimetablePendingPage implements OnInit {

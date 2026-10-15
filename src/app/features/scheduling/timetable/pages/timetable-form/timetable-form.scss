@@ -1,3 +1,5 @@
+@use '../../styles/stacked-table' as stacked;
+
 .timetable-form-header {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
@@ -47,3 +49,6 @@
     padding-top: 0;
     border-top: none;
 }
+
+// Téléphone : une carte par session plutôt qu'un tableau de 48rem à faire défiler.
+@include stacked.stacked-table('.timetable-stack');

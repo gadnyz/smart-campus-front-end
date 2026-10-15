@@ -1,0 +1,59 @@
+// Tableau PrimeNG présenté en cartes sur téléphone : une carte par ligne, chaque cellule précédée
+// de son libellé (attribut data-label). Au-dessus du seuil, le tableau reste un tableau.
+//
+// Usage, dans la feuille d'un composant :
+//   @use '../../styles/stacked-table' as stacked;
+//   @include stacked.stacked-table('.timetable-stack');
+@mixin stacked-table($selector, $breakpoint: 639.98px) {
+    @media (max-width: $breakpoint) {
+        :host ::ng-deep #{$selector} {
+            // `tableStyle` pose une largeur minimale en ligne : elle n'a plus de sens empilée.
+            table {
+                min-width: 0 !important;
+            }
+
+            thead {
+                display: none;
+            }
+
+            tbody > tr {
+                display: flex;
+                flex-direction: column;
+                gap: 0.35rem;
+                padding: 0.75rem 0;
+                border-bottom: 1px solid var(--p-content-border-color);
+            }
+
+            tbody > tr > td {
+                display: flex;
+                align-items: baseline;
+                gap: 0.75rem;
+                padding: 0;
+                border: none;
+                min-width: 0;
+                overflow-wrap: anywhere;
+            }
+
+            tbody > tr > td[data-label]::before {
+                content: attr(data-label);
+                flex: 0 0 6.5rem;
+                color: var(--p-text-muted-color);
+                font-size: 0.8125rem;
+            }
+
+            // Actions : en bas de la carte, alignées à droite.
+            tbody > tr > td.stack-actions {
+                justify-content: flex-end;
+            }
+
+            // Ligne de messages (colspan) et message « aucune ligne » : pleine largeur, sans libellé.
+            tbody > tr > td[colspan] {
+                display: block;
+            }
+
+            tbody > tr > td.stack-hidden {
+                display: none;
+            }
+        }
+    }
+}
