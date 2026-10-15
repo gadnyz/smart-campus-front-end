@@ -1,0 +1,13 @@
+<app-content-subtopbar kicker="Planification" title="Mon horaire" />
+
+<div class="card flex flex-col gap-3">
+    @if (error() ?? weekError(); as message) {
+        <p class="m-0 text-red-500" role="alert">{{ message }}</p>
+    }
+
+    @if (kind) {
+        <app-timetable-calendar [events]="events()" [emptyText]="emptyText" (rangeChange)="onRangeChange($event)" (eventSelected)="onEventSelected($event)" />
+    }
+</div>
+
+<app-timetable-session-dialog [session]="selectedSession()" (closed)="selectedSession.set(null)" />

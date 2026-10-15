@@ -59,6 +59,7 @@ import {
 } from '../../models/timetable.model';
 import { SessionLine, WEEK_DAY_OPTIONS, WeekDay, weekDayLabel } from '../../models/timetable-session.model';
 import { TimetableEntryService } from '../../services/timetable-entry.service';
+import { TimetableScopeService } from '../../services/timetable-scope.service';
 import { TimetableService } from '../../services/timetable.service';
 import { programLevelOptions } from '../../utils/program-level';
 import { readBatchErrors, timetableErrorMessage } from '../../utils/timetable-error';
@@ -142,6 +143,9 @@ export class TimetableFormPage implements LeaveConfirmable {
     private readonly confirmationService = inject(ConfirmationService);
     private readonly messageService = inject(MessageService);
     private readonly permissionService = inject(PermissionService);
+    /** Un SAF ne crée des horaires que pour les programmes de sa faculté. */
+    private readonly scope = inject(TimetableScopeService);
+    private readonly facultyId = this.scope.facultyId();
 
     readonly weekDayOptions = WEEK_DAY_OPTIONS;
     readonly sessionTypeOptions = SESSION_TYPE_OPTIONS;
@@ -568,9 +572,18 @@ export class TimetableFormPage implements LeaveConfirmable {
 
     // ----- Chargements -----
 
+    /** Programmes proposés : ceux de sa faculté pour un SAF, aucun s'il n'en a pas. */
+    private scopedPrograms(): Observable<Program[]> {
+        if (this.scope.facultyMissing()) {
+            this.loadError.set('Votre compte n’est rattaché à aucune faculté : demandez à un administrateur de le compléter.');
+            return of([]);
+        }
+        return this.facultyId ? this.programService.getByFaculty(this.facultyId) : this.programService.getAll();
+    }
+
     private loadReferences(): void {
         forkJoin({
-            programs: this.programService.getAll().pipe(
+            programs: this.scopedPrograms().pipe(
                 catchError(() => {
                     this.loadError.set('Impossible de charger les programmes.');
                     return of([] as Program[]);

@@ -2,7 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '@/environments/environment';
-import { PagedResponse, toPaged } from '@/app/features/academic/academic.public-api';
+import { PagedResponse, asList, toPaged } from '@/app/features/academic/academic.public-api';
+import { StudentTimetableEntry, asStudentTimetableEntry } from '../models/timetable-view.model';
 import {
     CreateTimetableRequest,
     Timetable,
@@ -18,6 +19,16 @@ export class TimetableService {
 
     list(query: TimetableListQuery = {}): Observable<PagedResponse<Timetable>> {
         return this.http.get<unknown>(this.baseUrl, { params: this.toParams(query) }).pipe(map((body) => toPaged(body, asTimetable)));
+    }
+
+    /**
+     * Semaine de l'étudiant connecté : le backend retrouve sa promotion et ne renvoie qu'un
+     * horaire VALIDATED (404 sinon).
+     */
+    getOwnWeek(referenceDate: string): Observable<StudentTimetableEntry[]> {
+        return this.http
+            .get<unknown>(`${this.baseUrl}/me/week`, { params: { referenceDate } })
+            .pipe(map((body) => asList<unknown>(body).map(asStudentTimetableEntry)));
     }
 
     getById(id: string): Observable<Timetable> {

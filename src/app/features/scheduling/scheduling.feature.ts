@@ -24,11 +24,23 @@ export const schedulingFeature: AppFeature = {
             order: 18,
             items: [
                 {
+                    // Gestion : admin Scheduling et SAF (sa faculté).
                     label: 'Horaires',
                     icon: 'pi pi-fw pi-calendar',
                     routerLink: ['/scheduling/timetable'],
-                    permissions: [SchedulingPermission.TimetableReadAll],
+                    permissions: [SchedulingPermission.TimetableCreateAll, SchedulingPermission.TimetableUpdateAll],
+                    mode: 'any',
                     order: 10
+                },
+                {
+                    // Lecture personnelle : étudiant et professeur. Masqué pour qui gère les horaires.
+                    label: 'Mon horaire',
+                    icon: 'pi pi-fw pi-calendar-clock',
+                    routerLink: ['/scheduling/my-timetable'],
+                    permissions: [SchedulingPermission.TimetableEntryReadOwn],
+                    hiddenWhenPermissions: [SchedulingPermission.TimetableCreateAll, SchedulingPermission.TimetableUpdateAll],
+                    hiddenWhenMode: 'any',
+                    order: 20
                 }
             ]
         }

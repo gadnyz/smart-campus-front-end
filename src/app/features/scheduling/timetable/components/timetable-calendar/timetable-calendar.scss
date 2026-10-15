@@ -10,6 +10,31 @@
         color: var(--p-primary-700);
     }
 
+    /* Une couleur par type de séance, lisible dans les deux thèmes. */
+    .fc-event {
+        cursor: pointer;
+    }
+
+    .timetable-session-lecture {
+        --fc-event-bg-color: var(--p-primary-color);
+        --fc-event-border-color: var(--p-primary-color);
+    }
+
+    .timetable-session-practical-work {
+        --fc-event-bg-color: var(--p-teal-500);
+        --fc-event-border-color: var(--p-teal-500);
+    }
+
+    .timetable-session-exam {
+        --fc-event-bg-color: var(--p-red-500);
+        --fc-event-border-color: var(--p-red-500);
+    }
+
+    .timetable-session-test {
+        --fc-event-bg-color: var(--p-amber-500);
+        --fc-event-border-color: var(--p-amber-500);
+    }
+
     &.timetable-current-range {
         outline: 1px solid var(--p-primary-200);
         outline-offset: 2px;

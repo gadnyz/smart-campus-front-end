@@ -12,6 +12,7 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { SchedulingPermission } from '../../../permissions/permission.model';
 import { Timetable, TimetableStatus, timetableStatusLabel, timetableStatusSeverity } from '../../models/timetable.model';
+import { TimetableScopeService, scopeQuery } from '../../services/timetable-scope.service';
 import { TimetableService } from '../../services/timetable.service';
 import { TIMETABLE_PATH } from '../../utils/timetable-routes';
 import { formatWeekStart } from '../../utils/timetable-time';
@@ -43,6 +44,9 @@ export class TimetablePendingPage implements OnInit {
     private readonly messageService = inject(MessageService);
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);
+    /** Un SAF ne liste que les horaires de sa faculté. */
+    private readonly scope = inject(TimetableScopeService);
+    private readonly facultyScope = scopeQuery(this.scope.facultyId());
 
     readonly pageSize = PAGE_SIZE;
     readonly formatWeekStart = formatWeekStart;
@@ -112,10 +116,15 @@ export class TimetablePendingPage implements OnInit {
 
     private load(page: number, size: number): void {
         this.lastPage = page;
-        this.loading.set(true);
         this.loadError.set(null);
+        // Un SAF sans faculté ne doit rien voir plutôt que les horaires de toutes les facultés.
+        if (this.scope.facultyMissing()) {
+            this.loadError.set('Votre compte n’est rattaché à aucune faculté : demandez à un administrateur de le compléter.');
+            return;
+        }
+        this.loading.set(true);
         this.timetableService
-            .list({ status: this.status(), page, size, sort: ['weekStart,asc'] })
+            .list({ status: this.status(), ...this.facultyScope, page, size, sort: ['weekStart,asc'] })
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (result) => {

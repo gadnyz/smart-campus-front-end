@@ -26,6 +26,8 @@ export interface TimetableCalendarRange {
 export class TimetableCalendar {
     readonly events = input<EventInput[]>([]);
     readonly initialDate = input<string | undefined>(undefined);
+    /** Message de la vue liste quand la période n'a aucune séance. */
+    readonly emptyText = input('Aucun horaire validé sur cette période.');
 
     readonly rangeChange = output<TimetableCalendarRange>();
     readonly eventSelected = output<EventClickArg>();
@@ -46,6 +48,20 @@ export class TimetableCalendar {
         scrollTime: '08:00:00',
         slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
         eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+        // Les blocs ne montrent que le cours : heure, salle et le reste sont dans le détail.
+        displayEventTime: false,
+        views: {
+            // La liste garde sa colonne horaire et nomme le professeur de la séance.
+            list: {
+                displayEventTime: true,
+                eventContent: (arg) => {
+                    const professor = (arg.event.extendedProps['session'] as { professor_name?: string } | undefined)?.professor_name;
+                    const text = document.createElement('span');
+                    text.textContent = professor ? `${arg.event.title} — ${professor}` : arg.event.title;
+                    return { domNodes: [text] };
+                }
+            }
+        },
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
@@ -58,7 +74,7 @@ export class TimetableCalendar {
             month: 'Mois',
             list: 'Liste'
         },
-        noEventsContent: 'Aucun horaire validé sur cette période.',
+        noEventsContent: () => this.emptyText(),
         dayHeaderClassNames: (arg) => (arg.isToday ? ['timetable-today'] : []),
         dayCellClassNames: (arg) => (arg.isToday ? ['timetable-today'] : []),
         datesSet: (arg) => {

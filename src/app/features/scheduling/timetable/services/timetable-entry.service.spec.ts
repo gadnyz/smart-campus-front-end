@@ -55,6 +55,20 @@ describe('TimetableEntryService', () => {
         expect(count).toBe(2);
     });
 
+    it('should read the week of a timetable and the sessions of a course assignment', () => {
+        let week = -1;
+        service.getForWeek('tt-1', '2026-10-05').subscribe((entries) => (week = entries.length));
+        const weekRequest = httpTesting.expectOne((req) => req.url === `${baseUrl}/timetable/tt-1/week`);
+        expect(weekRequest.request.params.get('referenceDate')).toBe('2026-10-05');
+        weekRequest.flush([{ id: 'e-1' }]);
+        expect(week).toBe(1);
+
+        let assigned = -1;
+        service.getByCourseAssignment('ca-1').subscribe((entries) => (assigned = entries.length));
+        httpTesting.expectOne(`${baseUrl}/course-assignment/ca-1`).flush([{ id: 'e-1' }, { id: 'e-2' }]);
+        expect(assigned).toBe(2);
+    });
+
     it('should update and delete an entry', () => {
         service.update('e-1', item).subscribe();
         const update = httpTesting.expectOne(`${baseUrl}/e-1`);

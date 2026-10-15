@@ -39,5 +39,7 @@
         </div>
     }
 
-    <app-timetable-calendar [events]="events()" (rangeChange)="onRangeChange($event)" (eventSelected)="onEventSelected($event)" />
+    <app-timetable-calendar [events]="events()" [emptyText]="emptyText()" (rangeChange)="onRangeChange($event)" (eventSelected)="onEventSelected($event)" />
 </div>
+
+<app-timetable-session-dialog [session]="selectedSession()" (closed)="selectedSession.set(null)" />

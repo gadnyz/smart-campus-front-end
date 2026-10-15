@@ -13,3 +13,6 @@ export { CourseService } from './services/course.service';
 
 export type { CourseAssignment } from './models/course-assignment.model';
 export { CourseAssignmentService } from './services/course-assignment.service';
+
+/** Le professeur connecté (`resolveCurrent`), pour son emploi du temps dans Scheduling. */
+export { ProfessorService } from './services/professor.service';

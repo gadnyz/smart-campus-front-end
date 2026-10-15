@@ -72,6 +72,18 @@ describe('TimetableService', () => {
         expect(id).toBe('tt-1');
     });
 
+    it('should read the week of the signed-in student', () => {
+        let entries: { room_location: string; session_type: string }[] = [];
+        service.getOwnWeek('2026-10-07').subscribe((items) => (entries = items));
+
+        const request = httpTesting.expectOne((req) => req.url === `${baseUrl}/me/week`);
+        expect(request.request.params.get('referenceDate')).toBe('2026-10-07');
+        request.flush([{ id: 'e-1', room_location: 'Bâtiment A', session_type: 'EXAM' }]);
+
+        expect(entries[0].room_location).toBe('Bâtiment A');
+        expect(entries[0].session_type).toBe('EXAM');
+    });
+
     it('should get by id and delete', () => {
         service.getById('tt-1').subscribe();
         httpTesting.expectOne(`${baseUrl}/tt-1`).flush(raw);

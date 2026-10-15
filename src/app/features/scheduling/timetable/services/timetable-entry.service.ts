@@ -30,6 +30,20 @@ export class TimetableEntryService {
         return this.http.delete<void>(`${this.baseUrl}/${id}`);
     }
 
+    /** Séances de la semaine (lundi → dimanche) contenant `referenceDate`. */
+    getForWeek(timetableId: string, referenceDate: string): Observable<TimetableEntry[]> {
+        return this.http
+            .get<unknown>(`${this.baseUrl}/timetable/${timetableId}/week`, { params: { referenceDate } })
+            .pipe(map((body) => asList<unknown>(body).map(asTimetableEntry)));
+    }
+
+    /** Toutes les séances d'une affectation (un cours donné par un professeur), tous horaires confondus. */
+    getByCourseAssignment(courseAssignmentId: string): Observable<TimetableEntry[]> {
+        return this.http
+            .get<unknown>(`${this.baseUrl}/course-assignment/${courseAssignmentId}`)
+            .pipe(map((body) => asList<unknown>(body).map(asTimetableEntry)));
+    }
+
     getByTimetable(timetableId: string): Observable<TimetableEntry[]> {
         return this.http.get<unknown>(`${this.baseUrl}/timetable/${timetableId}`).pipe(map((body) => asList<unknown>(body).map(asTimetableEntry)));
     }
