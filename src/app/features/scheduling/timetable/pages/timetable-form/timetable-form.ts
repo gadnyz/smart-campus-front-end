@@ -1,7 +1,7 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -63,7 +63,13 @@ import { TimetableScopeService } from '../../services/timetable-scope.service';
 import { TimetableService } from '../../services/timetable.service';
 import { programLevelOptions } from '../../utils/program-level';
 import { readBatchErrors, timetableErrorMessage } from '../../utils/timetable-error';
+import { goBack } from '@/app/shared/navigation/go-back';
 import { TIMETABLE_PATH } from '../../utils/timetable-routes';
+import { toCalendarSession } from '../../utils/timetable-events';
+import { printableFromTimetable } from '../../utils/timetable-print-grid';
+import { PrintableTimetable } from '../../models/timetable-print.model';
+import { ProfessorLabelService } from '../../services/professor-label.service';
+import { TimetableExportMenu } from '../../components/timetable-export-menu/timetable-export-menu';
 import { PlannedEntry, SavePlan, findOverlappingLines, groupEntriesIntoLines, planSave } from '../../utils/timetable-session';
 import { formatEntryTime, isEndAfterStart, mondayOf, parseApiDate, parseApiTime, toApiDate, toApiTime } from '../../utils/timetable-time';
 import { LeaveConfirmable } from './timetable-form-leave.guard';
@@ -122,7 +128,7 @@ function endAfterStart(group: AbstractControl): ValidationErrors | null {
     selector: 'app-timetable-form-page',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [ReactiveFormsModule, ButtonModule, ConfirmDialogModule, DatePicker, DialogModule, MultiSelectModule, SelectModule, TableModule, TagModule, Textarea, ToastModule, ContentSubtopbar],
+    imports: [ReactiveFormsModule, ButtonModule, ConfirmDialogModule, DatePicker, DialogModule, MultiSelectModule, SelectModule, TableModule, TagModule, Textarea, ToastModule, ContentSubtopbar, TimetableExportMenu],
     templateUrl: './timetable-form.html',
     styleUrl: './timetable-form.scss',
     providers: [ConfirmationService, MessageService]
@@ -162,6 +168,17 @@ export class TimetableFormPage implements LeaveConfirmable {
     readonly timetable = signal<Timetable | null>(null);
     /** Séances telles qu'enregistrées sur le serveur, tenues à jour après chaque écriture. */
     readonly persisted = signal<TimetableEntry[]>([]);
+    /** Enseignants avec leur grade, pour les exports (« C.C Ortega KABWE »). */
+    private readonly professorNames = toSignal(inject(ProfessorLabelService).labels(), { initialValue: new Map<string, string>() });
+    /** Séances enregistrées, au format « Horaire Faculté » : l'export reflète le serveur. */
+    readonly exportDocuments = computed<PrintableTimetable[]>(() => {
+        const timetable = this.timetable();
+        if (!timetable || this.persisted().length === 0) {
+            return [];
+        }
+        const labels = this.professorNames();
+        return [printableFromTimetable(timetable, this.persisted().map((entry) => toCalendarSession(entry, labels)), this.programs())];
+    });
     readonly lineRows = signal<LineForm[]>([]);
 
     readonly editId = signal<string | null>(null);
@@ -199,7 +216,8 @@ export class TimetableFormPage implements LeaveConfirmable {
     readonly title = computed(() => (this.editId() ? 'Modifier un horaire' : 'Nouvel horaire'));
     /** Barre d'actions à la manière d'Odoo : les transitions du statut, puis le retour. */
     readonly actions = computed<SubtopbarAction[]>(() => [
-        { label: 'Retour', icon: 'pi pi-arrow-left', severity: 'secondary', outlined: true, routerLink: TIMETABLE_PATH },
+        // Revient à l'écran d'où l'on vient (calendrier, liste…), le calendrier à défaut.
+        { label: 'Retour', icon: 'pi pi-arrow-left', severity: 'secondary', outlined: true, command: () => this.back() },
         ...this.statusActions().map((action) => ({
             label: action.label,
             icon: action.icon,
@@ -559,8 +577,21 @@ export class TimetableFormPage implements LeaveConfirmable {
         });
     }
 
+    /** L'export porte sur ce qui est enregistré : des sessions modifiées en seraient absentes. */
+    exportBlockedReason(): string | null {
+        if (this.lines.dirty && !this.readOnly()) {
+            return 'Enregistrez d’abord les sessions modifiées pour les exporter.';
+        }
+        return this.exportDocuments().length === 0 ? 'Aucune session enregistrée à exporter.' : null;
+    }
+
     cancel(): void {
-        void this.router.navigate([TIMETABLE_PATH]);
+        this.back();
+    }
+
+    /** Écran précédent ; le calendrier pour un accès direct (lien, nouvel onglet). */
+    back(): void {
+        goBack(this.router, this.location, [TIMETABLE_PATH]);
     }
 
     openExisting(): void {
@@ -748,7 +779,8 @@ export class TimetableFormPage implements LeaveConfirmable {
                 this.createdHere = true;
                 this.headerSyncing.set(false);
                 // L'URL désigne l'horaire créé : un rechargement rouvre la même page en édition.
-                this.location.replaceState(`${TIMETABLE_PATH}/${created.id}/edit`);
+                // L'état est conservé : sans `navigationId`, « Retour » ne saurait plus revenir en arrière.
+                this.location.replaceState(`${TIMETABLE_PATH}/${created.id}/edit`, '', this.location.getState());
                 if (previousYear && previousYear !== created.academic_year_id) {
                     this.assignmentsByCourse.set({});
                 }

@@ -1,4 +1,9 @@
 .timetable-calendar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+
     .fc-day-today,
     .fc-timegrid-col.fc-day-today {
         background: color-mix(in srgb, var(--p-primary-color) 10%, transparent);
@@ -8,34 +13,6 @@
     .fc-col-header-cell.timetable-today {
         background: var(--p-primary-100);
         color: var(--p-primary-700);
-    }
-
-    /* La barre ne doit jamais élargir la page : elle passe à la ligne, et son titre suit la largeur. */
-    .fc-toolbar.fc-header-toolbar,
-    .fc-toolbar.fc-footer-toolbar {
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .fc-toolbar-title {
-        font-size: clamp(1rem, 0.6rem + 1.6vw, 1.5rem);
-        text-align: center;
-    }
-
-    @media (max-width: 639.98px) {
-        .fc-toolbar.fc-header-toolbar {
-            margin-bottom: 0.75rem;
-        }
-
-        .fc-toolbar.fc-footer-toolbar {
-            margin-top: 0.75rem;
-        }
-
-        /* Cibles tactiles d'environ 40 px. */
-        .fc-button {
-            min-height: 2.5rem;
-            padding-inline: 0.75rem;
-        }
     }
 
     /* Une couleur par type de séance, lisible dans les deux thèmes. */
@@ -71,8 +48,7 @@
 
 @media print {
     .timetable-calendar {
-        .fc-header-toolbar,
-        .fc-button {
+        app-timetable-toolbar {
             display: none;
         }
 

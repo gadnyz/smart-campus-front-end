@@ -10,19 +10,27 @@ import { Program, ProgramService } from '@/app/features/academic/academic.public
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { SchedulingPermission } from '../../../permissions/permission.model';
 import { TimetableCalendar, TimetableCalendarRange } from '../../components/timetable-calendar/timetable-calendar';
+import { TimetableExportMenu } from '../../components/timetable-export-menu/timetable-export-menu';
 import { TimetableSessionDialog } from '../../components/timetable-session-dialog/timetable-session-dialog';
-import { TimetableStatus } from '../../models/timetable.model';
+import { Timetable, TimetableStatus } from '../../models/timetable.model';
+import { PrintableTimetable } from '../../models/timetable-print.model';
 import { CalendarSession } from '../../models/timetable-view.model';
 import { ProfessorLabelService } from '../../services/professor-label.service';
 import { TimetableEntryService } from '../../services/timetable-entry.service';
 import { TimetableScopeService, scopeQuery } from '../../services/timetable-scope.service';
 import { TimetableService } from '../../services/timetable.service';
 import { programLevelOptions } from '../../utils/program-level';
+import { printableFromTimetable } from '../../utils/timetable-print-grid';
 import { toCalendarEvent, toCalendarSession, weeksInRange } from '../../utils/timetable-events';
-import { TIMETABLE_PATH } from '../../utils/timetable-routes';
+import { MANAGE_TIMETABLES, TIMETABLE_PATH } from '../../utils/timetable-routes';
 
 /** Horaires validés d'une promotion lus en une fois : une semaine par horaire, soit deux années. */
 const VALIDATED_PAGE_SIZE = 100;
+
+interface LoadedWeek {
+    timetable: Timetable;
+    sessions: CalendarSession[];
+}
 
 interface SelectOption {
     label: string;
@@ -37,7 +45,7 @@ interface SelectOption {
     selector: 'app-timetable-page',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [FormsModule, ButtonModule, SelectModule, ContentSubtopbar, TimetableCalendar, TimetableSessionDialog],
+    imports: [FormsModule, ButtonModule, SelectModule, ContentSubtopbar, TimetableCalendar, TimetableExportMenu, TimetableSessionDialog],
     templateUrl: './timetable.html',
     styleUrl: './timetable.scss'
 })
@@ -60,12 +68,19 @@ export class TimetablePage implements OnInit {
     readonly loadingPrograms = signal(false);
     readonly loadError = signal<string | null>(null);
 
-    readonly events = signal<EventInput[]>([]);
+    /** Semaines VALIDÉES chargées pour la période affichée, avec leurs séances. */
+    readonly weeks = signal<LoadedWeek[]>([]);
+    readonly events = computed<EventInput[]>(() => this.weeks().flatMap((week) => week.sessions.map(toCalendarEvent)));
+    /** Semaines affichées, au format « Horaire Faculté » pour l'impression et les exports. */
+    readonly exportDocuments = computed<PrintableTimetable[]>(() =>
+        this.weeks().map((week) => printableFromTimetable(week.timetable, week.sessions, this.programs()))
+    );
     readonly visibleRange = signal<TimetableCalendarRange | null>(null);
     readonly selectedSession = signal<CalendarSession | null>(null);
     readonly draftCount = signal(0);
 
-    readonly canListPending = computed(() => this.permissionService.hasAnyPermission([SchedulingPermission.TimetableReadAll]));
+    /** Mêmes droits que la route de la liste : MANAGE_TIMETABLES en mode any. */
+    readonly canListPending = computed(() => this.permissionService.hasAnyPermission(MANAGE_TIMETABLES));
 
     readonly draftBadge = computed(() => {
         const count = this.draftCount();
@@ -83,7 +98,8 @@ export class TimetablePage implements OnInit {
             badge: this.draftBadge(),
             badgeSeverity: 'warn',
             ariaLabel: 'Afficher les horaires en attente (brouillons et soumis)',
-            permissions: [SchedulingPermission.TimetableReadAll]
+            permissions: MANAGE_TIMETABLES,
+            mode: 'any'
         },
         {
             label: 'Ajouter un horaire',
@@ -100,6 +116,9 @@ export class TimetablePage implements OnInit {
 
     readonly programLevelOptions = computed<SelectOption[]>(() => programLevelOptions(this.programs(), this.programId()));
 
+    /** Filtres renseignés, rappelés sur le bouton « Filtres » quand ils sont repliés (téléphone). */
+    readonly activeFilters = computed(() => [this.programId(), this.programLevelId()].filter(Boolean).length);
+
     readonly emptyText = computed(() =>
         this.programLevelId() ? 'Aucun horaire validé sur cette période.' : 'Choisissez un programme et un niveau pour afficher leur horaire.'
     );
@@ -108,10 +127,10 @@ export class TimetablePage implements OnInit {
         // Promotion ou période modifiée : on recharge, en abandonnant la requête précédente.
         toObservable(computed(() => ({ levelId: this.programLevelId(), range: this.visibleRange() })))
             .pipe(
-                switchMap(({ levelId, range }) => (levelId && range ? this.loadEvents(levelId, range) : of([]))),
+                switchMap(({ levelId, range }) => (levelId && range ? this.loadEvents(levelId, range) : of([] as LoadedWeek[]))),
                 takeUntilDestroyed()
             )
-            .subscribe((events) => this.events.set(events));
+            .subscribe((weeks) => this.weeks.set(weeks));
     }
 
     ngOnInit(): void {
@@ -164,11 +183,11 @@ export class TimetablePage implements OnInit {
      * Un horaire par promotion et par semaine : pour chaque semaine affichée, on cherche l'horaire
      * VALIDÉ de la promotion puis ses séances. Une semaine en échec reste simplement vide.
      */
-    private loadEvents(levelId: string, range: TimetableCalendarRange): Observable<EventInput[]> {
+    private loadEvents(levelId: string, range: TimetableCalendarRange): Observable<LoadedWeek[]> {
         return this.professorLabels.labels().pipe(switchMap((labels) => this.loadWeeks(levelId, range, labels)));
     }
 
-    private loadWeeks(levelId: string, range: TimetableCalendarRange, labels: ReadonlyMap<string, string>): Observable<EventInput[]> {
+    private loadWeeks(levelId: string, range: TimetableCalendarRange, labels: ReadonlyMap<string, string>): Observable<LoadedWeek[]> {
         // Pas de filtre `week` : le backend renvoie 500 dès qu'il est fourni (paramètre date non typé
         // côté PostgreSQL dans TimetableRepository.findAllByFilters). On liste les horaires VALIDÉS
         // de la promotion et on garde ceux des semaines affichées.
@@ -177,18 +196,18 @@ export class TimetablePage implements OnInit {
             switchMap((page) => {
                 const timetables = page.content.filter((timetable) => weeks.has(timetable.week_start));
                 if (timetables.length === 0) {
-                    return of([] as EventInput[]);
+                    return of([] as LoadedWeek[]);
                 }
                 return forkJoin(
                     timetables.map((timetable) =>
                         this.entryService.getForWeek(timetable.id, timetable.week_start).pipe(
-                            map((entries) => entries.map((entry) => toCalendarEvent(toCalendarSession(entry, labels)))),
-                            catchError(() => of([] as EventInput[]))
+                            map((entries): LoadedWeek | null => ({ timetable, sessions: entries.map((entry) => toCalendarSession(entry, labels)) })),
+                            catchError(() => of(null))
                         )
                     )
-                ).pipe(map((groups) => groups.flat()));
+                ).pipe(map((loaded) => loaded.filter((week): week is LoadedWeek => week !== null).sort((a, b) => a.timetable.week_start.localeCompare(b.timetable.week_start))));
             }),
-            catchError(() => of([] as EventInput[]))
+            catchError(() => of([] as LoadedWeek[]))
         );
     }
 

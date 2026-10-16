@@ -2,12 +2,7 @@ import { Routes } from '@angular/router';
 import { permissionGuard } from '@/app/core/permissions/permission.guard';
 import { SchedulingPermission } from '../permissions/permission.model';
 import { timetableFormLeaveGuard } from './pages/timetable-form/timetable-form-leave.guard';
-
-/**
- * Gestion des horaires (admin Scheduling, SAF) : calendrier, liste, création, édition. La lecture
- * seule (`timetable:read:all`) ne suffit pas : étudiants et professeurs la détiennent aussi.
- */
-const MANAGE_TIMETABLES = [SchedulingPermission.TimetableCreateAll, SchedulingPermission.TimetableUpdateAll];
+import { MANAGE_TIMETABLES } from './utils/timetable-routes';
 
 export default [
     {

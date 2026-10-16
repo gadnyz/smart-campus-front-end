@@ -17,6 +17,7 @@ import { Room } from '../../../models/room.model';
 import { RoomService } from '../../../services/room.service';
 import { TimetableEntry } from '../../models/timetable-entry.model';
 import { Timetable } from '../../models/timetable.model';
+import { ProfessorLabelService } from '../../services/professor-label.service';
 import { TimetableEntryService } from '../../services/timetable-entry.service';
 import { TimetableService } from '../../services/timetable.service';
 import { TimetableFormPage } from './timetable-form';
@@ -176,6 +177,7 @@ describe('TimetableFormPage', () => {
                 { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap(routeId ? { id: routeId } : {})) } },
                 { provide: TimetableService, useValue: timetableService },
                 { provide: TimetableEntryService, useValue: entryService },
+                { provide: ProfessorLabelService, useValue: { labels: () => of(new Map([['prof-1', 'PO Ada Lovelace']])) } },
                 { provide: ProgramService, useValue: programService },
                 { provide: AcademicCatalogService, useValue: catalog },
                 { provide: CourseService, useValue: courseService },
@@ -243,7 +245,10 @@ describe('TimetableFormPage', () => {
                 week_start: '2026-10-05'
             });
             expect(component.timetable()?.id).toBe('tt-1');
-            expect(location.replaceState).toHaveBeenCalledWith('/scheduling/timetable/tt-1/edit');
+            // L'état du routeur est conservé : « Retour » sait encore revenir en arrière.
+            const [path, query, state] = (location.replaceState as jasmine.Spy).calls.mostRecent().args;
+            expect([path, query]).toEqual(['/scheduling/timetable/tt-1/edit', '']);
+            expect(state).toBe(location.getState());
         });
 
         it('should delete then recreate the timetable when the header changes before any session is saved', () => {
@@ -605,6 +610,30 @@ describe('TimetableFormPage', () => {
         });
     });
 
+    describe('export', () => {
+        it('should export the saved sessions with the faculty, the level code and graded professors', () => {
+            createComponent({ edit: { timetable: timetable(), entries: [entry({ id: 'e-mon', date: '2026-10-05' })] } });
+
+            const [document] = component.exportDocuments();
+            expect(document.title).toBe('Sciences');
+            expect(document.heading).toBe('L1 — Informatique');
+            expect(document.weekStart).toBe('2026-10-05');
+            expect(document.sessions).toEqual([jasmine.objectContaining({ course: 'Algèbre', professor: 'PO Ada Lovelace', room: 'A101' })]);
+            expect(component.exportBlockedReason()).toBeNull();
+        });
+
+        it('should block the export while sessions are modified, or before any is saved', () => {
+            createComponent({ edit: { timetable: timetable(), entries: [entry({ id: 'e-mon', date: '2026-10-05' })] } });
+            component.lines.markAsDirty();
+            expect(component.exportBlockedReason()).toContain('Enregistrez d’abord');
+
+            TestBed.resetTestingModule();
+            createComponent();
+            expect(component.exportDocuments()).toEqual([]);
+            expect(component.exportBlockedReason()).toBe('Aucune session enregistrée à exporter.');
+        });
+    });
+
     describe('statut', () => {
         function openSaved(status: Timetable['status'] = 'DRAFT', entries = [entry({ id: 'e-mon', date: '2026-10-05' })], authorities?: string[]): void {
             createComponent({ edit: { timetable: timetable({ status }), entries }, authorities });
@@ -741,10 +770,26 @@ describe('TimetableFormPage', () => {
             expect(timetableService.delete).toHaveBeenCalledOnceWith('tt-1');
         });
 
-        it('should go back to the calendar on cancel', () => {
+        it('should fall back to the calendar on cancel when the page was opened directly', () => {
             createComponent();
+            spyOn(location, 'back');
             component.cancel();
+            expect(location.back).not.toHaveBeenCalled();
             expect(router.navigate).toHaveBeenCalledWith(['/scheduling/timetable']);
+        });
+
+        it('should go back to the previous screen with « Retour » and « Annuler »', () => {
+            createComponent();
+            spyOn(location, 'getState').and.returnValue({ navigationId: 4 });
+            const back = spyOn(location, 'back');
+
+            const retour = component.actions().find((action) => action.label === 'Retour');
+            expect(retour?.routerLink).toBeUndefined();
+            retour?.command?.();
+            component.cancel();
+
+            expect(back).toHaveBeenCalledTimes(2);
+            expect(router.navigate).not.toHaveBeenCalled();
         });
 
         it('should leave freely when nothing was created or changed', () => {

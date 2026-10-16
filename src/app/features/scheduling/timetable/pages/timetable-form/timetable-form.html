@@ -10,6 +10,7 @@
                 <p class="m-0 text-red-500" role="alert">{{ statusError() ?? loadError() }}</p>
             }
             @if (statusLabel()) {
+                <app-timetable-export-menu [documents]="exportDocuments()" [disabledReason]="exportBlockedReason()" />
                 <p-tag class="timetable-form-status" [value]="statusLabel()!" [severity]="statusSeverity()" />
             }
         </div>

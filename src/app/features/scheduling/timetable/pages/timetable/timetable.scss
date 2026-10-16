@@ -2,6 +2,29 @@
     display: block;
 }
 
+// Filtres projetés dans la barre du calendrier : en ligne sur grand écran, empilés sur téléphone.
+.timetable-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.timetable-filter {
+    width: 14rem;
+    max-width: 100%;
+}
+
+@media (max-width: 639.98px) {
+    .timetable-filters {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .timetable-filter {
+        width: 100%;
+    }
+}
+
 @media print {
     app-content-subtopbar,
     .p-button,

@@ -165,7 +165,7 @@ describe('TimetablePage (calendrier)', () => {
     });
 
     it('should limit an academic secretary to the programs and drafts of their faculty', () => {
-        createComponent(['scheduling:timetable:read:all'], { profiles: ['ACADEMIC_SECRETARY'], faculty_id: 'fac-1' });
+        createComponent(['scheduling:timetable:update:all'], { profiles: ['ACADEMIC_SECRETARY'], faculty_id: 'fac-1' });
 
         expect(programService.getByFaculty).toHaveBeenCalledWith('fac-1');
         expect(programService.getAll).not.toHaveBeenCalled();

@@ -7,22 +7,29 @@ import { AuthService } from '@/app/core/auth/services/auth.service';
 import { CourseAssignmentService, ProfessorService } from '@/app/features/academic/academic.public-api';
 import { ContentSubtopbar } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { TimetableCalendar, TimetableCalendarRange } from '../../components/timetable-calendar/timetable-calendar';
+import { TimetableExportMenu } from '../../components/timetable-export-menu/timetable-export-menu';
 import { TimetableSessionDialog } from '../../components/timetable-session-dialog/timetable-session-dialog';
 import { TimetableEntry } from '../../models/timetable-entry.model';
+import { PrintableTimetable } from '../../models/timetable-print.model';
 import { Timetable } from '../../models/timetable.model';
 import { CalendarSession } from '../../models/timetable-view.model';
-import { ProfessorLabelService } from '../../services/professor-label.service';
+import { ProfessorLabelService, professorLabel } from '../../services/professor-label.service';
 import { TimetableEntryService } from '../../services/timetable-entry.service';
 import { PersonalTimetableKind, TimetableScopeService } from '../../services/timetable-scope.service';
 import { TimetableService } from '../../services/timetable.service';
 import { toCalendarEvent, toCalendarSession, weeksInRange } from '../../utils/timetable-events';
-import { addDays } from '../../utils/timetable-time';
+import { printableFromTimetable, toPrintSession } from '../../utils/timetable-print-grid';
+import { addDays, mondayOf, parseApiDate, toApiDate } from '../../utils/timetable-time';
 
 interface WeekResult {
-    events: EventInput[];
+    sessions: CalendarSession[];
+    /** Les semaines affichées, au format « Horaire Faculté » pour l'impression et les exports. */
+    documents: PrintableTimetable[];
     /** Vraie panne de chargement ; une semaine non publiée (404) reste simplement vide. */
     failed?: boolean;
 }
+
+const EMPTY: WeekResult = { sessions: [], documents: [] };
 
 /**
  * Horaire personnel, en lecture seule et limité aux horaires VALIDÉS :
@@ -34,7 +41,7 @@ interface WeekResult {
     selector: 'app-my-timetable-page',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [ContentSubtopbar, TimetableCalendar, TimetableSessionDialog],
+    imports: [ContentSubtopbar, TimetableCalendar, TimetableExportMenu, TimetableSessionDialog],
     templateUrl: './my-timetable.html'
 })
 export class MyTimetablePage {
@@ -47,7 +54,9 @@ export class MyTimetablePage {
     private readonly scope = inject(TimetableScopeService);
 
     readonly kind: PersonalTimetableKind | null = this.scope.personalKind();
-    readonly events = signal<EventInput[]>([]);
+    private readonly sessions = signal<CalendarSession[]>([]);
+    readonly events = computed<EventInput[]>(() => this.sessions().map(toCalendarEvent));
+    readonly exportDocuments = signal<PrintableTimetable[]>([]);
     readonly error = signal<string | null>(null);
     readonly weekError = signal<string | null>(null);
     readonly selectedSession = signal<CalendarSession | null>(null);
@@ -55,6 +64,8 @@ export class MyTimetablePage {
 
     /** Toutes les séances du professeur, chargées une fois ; `null` tant qu'elles ne le sont pas. */
     private readonly professorEntries = signal<TimetableEntry[] | null>(null);
+    /** Le professeur connecté : identifiant (pour son grade) et nom à défaut. */
+    private professor: { id: string; name: string } | null = null;
     private readonly timetables = new Map<string, Observable<Timetable | null>>();
 
     readonly emptyText = 'Aucune séance sur cette période.';
@@ -72,7 +83,7 @@ export class MyTimetablePage {
             .pipe(
                 switchMap(({ range, entries }) => {
                     if (!range) {
-                        return of({ events: [] } as WeekResult);
+                        return of(EMPTY);
                     }
                     return this.professorLabels
                         .labels()
@@ -80,8 +91,9 @@ export class MyTimetablePage {
                 }),
                 takeUntilDestroyed()
             )
-            .subscribe(({ events, failed }) => {
-                this.events.set(events);
+            .subscribe(({ sessions, documents, failed }) => {
+                this.sessions.set(sessions);
+                this.exportDocuments.set(documents);
                 this.weekError.set(failed ? 'Impossible de charger l’horaire.' : null);
             });
     }
@@ -100,14 +112,31 @@ export class MyTimetablePage {
     private loadStudentWeeks(range: TimetableCalendarRange, labels: ReadonlyMap<string, string>): Observable<WeekResult> {
         const weeks = weeksInRange(range.start, range.end).map((week) =>
             this.timetableService.getOwnWeek(week).pipe(
-                map((entries): WeekResult => ({ events: entries.map((entry) => toCalendarEvent(toCalendarSession(entry, labels))) })),
+                switchMap((entries): Observable<WeekResult> => {
+                    const sessions = entries.map((entry) => toCalendarSession(entry, labels));
+                    if (sessions.length === 0) {
+                        return of(EMPTY);
+                    }
+                    // L'horaire de la promotion donne l'en-tête de l'export (faculté, niveau, programme).
+                    return this.timetable(entries[0].timetable_id).pipe(
+                        map((timetable) => ({
+                            sessions,
+                            documents: [
+                                timetable
+                                    ? printableFromTimetable(timetable, sessions, [])
+                                    : { title: 'Mon horaire', heading: 'Mon horaire', weekStart: week, sessions: sessions.map(toPrintSession) }
+                            ]
+                        }))
+                    );
+                }),
                 // 404 : semaine non publiée, sans inscription… L'écran vide suffit, sans message.
-                catchError((error: unknown) => of<WeekResult>({ events: [], failed: !(error instanceof HttpErrorResponse && error.status === 404) }))
+                catchError((error: unknown) => of<WeekResult>({ ...EMPTY, failed: !(error instanceof HttpErrorResponse && error.status === 404) }))
             )
         );
         return forkJoin(weeks).pipe(
             map((results) => ({
-                events: results.flatMap((result) => result.events),
+                sessions: results.flatMap((result) => result.sessions),
+                documents: results.flatMap((result) => result.documents),
                 failed: results.some((result) => result.failed)
             }))
         );
@@ -129,6 +158,7 @@ export class MyTimetablePage {
                         this.error.set('Aucun profil professeur n’est associé à votre compte.');
                         return of([] as TimetableEntry[]);
                     }
+                    this.professor = { id: professor.id, name: professorLabel(professor) };
                     return this.assignmentService.getByProfessor(professor.id).pipe(
                         switchMap((assignments) => {
                             const active = assignments.filter((assignment) => assignment.status !== 'INACTIVE');
@@ -155,7 +185,7 @@ export class MyTimetablePage {
     /** Séances de la période dont l'horaire est VALIDÉ, avec la promotion concernée. */
     private professorWeek(range: TimetableCalendarRange, entries: TimetableEntry[] | null, labels: ReadonlyMap<string, string>): Observable<WeekResult> {
         if (!entries) {
-            return of({ events: [] });
+            return of(EMPTY);
         }
         const weeks = weeksInRange(range.start, range.end);
         const first = weeks[0];
@@ -163,20 +193,33 @@ export class MyTimetablePage {
         const inRange = entries.filter((entry) => !!first && !!last && entry.date >= first && entry.date <= addDays(last, 6));
         const ids = [...new Set(inRange.map((entry) => entry.timetable_id))];
         if (ids.length === 0) {
-            return of({ events: [] });
+            return of(EMPTY);
         }
         return forkJoin(ids.map((id) => this.timetable(id))).pipe(
             map((timetables) => {
                 const validated = new Map(timetables.filter((item): item is Timetable => item?.status === 'VALIDATED').map((item) => [item.id, item]));
-                const events = inRange
+                const sessions = inRange
                     .filter((entry) => validated.has(entry.timetable_id))
                     .map((entry) => {
                         const timetable = validated.get(entry.timetable_id)!;
-                        return toCalendarEvent({ ...toCalendarSession(entry, labels), promotion: `${timetable.program_name} · ${timetable.program_level_name}` });
+                        return { ...toCalendarSession(entry, labels), promotion: `${timetable.program_name} · ${timetable.program_level_name}` };
                     });
-                return { events };
+                return { sessions, documents: this.professorDocuments(sessions, labels) };
             })
         );
+    }
+
+    /** Une semaine imprimable par semaine portant des séances, au nom de l'enseignant gradé. */
+    private professorDocuments(sessions: readonly CalendarSession[], labels: ReadonlyMap<string, string>): PrintableTimetable[] {
+        const name = (this.professor && labels.get(this.professor.id)) ?? this.professor?.name ?? 'Enseignant';
+        const byWeek = new Map<string, CalendarSession[]>();
+        for (const session of sessions) {
+            const week = toApiDate(mondayOf(parseApiDate(session.date)));
+            byWeek.set(week, [...(byWeek.get(week) ?? []), session]);
+        }
+        return [...byWeek.entries()]
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([weekStart, weekSessions]) => ({ title: 'Horaire de l’enseignant', heading: name, weekStart, sessions: weekSessions.map(toPrintSession) }));
     }
 
     /** Un même horaire sert à plusieurs séances et plusieurs semaines : une seule lecture. */

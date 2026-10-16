@@ -1,5 +1,6 @@
 import { AppFeature } from '@/app/core/modules/app-feature.model';
 import { SchedulingPermission } from './permissions/permission.model';
+import { MANAGE_TIMETABLES } from './timetable/utils/timetable-routes';
 
 /**
  * Module Planification. La gestion des salles est une donnée de référence : elle vit
@@ -28,7 +29,7 @@ export const schedulingFeature: AppFeature = {
                     label: 'Horaires',
                     icon: 'pi pi-fw pi-calendar',
                     routerLink: ['/scheduling/timetable'],
-                    permissions: [SchedulingPermission.TimetableCreateAll, SchedulingPermission.TimetableUpdateAll],
+                    permissions: MANAGE_TIMETABLES,
                     mode: 'any',
                     order: 10
                 },
@@ -38,7 +39,7 @@ export const schedulingFeature: AppFeature = {
                     icon: 'pi pi-fw pi-calendar-clock',
                     routerLink: ['/scheduling/my-timetable'],
                     permissions: [SchedulingPermission.TimetableEntryReadOwn],
-                    hiddenWhenPermissions: [SchedulingPermission.TimetableCreateAll, SchedulingPermission.TimetableUpdateAll],
+                    hiddenWhenPermissions: MANAGE_TIMETABLES,
                     hiddenWhenMode: 'any',
                     order: 20
                 }

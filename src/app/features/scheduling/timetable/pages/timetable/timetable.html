@@ -1,8 +1,27 @@
 <app-content-subtopbar kicker="Planification" title="Horaires" [actions]="actions()" />
 
 <div class="card flex flex-col gap-4">
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+    @if (loadError()) {
+        <div class="flex flex-wrap items-center gap-3" role="alert">
+            <span>{{ loadError() }}</span>
+            <p-button label="Réessayer" severity="secondary" [outlined]="true" (onClick)="loadPrograms()" />
+        </div>
+    }
+
+    <app-timetable-calendar
+        [events]="events()"
+        [emptyText]="emptyText()"
+        [hasFilters]="true"
+        [activeFilters]="activeFilters()"
+        (rangeChange)="onRangeChange($event)"
+        (eventSelected)="onEventSelected($event)"
+    >
+        <app-timetable-export-menu
+            timetableActions
+            [documents]="exportDocuments()"
+            [disabledReason]="exportDocuments().length ? null : 'Choisissez une promotion qui a un horaire validé sur la période affichée.'"
+        />
+        <div timetableFilters class="timetable-filters">
             <p-select
                 [options]="programOptions()"
                 optionLabel="label"
@@ -14,7 +33,8 @@
                 placeholder="Programme"
                 ariaLabel="Filtrer par programme"
                 appendTo="body"
-                class="w-full sm:w-16rem"
+                size="small"
+                class="timetable-filter"
             />
             <p-select
                 [options]="programLevelOptions()"
@@ -27,19 +47,11 @@
                 placeholder="Niveau"
                 ariaLabel="Filtrer par niveau de programme"
                 appendTo="body"
-                class="w-full sm:w-16rem"
+                size="small"
+                class="timetable-filter"
             />
         </div>
-    </div>
-
-    @if (loadError()) {
-        <div class="flex flex-wrap items-center gap-3" role="alert">
-            <span>{{ loadError() }}</span>
-            <p-button label="Réessayer" severity="secondary" [outlined]="true" (onClick)="loadPrograms()" />
-        </div>
-    }
-
-    <app-timetable-calendar [events]="events()" [emptyText]="emptyText()" (rangeChange)="onRangeChange($event)" (eventSelected)="onEventSelected($event)" />
+    </app-timetable-calendar>
 </div>
 
 <app-timetable-session-dialog [session]="selectedSession()" (closed)="selectedSession.set(null)" />

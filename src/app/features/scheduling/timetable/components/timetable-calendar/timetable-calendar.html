@@ -1,1 +1,16 @@
-<full-calendar [options]="options" [events]="events()" />
+<app-timetable-toolbar
+    [title]="title()"
+    [view]="view()"
+    [showsToday]="showsToday()"
+    [hasFilters]="hasFilters()"
+    [activeFilters]="activeFilters()"
+    (previous)="previous()"
+    (next)="next()"
+    (today)="today()"
+    (viewChange)="changeView($event)"
+>
+    <ng-content select="[timetableFilters]" ngProjectAs="[timetableFilters]" />
+    <ng-content select="[timetableActions]" ngProjectAs="[timetableActions]" />
+</app-timetable-toolbar>
+
+<full-calendar class="timetable-calendar-grid" [options]="options" [events]="events()" />

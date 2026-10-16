@@ -1,0 +1,53 @@
+<div class="timetable-toolbar" role="toolbar" aria-label="Navigation du calendrier">
+    <div class="timetable-toolbar-nav">
+        <p-button icon="pi pi-chevron-left" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Période précédente" (onClick)="previous.emit()" />
+        <p-button icon="pi pi-chevron-right" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Période suivante" (onClick)="next.emit()" />
+        <p-button
+            class="timetable-toolbar-today"
+            label="Aujourd'hui"
+            icon="pi pi-calendar"
+            severity="secondary"
+            [outlined]="true"
+            size="small"
+            ariaLabel="Revenir à aujourd'hui"
+            [disabled]="showsToday()"
+            (onClick)="today.emit()"
+        />
+    </div>
+
+    <h2 class="timetable-toolbar-title" aria-live="polite">{{ title() }}</h2>
+
+    <div class="timetable-toolbar-controls">
+        <p-select
+            [options]="viewOptions"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="view()"
+            (ngModelChange)="onViewChange($event)"
+            ariaLabel="Vue du calendrier"
+            appendTo="body"
+            size="small"
+            class="timetable-toolbar-view"
+        />
+        <ng-content select="[timetableActions]" />
+        @if (hasFilters()) {
+            <p-button
+                class="timetable-toolbar-filters-toggle"
+                icon="pi pi-filter"
+                [label]="activeFilters() > 0 ? 'Filtres (' + activeFilters() + ')' : 'Filtres'"
+                severity="secondary"
+                [outlined]="!filtersOpen()"
+                size="small"
+                [attr.aria-expanded]="filtersOpen()"
+                ariaControls="timetable-toolbar-filters"
+                (onClick)="toggleFilters()"
+            />
+        }
+    </div>
+
+    @if (hasFilters()) {
+        <div id="timetable-toolbar-filters" class="timetable-toolbar-filters" [class.is-open]="filtersOpen()">
+            <ng-content select="[timetableFilters]" />
+        </div>
+    }
+</div>

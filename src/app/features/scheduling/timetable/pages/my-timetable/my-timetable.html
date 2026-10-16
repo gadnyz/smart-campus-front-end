@@ -6,7 +6,13 @@
     }
 
     @if (kind) {
-        <app-timetable-calendar [events]="events()" [emptyText]="emptyText" (rangeChange)="onRangeChange($event)" (eventSelected)="onEventSelected($event)" />
+        <app-timetable-calendar [events]="events()" [emptyText]="emptyText" (rangeChange)="onRangeChange($event)" (eventSelected)="onEventSelected($event)">
+            <app-timetable-export-menu
+                timetableActions
+                [documents]="exportDocuments()"
+                [disabledReason]="exportDocuments().length ? null : 'Aucune séance validée sur la période affichée.'"
+            />
+        </app-timetable-calendar>
     }
 </div>
 
