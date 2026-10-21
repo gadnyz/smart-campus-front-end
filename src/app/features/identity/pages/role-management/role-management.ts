@@ -11,8 +11,9 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { Table, TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { PrivilegeGroups } from '../../components/privilege-groups/privilege-groups';
+import { privilegeLabel } from '../../utils/privilege-label';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { IdentityPermission } from '../../permissions/permission.model';
@@ -40,8 +41,8 @@ type RoleTableRow = RoleResponse & {
         IconFieldModule,
         InputIconModule,
         MultiSelectModule,
-        TagModule,
-        ContentSubtopbar
+        ContentSubtopbar,
+        PrivilegeGroups
     ],
     templateUrl: './role-management.html',
     providers: [ConfirmationService, MessageService]
@@ -77,7 +78,10 @@ export class RoleManagement implements OnInit {
         this.roles().map((role) => ({
             ...role,
             privilegesCount: role.privileges?.length ?? 0,
-            privilegesLabel: role.privileges?.length ? role.privileges.join(', ') : 'Aucun'
+            // Clés brutes et libellés lisibles : la recherche trouve « student » comme « Étudiants ».
+            privilegesLabel: role.privileges?.length
+                ? role.privileges.map((name) => `${name} ${privilegeLabel(name)}`).join(', ')
+                : 'Aucun'
         }))
     );
 
@@ -87,9 +91,11 @@ export class RoleManagement implements OnInit {
         return this.privileges()
             .filter((privilege) => !assigned.has(privilege.name))
             .map((privilege) => ({
-                label: privilege.name,
+                label: privilegeLabel(privilege.name),
+                name: privilege.name,
                 value: privilege.id
-            }));
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
     });
 
     readonly canGoPreviousDetail = computed(() => this.detailIndex() > 0);
@@ -128,7 +134,10 @@ export class RoleManagement implements OnInit {
 
     ngOnInit(): void {
         this.loadRoles();
-        this.loadPrivileges();
+        // Les privilèges ne servent qu'à en ajouter : inutile de les charger en lecture seule.
+        if (this.canUpdateRoles()) {
+            this.loadPrivileges();
+        }
     }
 
     loadRoles(): void {

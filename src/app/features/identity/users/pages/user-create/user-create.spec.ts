@@ -4,6 +4,7 @@ import { Location } from '@angular/common';
 import { Router, provideRouter } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
+import { AcademicCatalogService } from '@/app/features/academic/academic.public-api';
 import { UsersService } from '../../services/user.service';
 import { UserCreate } from './user-create';
 
@@ -28,7 +29,14 @@ describe('UserCreate (equivalence partitioning + boundary value analysis)', () =
 
         await TestBed.configureTestingModule({
             imports: [UserCreate],
-            providers: [provideRouter([]), { provide: UsersService, useValue: usersService }]
+            providers: [
+                provideRouter([]),
+                { provide: UsersService, useValue: usersService },
+                {
+                    provide: AcademicCatalogService,
+                    useValue: { getFaculties: () => of([{ id: 'fac-1', name: 'Sciences', code: 'SCI' }]) }
+                }
+            ]
         }).compileComponents();
 
         router = TestBed.inject(Router);
@@ -122,7 +130,7 @@ describe('UserCreate (equivalence partitioning + boundary value analysis)', () =
                 })
             );
 
-            component.form.setValue({
+            component.form.patchValue({
                 username: 'new.user',
                 email: 'new.user@unh.edu',
                 profiles: ['profile-1']
@@ -146,6 +154,18 @@ describe('UserCreate (equivalence partitioning + boundary value analysis)', () =
             expect(component.submitting()).toBeFalse();
         });
 
+        it('should offer the faculties and send the chosen one', () => {
+            usersService.createUser.and.returnValue(
+                of({ id: 'u-2', username: 'saf.user', email: 'saf@unh.edu', profiles: ['profile-1'], created_at: '2026-10-21T08:00:00.000Z' })
+            );
+            expect(component.faculties()).toEqual([{ label: 'Sciences', value: 'fac-1' }]);
+
+            component.form.patchValue({ username: 'saf.user', email: 'saf@unh.edu', profiles: ['profile-1'], faculty_id: 'fac-1' });
+            component.submit();
+
+            expect(usersService.createUser).toHaveBeenCalledOnceWith(jasmine.objectContaining({ faculty_id: 'fac-1' }));
+        });
+
         it('should map 400 invalid_fields into validationErrors', () => {
             usersService.createUser.and.returnValue(
                 throwError(
@@ -160,7 +180,7 @@ describe('UserCreate (equivalence partitioning + boundary value analysis)', () =
                 )
             );
 
-            component.form.setValue({
+            component.form.patchValue({
                 username: 'new.user',
                 email: 'new.user@unh.edu',
                 profiles: ['profile-1']
@@ -176,7 +196,7 @@ describe('UserCreate (equivalence partitioning + boundary value analysis)', () =
                 throwError(() => new HttpErrorResponse({ status: 403, error: { detail: 'Forbidden' } }))
             );
 
-            component.form.setValue({
+            component.form.patchValue({
                 username: 'new.user',
                 email: 'new.user@unh.edu',
                 profiles: ['profile-1']
@@ -196,7 +216,7 @@ describe('UserCreate (equivalence partitioning + boundary value analysis)', () =
                 throwError(() => new HttpErrorResponse({ status: 409, error: {} }))
             );
 
-            component.form.setValue({
+            component.form.patchValue({
                 username: 'new.user',
                 email: 'new.user@unh.edu',
                 profiles: ['profile-1']
@@ -225,18 +245,19 @@ describe('UserCreate (equivalence partitioning + boundary value analysis)', () =
                 )
             );
 
-            component.form.setValue({
+            component.form.patchValue({
                 username: 'prof.gad',
                 email: 'gadnyz.research@gmail.com',
                 profiles: ['profile-1']
             });
             component.submit();
 
-            expect(component.validationErrors()['email']).toContain('déjà utilisée');
+            // Message volontairement générique : il ne confirme pas qu'un compte existe pour cet email.
+            expect(component.validationErrors()['email']).toBe('Un utilisateur avec ces informations existe déjà.');
             expect(messageService.add).toHaveBeenCalledWith(
                 jasmine.objectContaining({
                     severity: 'error',
-                    detail: jasmine.stringMatching(/e-mail est déjà associée/)
+                    detail: 'Un utilisateur avec ces informations existe déjà.'
                 })
             );
             expect(component.submitting()).toBeFalse();

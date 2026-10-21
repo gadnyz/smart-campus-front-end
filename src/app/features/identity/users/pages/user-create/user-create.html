@@ -74,6 +74,28 @@
                     <small class="text-red-500 block mt-1">{{ validationErrors()['profile_ids'] }}</small>
                     }
                 </div>
+
+                <div class="col-span-12">
+                    <label for="faculty" class="block text-sm text-color-secondary mb-1">Faculté (facultatif)</label>
+
+                    <p-select
+                        inputId="faculty"
+                        formControlName="faculty_id"
+                        [options]="faculties()"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Aucune faculté"
+                        appendTo="body"
+                        class="w-full"
+                        [filter]="true"
+                        [showClear]="true"
+                        [loading]="loadingFaculties()"
+                    />
+
+                    @if (validationErrors()['faculty_id']) {
+                    <small class="text-red-500 block mt-1">{{ validationErrors()['faculty_id'] }}</small>
+                    }
+                </div>
             </form>
         </div>
     </div>

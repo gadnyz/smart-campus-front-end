@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { AuthService } from '@/app/core/auth/services/auth.service';
 import { PermissionCheck, PermissionMode, PermissionValue } from './permission.model';
+import { PermissionScope, scopeRank, widestScope } from './permission-scope';
 
 @Injectable({
     providedIn: 'root'
@@ -30,6 +31,20 @@ export class PermissionService {
         }
 
         return permissions.every((permission) => this.hasPermission(permission));
+    }
+
+    /**
+     * Portée la plus large détenue pour une autorité sans portée (`academic:student:read`) :
+     * `all`, `faculty`, `program`, `promotion`, `own`, ou `null` si l'utilisateur ne l'a pas.
+     */
+    scopeOf(permission: PermissionValue): PermissionScope | null {
+        return widestScope(this.getCurrentPermissions(), permission);
+    }
+
+    /** Vrai si l'utilisateur détient `permission` à une portée au moins égale à `minimum`. */
+    hasScope(permission: PermissionValue, minimum: PermissionScope = 'own'): boolean {
+        const scope = this.scopeOf(permission);
+        return scope !== null && scopeRank(scope) >= scopeRank(minimum);
     }
 
     canAccess(check?: PermissionCheck): boolean {

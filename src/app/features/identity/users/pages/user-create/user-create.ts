@@ -8,15 +8,17 @@ import { ButtonModule } from 'primeng/button';
 import { FluidModule } from 'primeng/fluid';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
+import { AcademicCatalogService } from '@/app/features/academic/academic.public-api';
 import { RegisterRequest } from '../../models/user.model';
 import { UsersService } from '../../services/user.service';
 
 @Component({
     selector: 'app-user-create',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, FluidModule, InputTextModule, MultiSelectModule, ButtonModule, ToastModule, ContentSubtopbar],
+    imports: [CommonModule, ReactiveFormsModule, FluidModule, InputTextModule, MultiSelectModule, SelectModule, ButtonModule, ToastModule, ContentSubtopbar],
     templateUrl: './user-create.html',
     styleUrl: './user-create.scss',
     providers: [MessageService]
@@ -27,17 +29,22 @@ export class UserCreate implements OnInit {
     private readonly usersService = inject(UsersService);
     private readonly router = inject(Router);
     private readonly messageService = inject(MessageService);
+    private readonly catalog = inject(AcademicCatalogService);
 
     readonly submitting = signal(false);
     readonly loadingProfiles = signal(false);
     readonly validationErrors = signal<Record<string, string>>({});
 
     readonly profiles = signal<{ label: string; value: string }[]>([]);
+    readonly faculties = signal<{ label: string; value: string }[]>([]);
+    readonly loadingFaculties = signal(false);
 
     readonly form = this.fb.nonNullable.group({
         username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
         email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]],
-        profiles: [[] as string[], Validators.required]
+        profiles: [[] as string[], Validators.required],
+        /** Facultatif : ancre les privilèges `:faculty` des profils sans rattachement propre (SAF…). */
+        faculty_id: [null as string | null]
     });
 
     readonly actions = computed<SubtopbarAction[]>(() => [
@@ -61,6 +68,22 @@ export class UserCreate implements OnInit {
 
     ngOnInit(): void {
         this.loadProfiles();
+        this.loadFaculties();
+    }
+
+    private loadFaculties(): void {
+        this.loadingFaculties.set(true);
+        this.catalog.getFaculties().subscribe({
+            next: (faculties) => {
+                this.faculties.set(faculties.map((faculty) => ({ label: faculty.name, value: faculty.id })));
+                this.loadingFaculties.set(false);
+            },
+            error: () => {
+                // Le champ est facultatif : la création reste possible sans la liste.
+                this.faculties.set([]);
+                this.loadingFaculties.set(false);
+            }
+        });
     }
 
     loadProfiles(): void {
@@ -115,7 +138,7 @@ export class UserCreate implements OnInit {
             username: raw.username,
             email: raw.email,
             profiles: raw.profiles,
-            faculty_id: null
+            faculty_id: raw.faculty_id ?? null
         };
 
         this.submitting.set(true);

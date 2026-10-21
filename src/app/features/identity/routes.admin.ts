@@ -7,14 +7,17 @@ import { ProfileManagement } from './pages/profile-management/profile-management
 import { permissionGuard } from '@/app/core/permissions/permission.guard';
 import { IdentityPermission } from './permissions/permission.model';
 
-/** Admin Identity screens mounted under /settings/identity. */
+/**
+ * Admin Identity screens mounted under /settings/identity.
+ * Consulter suffit d'une autorité `read:all` ; les actions de chaque écran exigent create, update ou delete.
+ */
 export const identityAdminRoutes: Routes = [
     {
         path: 'users',
         component: UserManagement,
         canActivate: [permissionGuard],
         data: {
-            permissions: [IdentityPermission.UserUpdateAll],
+            permissions: [IdentityPermission.UserReadAll, IdentityPermission.UserUpdateAll],
             mode: 'any'
         }
     },
@@ -32,7 +35,7 @@ export const identityAdminRoutes: Routes = [
         component: UserDetail,
         canActivate: [permissionGuard],
         data: {
-            permissions: [IdentityPermission.UserUpdateAll],
+            permissions: [IdentityPermission.UserReadAll, IdentityPermission.UserUpdateAll],
             mode: 'any'
         }
     },
@@ -41,7 +44,7 @@ export const identityAdminRoutes: Routes = [
         component: RoleManagement,
         canActivate: [permissionGuard],
         data: {
-            permissions: [IdentityPermission.RoleUpdateAll],
+            permissions: [IdentityPermission.RoleReadAll, IdentityPermission.RoleUpdateAll],
             mode: 'any'
         }
     },
@@ -50,7 +53,7 @@ export const identityAdminRoutes: Routes = [
         component: ProfileManagement,
         canActivate: [permissionGuard],
         data: {
-            permissions: [IdentityPermission.ProfileUpdateAll],
+            permissions: [IdentityPermission.ProfileReadAll, IdentityPermission.ProfileUpdateAll],
             mode: 'any'
         }
     },

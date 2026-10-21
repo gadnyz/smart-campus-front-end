@@ -18,7 +18,8 @@ export interface RegisterRequest {
     username: string;
     email: string;
     profiles: string[];
-    faculty_id: null;
+    /** Faculté de rattachement, facultative : elle ancre les privilèges `:faculty` des profils sans rattachement propre. */
+    faculty_id?: string | null;
 }
 
 export interface RegisterResponse {
@@ -27,6 +28,12 @@ export interface RegisterResponse {
     email: string;
     profiles: string[];
     created_at: string;
+}
+
+/** `PUT /users/me` : l'utilisateur ne modifie que son nom d'utilisateur et son email. */
+export interface UpdateOwnProfileRequest {
+    username: string;
+    email: string;
 }
 
 export interface UpdateUserRequest {

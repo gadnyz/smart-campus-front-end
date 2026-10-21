@@ -45,6 +45,29 @@
                     <small class="text-red-500 block mt-1">{{ validationErrors()['email'] }}</small>
                     }
                 </div>
+
+                <div class="col-span-12 md:col-span-6">
+                    <label for="faculty" class="block text-sm text-color-secondary mb-1">Faculté</label>
+                    @if (editing()) {
+                    <p-select
+                        inputId="faculty"
+                        formControlName="faculty_id"
+                        [options]="faculties()"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Aucune faculté"
+                        appendTo="body"
+                        class="w-full"
+                        [filter]="true"
+                        [showClear]="true"
+                    />
+                    } @else {
+                    <input pInputText id="faculty" class="w-full" readonly [value]="facultyName() ?? (currentUser.faculty_id ? '—' : 'Aucune')" />
+                    }
+                    @if (validationErrors()['faculty_id']) {
+                    <small class="text-red-500 block mt-1">{{ validationErrors()['faculty_id'] }}</small>
+                    }
+                </div>
             </form>
 
             @if (editing()) {

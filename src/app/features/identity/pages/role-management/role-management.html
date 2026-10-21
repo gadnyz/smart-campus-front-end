@@ -46,15 +46,7 @@
             <tr>
                 <td>{{ role.name }}</td>
                 <td>
-                    @if (role.privileges.length) {
-                    <div class="flex flex-wrap gap-1">
-                        @for (privilege of role.privileges; track privilege) {
-                        <p-tag [value]="privilege" severity="info" />
-                        }
-                    </div>
-                    } @else {
-                    <span class="text-color-secondary">Aucun</span>
-                    }
+                    <app-privilege-groups [privileges]="role.privileges" />
                 </td>
                
                 <td>
@@ -155,15 +147,7 @@
 
         <div>
             <div class="font-semibold mb-2">Privilèges assignés</div>
-            @if (role.privileges.length) {
-            <div class="flex flex-wrap gap-1">
-                @for (privilege of role.privileges; track privilege) {
-                <p-tag [value]="privilege" severity="info" />
-                }
-            </div>
-            } @else {
-            <span class="text-color-secondary">Aucun privilège assigné.</span>
-            }
+            <app-privilege-groups [privileges]="role.privileges" emptyLabel="Aucun privilège assigné." />
         </div>
 
         @if (canUpdateRoles()) {
@@ -179,6 +163,7 @@
                 appendTo="body"
                 class="w-full"
                 [filter]="true"
+                filterBy="label,name"
                 [loading]="loadingPrivileges()"
                 [ngModel]="selectedPrivilegeIds()"
                 (ngModelChange)="selectedPrivilegeIds.set($event)"

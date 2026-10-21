@@ -17,6 +17,7 @@ import {
 } from '@/app/shared/navigation/detail-navigation.service';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { PermissionService } from '@/app/core/permissions/permission.service';
+import { AcademicCatalogService } from '@/app/features/academic/academic.public-api';
 import { IdentityPermission } from '../../../permissions/permission.model';
 import { PrivilegeResponse } from '../../../models/identity-management.model';
 import { IdentityManagementService } from '../../../services/identity-management.service';
@@ -58,12 +59,14 @@ export class UserDetail implements OnInit {
     private readonly confirmationService = inject(ConfirmationService);
     private readonly permissionService = inject(PermissionService);
     private readonly fb = inject(FormBuilder);
+    private readonly catalog = inject(AcademicCatalogService);
 
     private readonly navigationScope = 'identity.users';
 
     readonly user = signal<User | null>(null);
     readonly allProfiles = signal<UserProfileResponse[]>([]);
     readonly allPrivileges = signal<PrivilegeResponse[]>([]);
+    readonly faculties = signal<{ label: string; value: string }[]>([]);
     readonly loading = signal(false);
     readonly loadingPrivileges = signal(false);
     readonly saving = signal(false);
@@ -86,9 +89,18 @@ export class UserDetail implements OnInit {
         this.permissionService.hasAnyPermission([IdentityPermission.UserDeleteAll])
     );
 
+    /** Accorder un privilège exige aussi d'en lire la liste. */
     readonly canManagePrivileges = computed(() =>
-        this.permissionService.hasAnyPermission([IdentityPermission.UserUpdateAll])
+        this.permissionService.hasAllPermissions([IdentityPermission.UserUpdateAll, IdentityPermission.PrivilegeReadAll])
     );
+
+    readonly facultyName = computed(() => {
+        const facultyId = this.user()?.faculty_id;
+        if (!facultyId) {
+            return null;
+        }
+        return this.faculties().find((faculty) => faculty.value === facultyId)?.label ?? null;
+    });
 
     readonly profileNameToId = computed(() => {
         const map = new Map<string, string>();
@@ -137,7 +149,9 @@ export class UserDetail implements OnInit {
 
     readonly form = this.fb.nonNullable.group({
         username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30), Validators.pattern(/^[a-zA-Z][a-zA-Z0-9._-]{2,29}$/)]],
-        email: ['', [Validators.required, Validators.email]]
+        email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$/)]],
+        /** Facultatif. Toujours renvoyé : le backend remplace `faculty_id` à chaque modification. */
+        faculty_id: [null as string | null]
     });
 
     readonly actions = computed<SubtopbarAction[]>(() => [
@@ -178,7 +192,10 @@ export class UserDetail implements OnInit {
     ngOnInit(): void {
         this.form.disable();
         this.loadProfiles();
-        this.loadPrivileges();
+        this.loadFaculties();
+        if (this.canManagePrivileges()) {
+            this.loadPrivileges();
+        }
 
         this.route.paramMap.subscribe((params) => {
             const userId = params.get('id');
@@ -194,6 +211,13 @@ export class UserDetail implements OnInit {
         this.usersService.getProfiles({ page: 0, size: 200, sort: ['name,asc'] }).subscribe({
             next: (response) => this.allProfiles.set(response.content),
             error: () => this.allProfiles.set([])
+        });
+    }
+
+    private loadFaculties(): void {
+        this.catalog.getFaculties().subscribe({
+            next: (faculties) => this.faculties.set(faculties.map((faculty) => ({ label: faculty.name, value: faculty.id }))),
+            error: () => this.faculties.set([])
         });
     }
 
@@ -254,7 +278,8 @@ export class UserDetail implements OnInit {
             this.editing.set(false);
             this.form.reset({
                 username: currentUser.username,
-                email: currentUser.email
+                email: currentUser.email,
+                faculty_id: currentUser.faculty_id ?? null
             });
             this.form.disable();
             return;
@@ -272,7 +297,8 @@ export class UserDetail implements OnInit {
             return;
         }
 
-        const payload: UpdateUserRequest = this.form.getRawValue();
+        const raw = this.form.getRawValue();
+        const payload: UpdateUserRequest = { username: raw.username, email: raw.email, faculty_id: raw.faculty_id ?? null };
         this.saving.set(true);
         this.validationErrors.set({});
 
@@ -558,7 +584,8 @@ export class UserDetail implements OnInit {
         this.user.set(user);
         this.form.reset({
             username: user.username,
-            email: user.email
+            email: user.email,
+            faculty_id: user.faculty_id ?? null
         });
 
         if (!this.editing()) {

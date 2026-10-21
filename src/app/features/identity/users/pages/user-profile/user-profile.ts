@@ -11,13 +11,15 @@ import { TagModule } from 'primeng/tag';
 import { FileSelectEvent } from 'primeng/types/fileupload';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { AuthService } from '@/app/core/auth/services/auth.service';
-import { UpdateUserRequest, User } from '../../models/user.model';
+import { UpdateOwnProfileRequest, User } from '../../models/user.model';
 import { UsersService } from '../../services/user.service';
 import { ElementRef } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { PasswordModule } from 'primeng/password';
 import { getUserInitial, resolveAvatarUrl } from '@/app/shared/utils/avatar-url';
+import { PermissionService } from '@/app/core/permissions/permission.service';
+import { IdentityPermission } from '../../../permissions/permission.model';
 
 @Component({
     selector: 'app-user-profile',
@@ -36,7 +38,8 @@ export class UserProfile implements OnInit, OnDestroy {
     private readonly fb = inject(FormBuilder);
     private readonly authService = inject(AuthService);
     private readonly usersService = inject(UsersService);
-    readonly removingAvatar = signal(false);
+    /** Sans `identity:user:update:own`, le profil reste en lecture seule. */
+    readonly canEdit = inject(PermissionService).hasPermission(IdentityPermission.UserUpdateOwn);
     private avatarPreviewObjectUrl: string | null = null;
     readonly passwordSaving = signal(false);
 
@@ -51,7 +54,7 @@ export class UserProfile implements OnInit, OnDestroy {
 
     readonly form = this.fb.nonNullable.group({
         username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30), Validators.pattern(/^[a-zA-Z][a-zA-Z0-9._-]{2,29}$/)]],
-        email: ['', [Validators.required, Validators.email]]
+        email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$/)]]
     });
 
     readonly avatarImageUrl = computed(() => {
@@ -86,13 +89,17 @@ export class UserProfile implements OnInit, OnDestroy {
             outlined: true,
             command: () => this.goBack()
         },
-        {
-            label: this.editing() ? 'Annuler' : 'Modifier',
-            icon: this.editing() ? 'pi pi-times' : 'pi pi-pencil',
-            severity: this.editing() ? 'secondary' : 'info',
-            outlined: this.editing(),
-            command: () => this.toggleEdit()
-        }
+        ...(this.canEdit
+            ? [
+                  {
+                      label: this.editing() ? 'Annuler' : 'Modifier',
+                      icon: this.editing() ? 'pi pi-times' : 'pi pi-pencil',
+                      severity: this.editing() ? ('secondary' as const) : ('info' as const),
+                      outlined: this.editing(),
+                      command: () => this.toggleEdit()
+                  }
+              ]
+            : [])
     ]);
 
     readonly passwordForm = this.fb.nonNullable.group({
@@ -128,16 +135,9 @@ export class UserProfile implements OnInit, OnDestroy {
     }
 
     loadCurrentUser(): void {
-        const sessionUser = this.authService.getCurrentUser();
-
-        if (!sessionUser?.id) {
-            this.showSuccess('Session utilisateur introuvable. Reconnecte-toi pour charger ton profil.');
-            return;
-        }
-
         this.loading.set(true);
 
-        this.usersService.getUserById(sessionUser.id).subscribe({
+        this.usersService.getMe().subscribe({
             next: (user) => {
                 this.setLoadedUser(user);
                 this.authService.updateCurrentUser(user);
@@ -207,7 +207,7 @@ export class UserProfile implements OnInit, OnDestroy {
     toggleEdit(): void {
         const currentUser = this.user();
 
-        if (!currentUser) {
+        if (!currentUser || !this.canEdit) {
             return;
         }
 
@@ -266,39 +266,10 @@ export class UserProfile implements OnInit, OnDestroy {
         input.value = '';
     }
 
-    removeAvatar(): void {
-        const currentUser = this.user();
-
-        if (!currentUser || this.removingAvatar()) {
-            return;
-        }
-
-        this.removingAvatar.set(true);
-
-        this.usersService.deleteCurrentUserAvatar().subscribe({
-            next: () => {
-                const updatedUser = {
-                    ...currentUser,
-                    avatar_url: null
-                };
-
-                this.setLoadedUser(updatedUser);
-                this.authService.updateCurrentUser(updatedUser);
-                this.clearAvatarSelection();
-                this.showSuccess('Photo de profil supprimée avec succès.');
-                this.removingAvatar.set(false);
-            },
-            error: (error: HttpErrorResponse) => {
-                this.showError(error.error?.detail ?? 'Impossible de supprimer la photo de profil.');
-                this.removingAvatar.set(false);
-            }
-        });
-    }
-
     save(): void {
         const currentUser = this.user();
 
-        if (!currentUser) {
+        if (!currentUser || !this.canEdit) {
             return;
         }
 
@@ -309,14 +280,14 @@ export class UserProfile implements OnInit, OnDestroy {
             return;
         }
 
-        const payload: UpdateUserRequest = this.form.getRawValue();
+        const payload: UpdateOwnProfileRequest = this.form.getRawValue();
         const avatarFile = this.selectedAvatarFile();
         const usernameChanged = payload.username !== currentUser.username;
 
         this.saving.set(true);
 
         this.usersService
-            .updateUser(currentUser.id, payload)
+            .updateMe(payload)
             .pipe(
                 switchMap((updatedUser) => {
                     if (!avatarFile) {

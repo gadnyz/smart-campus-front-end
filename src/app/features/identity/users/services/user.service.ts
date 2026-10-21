@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@/environments/environment';
-import { AvatarUploadUrlResponse, ChangeOwnPasswordRequest, ConfirmAvatarRequest, ConfirmAvatarResponse, RegisterRequest, RegisterResponse, UpdateUserRequest, User, UserProfileResponse } from '../models/user.model';
+import { AvatarUploadUrlResponse, ChangeOwnPasswordRequest, ConfirmAvatarRequest, ConfirmAvatarResponse, RegisterRequest, RegisterResponse, UpdateOwnProfileRequest, UpdateUserRequest, User, UserProfileResponse } from '../models/user.model';
 
 export interface PageableQuery {
     page?: number;
@@ -65,6 +65,16 @@ export class UsersService {
         return this.http.get<PagedResponse<UserProfileResponse>>(this.profilesUrl, { params });
     }
 
+    /** Compte de l'utilisateur connecté, quel que soit son profil (`identity:user:read:own`). */
+    getMe(): Observable<User> {
+        return this.http.get<User>(`${this.baseUrl}/me`);
+    }
+
+    /** Modifie son propre compte : `PUT /users/{id}` est réservé aux administrateurs. */
+    updateMe(payload: UpdateOwnProfileRequest): Observable<User> {
+        return this.http.put<User>(`${this.baseUrl}/me`, payload);
+    }
+
     getUserById(userId: string): Observable<User> {
         return this.http.get<User>(`${this.baseUrl}/${userId}`);
     }
@@ -125,15 +135,7 @@ export class UsersService {
         return this.http.post<ConfirmAvatarResponse>(`${this.baseUrl}/me/avatar/confirm`, payload);
     }
 
-    deleteCurrentUserAvatar(): Observable<void> {
-        return this.http.delete<void>(`${this.baseUrl}/me/avatar`);
-    }
-
     changeCurrentUserPassword(payload: ChangeOwnPasswordRequest): Observable<void> {
-    return this.http.put<void>(
-        `${this.baseUrl}/me/password`,
-        payload
-    );
-}
-
+        return this.http.put<void>(`${this.baseUrl}/me/password`, payload);
+    }
 }

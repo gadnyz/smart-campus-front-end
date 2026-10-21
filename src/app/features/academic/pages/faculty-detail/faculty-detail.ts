@@ -224,7 +224,8 @@ export class FacultyDetailPage implements OnInit {
 
         this.loading.set(true);
 
-        this.usersService.getUserById(session.id).subscribe({
+        // `/users/me` : `/users/{id}` est réservé aux administrateurs.
+        this.usersService.getMe().subscribe({
             next: (user) => this.resolveOwnFaculty(session.id, user.faculty_id ?? session.faculty_id),
             error: () => this.resolveOwnFaculty(session.id, session.faculty_id)
         });

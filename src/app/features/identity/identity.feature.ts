@@ -18,10 +18,12 @@ export const identityFeature: AppFeature = {
         order: 20,
         routerLink: ['/settings/identity/users'],
         permissions: [
+            IdentityPermission.UserReadAll,
             IdentityPermission.UserUpdateAll,
+            IdentityPermission.ProfileReadAll,
             IdentityPermission.ProfileUpdateAll,
-            IdentityPermission.RoleUpdateAll,
-            IdentityPermission.PrivilegeReadAll
+            IdentityPermission.RoleReadAll,
+            IdentityPermission.RoleUpdateAll
         ],
         mode: 'any',
         items: [
@@ -29,21 +31,24 @@ export const identityFeature: AppFeature = {
                 label: 'Utilisateurs',
                 icon: 'pi pi-users',
                 routerLink: ['/settings/identity/users'],
-                permissions: [IdentityPermission.UserUpdateAll],
+                permissions: [IdentityPermission.UserReadAll, IdentityPermission.UserUpdateAll],
+                mode: 'any',
                 order: 10
             },
             {
                 label: 'Profils métier',
                 icon: 'pi pi-id-card',
                 routerLink: ['/settings/identity/business-profiles'],
-                permissions: [IdentityPermission.ProfileUpdateAll],
+                permissions: [IdentityPermission.ProfileReadAll, IdentityPermission.ProfileUpdateAll],
+                mode: 'any',
                 order: 20
             },
             {
                 label: 'Rôles',
                 icon: 'pi pi-shield',
                 routerLink: ['/settings/identity/roles'],
-                permissions: [IdentityPermission.RoleUpdateAll],
+                permissions: [IdentityPermission.RoleReadAll, IdentityPermission.RoleUpdateAll],
+                mode: 'any',
                 order: 30
             }
         ]

@@ -164,4 +164,26 @@ describe('PermissionService', () => {
             ).toBeTrue();
         });
     });
+
+    describe('scopes', () => {
+        it('should return the widest scope held for a permission', () => {
+            authService.getCurrentUser.and.returnValue(
+                userWith(['academic:student:read:own', 'academic:student:read:faculty', 'academic:course:read:promotion'])
+            );
+
+            expect(service.scopeOf('academic:student:read')).toBe('faculty');
+            expect(service.scopeOf('academic:course:read')).toBe('promotion');
+            expect(service.scopeOf('academic:student:update')).toBeNull();
+        });
+
+        it('should compare scopes from own up to all', () => {
+            authService.getCurrentUser.and.returnValue(userWith(['scheduling:timetable:read:program']));
+
+            expect(service.hasScope('scheduling:timetable:read')).toBeTrue();
+            expect(service.hasScope('scheduling:timetable:read', 'promotion')).toBeTrue();
+            expect(service.hasScope('scheduling:timetable:read', 'program')).toBeTrue();
+            expect(service.hasScope('scheduling:timetable:read', 'faculty')).toBeFalse();
+            expect(service.hasScope('scheduling:timetable:create')).toBeFalse();
+        });
+    });
 });

@@ -131,7 +131,10 @@ export class ProfileManagement implements OnInit {
 
     ngOnInit(): void {
         this.loadProfiles();
-        this.loadRoles();
+        // Les rôles ne servent qu'à en ajouter : inutile de les charger en lecture seule.
+        if (this.canUpdate()) {
+            this.loadRoles();
+        }
     }
 
     loadProfiles(): void {
