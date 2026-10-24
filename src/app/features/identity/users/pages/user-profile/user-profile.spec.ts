@@ -59,6 +59,19 @@ describe('UserProfile', () => {
         expect(component.user()).toEqual(me);
     });
 
+    it('should keep the login authorities, which include those of a SAF mandate', () => {
+        const saf = { ...me, authorities: [...me.authorities, 'academic:student:read:faculty'] };
+        usersService = jasmine.createSpyObj<UsersService>('UsersService', ['getMe']);
+        setup([IdentityPermission.UserReadOwn]);
+        authService.getCurrentUser.and.returnValue(saf);
+        authService.updateCurrentUser.calls.reset();
+
+        component.loadCurrentUser();
+
+        // `/users/me` ne renvoie que les autorités des profils : la session ne doit pas les perdre.
+        expect(authService.updateCurrentUser).toHaveBeenCalledWith(jasmine.objectContaining({ authorities: saf.authorities }));
+    });
+
     it('should save username and email through PUT /users/me', () => {
         setup([IdentityPermission.UserReadOwn, IdentityPermission.UserUpdateOwn]);
         usersService.updateMe.and.returnValue(of({ ...me, email: 'nouveau@unh.edu' }));

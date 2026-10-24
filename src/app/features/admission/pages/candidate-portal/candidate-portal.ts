@@ -29,7 +29,6 @@ import {
     UpdateOwnCandidatureRequest
 } from '../../models/candidate.model';
 
-import { AuthService } from '@/app/core/auth/services/auth.service';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { AcademicPermission } from '@/app/features/academic/permissions/permission.model';
 
@@ -77,7 +76,6 @@ export class CandidatePortal implements OnInit {
     private readonly academicRefs = inject(AdmissionAcademicReferenceService);
     private readonly messageService = inject(MessageService);
 
-    private readonly authService = inject(AuthService);
     private readonly permissionService = inject(PermissionService);
 
     readonly studentPlaceholder = signal(false);
@@ -326,15 +324,7 @@ export class CandidatePortal implements OnInit {
             return;
         }
 
-        const userId = this.authService.getCurrentUser()?.id;
-
-        if (!userId) {
-            this.loading.set(false);
-            this.notFound.set(true);
-            return;
-        }
-
-        this.candidateService.getByUserId(userId, true).subscribe({
+        this.candidateService.getMine(true).subscribe({
             next: (c) => {
                 if (c.candidature.status === 'VALIDATED') {
                     this.studentPlaceholder.set(true);
@@ -567,7 +557,7 @@ export class CandidatePortal implements OnInit {
 
         forkJoin(
             documents.map((document) =>
-                this.candidateService.resolveDocumentViewUrl(candidate.id, document).pipe(
+                this.candidateService.resolveOwnDocumentViewUrl(document).pipe(
                     map((url) => ({ id: document.id, url })),
                     catchError(() => of({ id: document.id, url: '' }))
                 )
@@ -592,7 +582,7 @@ export class CandidatePortal implements OnInit {
 
         this.documentViewUrlRefreshAttempts.set(document.id, attempts + 1);
 
-        return this.candidateService.resolveDocumentViewUrl(candidateId, document).pipe(
+        return this.candidateService.resolveOwnDocumentViewUrl(document).pipe(
             tap((url) => {
                 this.documentViewUrls.update((current) => ({
                     ...current,

@@ -5,7 +5,7 @@ import {
 } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
-import { Observable, forkJoin, of, throwError } from 'rxjs';
+import { Observable, forkJoin, of } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { PUBLIC_API_REQUEST } from '@/app/core/auth/interceptors/public-api.context';
@@ -27,7 +27,6 @@ import {
     SubmitCandidatureRequest,
     UpdateOwnCandidatureRequest
 } from '../models/candidate.model';
-import { AuthService } from '@/app/core/auth/services/auth.service';
 
 type CandidateDocumentApi = Omit<CandidateDocument, 'document_type'> & {
     document_type?: CandidateDocumentType;
@@ -65,7 +64,6 @@ export class CandidateService {
     private readonly detailCache =
         new Map<string, CandidateResponse>();
 
-    private readonly authService = inject(AuthService);
 
     getAll(
         query: CandidateQuery = {}
@@ -374,37 +372,33 @@ export class CandidateService {
         };
     }
 
-    getByUserId(
-        userId: string,
-        force = false
-    ): Observable<CandidateResponse> {
-        const cacheKey = `user:${userId}`;
-        const cached = this.detailCache.get(cacheKey);
+    /**
+     * Dossier du candidat connecté (`GET /candidates/me`, `admission:candidate:read:own`) :
+     * `GET /candidates/{id}` est réservé au personnel.
+     */
+    getMine(force = false): Observable<CandidateResponse> {
+        const cached = this.detailCache.get('me');
 
         if (cached && !force) {
             return of(cached);
         }
 
         return this.http
-            .get<CandidateResponseApi>(`${this.baseUrl}/users/${userId}`)
+            .get<CandidateResponseApi>(`${this.baseUrl}/me`)
             .pipe(
                 map((c) => this.normalizeCandidate(c)),
                 tap((c) => {
                     this.detailCache.set(c.id, c);
-                    this.detailCache.set(cacheKey, c);
                     this.detailCache.set('me', c);
                 })
             );
     }
 
-    getMine(force = false): Observable<CandidateResponse> {
-        const userId = this.authService.getCurrentUser()?.id;
-
-        if (!userId) {
-            return throwError(() => new Error('Utilisateur non authentifié.'));
-        }
-
-        return this.getByUserId(userId, force);
+    /** URL de lecture fraîche d'un document du candidat connecté. */
+    resolveOwnDocumentViewUrl(document: Pick<CandidateDocument, 'id'>): Observable<string> {
+        return this.http
+            .get<DocumentDownloadUrlResponse>(`${this.baseUrl}/me/documents/${document.id}/download-url`)
+            .pipe(map((response) => response.file_url));
     }
 
     /** Éditable tant que le dossier n’est ni validé ni rejeté. */
@@ -421,10 +415,6 @@ export class CandidateService {
                 tap((c) => {
                     this.detailCache.set(c.id, c);
                     this.detailCache.set('me', c);
-                    const userId = this.authService.getCurrentUser()?.id;
-                    if (userId) {
-                        this.detailCache.set(`user:${userId}`, c);
-                    }
                 })
             );
     }

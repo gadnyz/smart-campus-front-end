@@ -140,7 +140,7 @@ export class UserProfile implements OnInit, OnDestroy {
         this.usersService.getMe().subscribe({
             next: (user) => {
                 this.setLoadedUser(user);
-                this.authService.updateCurrentUser(user);
+                this.syncSession(user);
                 this.loading.set(false);
             },
             error: (error: HttpErrorResponse) => {
@@ -305,7 +305,7 @@ export class UserProfile implements OnInit, OnDestroy {
             .subscribe({
                 next: (updatedUser) => {
                     this.setLoadedUser(updatedUser);
-                    this.authService.updateCurrentUser(updatedUser);
+                    this.syncSession(updatedUser);
 
                     this.editing.set(false);
                     this.form.disable();
@@ -401,6 +401,15 @@ export class UserProfile implements OnInit, OnDestroy {
         }
 
         void this.router.navigate(['/']);
+    }
+
+    /**
+     * Met à jour la session sans toucher à ses autorités : `/users/me` ne renvoie que celles des
+     * profils, pas celles des mandats (SAF, doyen…) que le contexte de connexion ajoute.
+     */
+    private syncSession(user: User): void {
+        const session = this.authService.getCurrentUser();
+        this.authService.updateCurrentUser({ ...user, authorities: session?.authorities ?? user.authorities });
     }
 
     private setLoadedUser(user: User): void {
