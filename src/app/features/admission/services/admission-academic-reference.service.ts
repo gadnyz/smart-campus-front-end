@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, forkJoin, map, of } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { AcademicCatalogService, AcademicReference, LevelReference, ProgramReference } from '@/app/features/academic/academic.public-api';
 import { CandidateResponse } from '../models/candidate.model';
 
@@ -47,13 +47,25 @@ export class AdmissionAcademicReferenceService {
 
     resolveCandidateLabels(candidate: CandidateResponse): Observable<CandidateAcademicLabels> {
         return forkJoin({
-            academicYear: this.academicCatalogService.getAcademicYearById(candidate.academic_year_id).pipe(catchError(() => of(null))),
+            // La liste des années exige academic-year:read:all, qu'un candidat n'a pas : repli sur l'année en cours (route ouverte).
+            academicYear: this.academicCatalogService.getAcademicYearById(candidate.academic_year_id).pipe(
+                catchError(() => of(null)),
+                switchMap((year) =>
+                    year
+                        ? of(year)
+                        : this.academicCatalogService.getCurrentAcademicYear().pipe(
+                              map((current) => (current.id === candidate.academic_year_id ? current : null)),
+                              catchError(() => of(null))
+                          )
+                )
+            ),
             faculty: this.academicCatalogService.getFacultyById(candidate.faculty_id).pipe(catchError(() => of(null))),
             program: this.academicCatalogService.getProgramById(candidate.program_id).pipe(catchError(() => of(null))),
             level: this.academicCatalogService.getLevelById(candidate.level_id).pipe(catchError(() => of(null)))
         }).pipe(
             map(({ academicYear, faculty, program, level }) => ({
-                academicYearLabel: academicYear?.label ?? candidate.academic_year_id,
+                // Jamais l'identifiant brut : à défaut de libellé, rien.
+                academicYearLabel: academicYear?.label ?? '',
                 facultyLabel: this.labelOf(faculty, candidate.faculty_id),
                 programLabel: this.labelOf(program, candidate.program_id),
                 levelLabel: this.labelOf(level, candidate.level_id)

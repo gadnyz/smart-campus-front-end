@@ -36,11 +36,54 @@ import { AdmissionAcademicReferenceService, SelectOption } from '../../services/
 import { CandidateService } from '../../services/candidate.service';
 import {
     candidateStatusSeverity,
-    formatCandidateDateTime,
+    formatCandidateDate,
+    formatCandidateGender,
+    formatCandidatureType,
+    formatMaritalStatus,
     formatCandidateDocumentType,
     formatCandidatureStatus,
     resolveCandidateDocumentKind
 } from '../../utils/candidate-format';
+
+/** Une rubrique du dossier en lecture : des paires libellé / valeur. */
+export interface PortalSection {
+    id: string;
+    title: string;
+    icon: string;
+    groups: { title?: string; fields: { label: string; value: string; wide?: boolean }[] }[];
+}
+
+const FIELD_LABELS: Record<string, string> = {
+    faculty_id: 'Faculté',
+    program_id: 'Filière',
+    level_id: 'Promotion',
+    first_name: 'Prénom',
+    last_name: 'Nom',
+    middle_name: 'Post-nom',
+    gender: 'Genre',
+    birth_date: 'Date de naissance',
+    birth_place: 'Lieu de naissance',
+    marital_status: 'État civil',
+    nationality: 'Nationalité',
+    phone: 'Téléphone',
+    province: 'Province',
+    territory: 'Territoire',
+    sector: 'Secteur',
+    commune: 'Village / Commune',
+    tutor_full_name: 'Nom du tuteur',
+    tutor_email: 'Email du tuteur',
+    tutor_phone: 'Téléphone du tuteur',
+    emergency_full_name: 'Contact d’urgence',
+    emergency_email: 'Email d’urgence',
+    emergency_phone: 'Téléphone d’urgence',
+    school_name: 'École',
+    option: 'Option',
+    percentage: 'Pourcentage',
+    graduation_year: 'Année d’obtention',
+    study_country: 'Pays d’étude',
+    study_city: 'Ville d’étude',
+    candidature_type: 'Type de candidature'
+};
 
 type DocDraft = {
     type: CandidateDocumentType;
@@ -99,10 +142,6 @@ export class CandidatePortal implements OnInit {
         levelLabel: '',
         academicYearLabel: ''
     });
-
-    readonly missingDocumentsLabel = computed(() =>
-        this.missingDocumentTypes().map((type) => this.documentLabel(type)).join(', ')
-    );
 
     openDocumentPicker(type: CandidateDocumentType): void {
         document.getElementById(`portal_doc_${type}`)?.click();
@@ -182,10 +221,6 @@ export class CandidatePortal implements OnInit {
         }
     });
 
-    readonly lastUpdatedLabel = computed(() =>
-        formatCandidateDateTime(this.candidate()?.updated_at)
-    );
-
     readonly missingDocumentTypes = computed(() => {
         const present = new Set(
             (this.candidate()?.documents ?? []).map((d) => d.document_type)
@@ -224,6 +259,143 @@ export class CandidatePortal implements OnInit {
                 loading: this.saving(),
                 disabled: this.saving(),
                 command: () => this.save()
+            }
+        ];
+    });
+
+    readonly fullName = computed(() => {
+        const c = this.candidate();
+        return c ? [c.first_name, c.middle_name, c.last_name].filter(Boolean).join(' ') : '';
+    });
+
+    readonly initials = computed(() => {
+        const c = this.candidate();
+        return c ? `${c.first_name?.[0] ?? ''}${c.last_name?.[0] ?? ''}`.toUpperCase() : '';
+    });
+
+    readonly photoUrl = computed(() => {
+        const photo = this.candidate()?.documents?.find((document) => document.document_type === 'PHOTO');
+        return photo ? (this.documentViewUrls()[photo.id] ?? '') : '';
+    });
+
+    /** Pièces obligatoires : fournie ou manquante. */
+    readonly requiredDocuments = computed(() => {
+        const documents = this.candidate()?.documents ?? [];
+        return this.pendingDocs().map((draft) => ({
+            type: draft.type,
+            label: draft.label,
+            document: documents.find((document) => document.document_type === draft.type) ?? null
+        }));
+    });
+
+    readonly hasPendingFiles = computed(() => this.pendingDocs().some((draft) => draft.file));
+
+    readonly completion = computed(() => {
+        const required = this.requiredDocuments();
+        const provided = required.filter((item) => item.document).length;
+        return { provided, total: required.length, percent: required.length ? Math.round((provided / required.length) * 100) : 100 };
+    });
+
+    readonly sections = computed<PortalSection[]>(() => {
+        const c = this.candidate();
+        if (!c) {
+            return [];
+        }
+        const labels = this.academicLabels();
+        const text = (value: unknown) => (value === null || value === undefined || value === '' ? '—' : String(value));
+        const school = c.academic_background;
+        return [
+            {
+                id: 'identity',
+                title: 'Identité',
+                icon: 'pi pi-user',
+                groups: [
+                    {
+                        title: 'Informations générales',
+                        fields: [
+                            { label: 'Nom', value: text(c.last_name) },
+                            { label: 'Post-nom', value: text(c.middle_name) },
+                            { label: 'Prénom', value: text(c.first_name) },
+                            { label: 'Genre', value: text(c.gender && formatCandidateGender(c.gender)) },
+                            { label: 'Date de naissance', value: text(formatCandidateDate(c.birth_date)) },
+                            { label: 'Lieu de naissance', value: text(c.birth_place) },
+                            { label: 'État civil', value: text(c.marital_status && formatMaritalStatus(c.marital_status)) },
+                            { label: 'Nationalité', value: text(c.nationality) }
+                        ]
+                    },
+                    {
+                        title: 'Coordonnées',
+                        fields: [
+                            { label: 'Email', value: text(c.email) },
+                            { label: 'Téléphone', value: text(c.phone) }
+                        ]
+                    },
+                    {
+                        title: 'Origine',
+                        fields: [
+                            { label: 'Province', value: text(c.origin?.province) },
+                            { label: 'Territoire', value: text(c.origin?.territory) },
+                            { label: 'Secteur', value: text(c.origin?.sector) },
+                            { label: 'Village / Commune', value: text(c.origin?.commune) }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 'academic',
+                title: 'Choix académique',
+                icon: 'pi pi-building-columns',
+                groups: [
+                    {
+                        fields: [
+                            { label: 'Faculté', value: text(labels.facultyLabel) },
+                            { label: 'Filière', value: text(labels.programLabel) },
+                            { label: 'Promotion', value: text(labels.levelLabel) },
+                            { label: 'Type de candidature', value: text(c.candidature?.type && formatCandidatureType(c.candidature.type)) }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 'schooling',
+                title: 'Parcours scolaire',
+                icon: 'pi pi-book',
+                groups: [
+                    {
+                        fields: [
+                            { label: 'École', value: text(school?.school_name), wide: true },
+                            { label: 'Option', value: text(school?.option) },
+                            { label: 'Pourcentage', value: school?.percentage != null ? `${school.percentage} %` : '—' },
+                            { label: 'Année d’obtention', value: text(school?.graduation_year) },
+                            { label: 'Lieu d’étude', value: text([school?.study_city, school?.study_country].filter(Boolean).join(', ')) }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 'contacts',
+                title: 'Tuteur et contact d’urgence',
+                icon: 'pi pi-users',
+                groups: [
+                    {
+                        title: 'Tuteur',
+                        fields: [
+                            { label: 'Nom complet', value: text(c.tutor?.full_name) },
+                            { label: 'Profession', value: text(c.tutor?.profession) },
+                            { label: 'Téléphone', value: text(c.tutor?.phone) },
+                            { label: 'Email', value: text(c.tutor?.email) }
+                        ]
+                    },
+                    {
+                        title: 'Contact d’urgence',
+                        fields: [
+                            { label: 'Nom complet', value: text(c.emergency_contact?.full_name) },
+                            { label: 'Lien', value: text(c.emergency_contact?.relationship) },
+                            { label: 'Téléphone', value: text(c.emergency_contact?.phone) },
+                            { label: 'Email', value: text(c.emergency_contact?.email) }
+                        ]
+                    }
+                ]
             }
         ];
     });
@@ -366,9 +538,10 @@ export class CandidatePortal implements OnInit {
 
     startEdit(): void {
         if (!this.canEdit()) return;
+        // Sans émettre : la cascade faculté → filière → promotion viderait les choix enregistrés.
+        this.form.enable({ emitEvent: false });
+        this.form.controls.email.disable({ emitEvent: false });
         this.editing.set(true);
-        this.form.enable();
-        this.form.controls.email.disable();
     }
 
     cancelEdit(): void {
@@ -389,7 +562,7 @@ export class CandidatePortal implements OnInit {
             this.messageService.add({
                 severity: 'warn',
                 summary: 'Formulaire incomplet',
-                detail: 'Vérifiez les champs obligatoires.'
+                detail: this.invalidFieldsLabel()
             });
             return;
         }
@@ -419,6 +592,14 @@ export class CandidatePortal implements OnInit {
                     });
                 }
             });
+    }
+
+    /** Libellés des champs encore invalides, pour dire exactement quoi compléter. */
+    private invalidFieldsLabel(): string {
+        const invalid = Object.entries(this.form.controls)
+            .filter(([, control]) => control.enabled && control.invalid)
+            .map(([name]) => FIELD_LABELS[name] ?? name);
+        return invalid.length ? `À compléter : ${invalid.join(', ')}.` : 'Vérifiez les champs obligatoires.';
     }
 
     documentLabel(type: CandidateDocumentType): string {

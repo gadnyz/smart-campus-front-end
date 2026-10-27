@@ -3,306 +3,360 @@
 @if (loading()) {
 <div class="portal-shell">
     <p-skeleton height="3rem" styleClass="mb-3" />
-    <p-skeleton height="14rem" />
+    <p-skeleton height="9rem" styleClass="mb-3" />
+    <div class="portal-layout">
+        <p-skeleton height="24rem" />
+        <p-skeleton height="16rem" />
+    </div>
 </div>
 
 } @else if (studentPlaceholder()) {
 <div class="portal-shell">
     <app-content-subtopbar kicker="Admission" title="Mon dossier" [actions]="[]" />
     <div class="portal-empty">
-        <h2>Espace étudiant</h2>
-        <p>
-            L’espace étudiant n’est pas encore disponible..
-        </p>
+        <span class="portal-empty__icon portal-empty__icon--success"><i class="pi pi-graduation-cap"></i></span>
+        <h2>Bienvenue dans votre parcours étudiant</h2>
+        <p>Votre admission est confirmée. L’espace étudiant sera bientôt disponible.</p>
     </div>
 </div>
+
 } @else if (notFound()) {
 <div class="portal-shell">
     <app-content-subtopbar kicker="Admission" title="Mon dossier" [actions]="[]" />
     <div class="portal-empty">
+        <span class="portal-empty__icon"><i class="pi pi-folder-open"></i></span>
         <h2>Aucune candidature trouvée</h2>
         <p>Vous n’avez pas encore de dossier d’admission.</p>
-        <!-- <a pButton routerLink="/apply" label="Déposer une candidature" icon="pi pi-send"></a> -->
     </div>
 </div>
+
 } @else if (candidate(); as c) {
 <div class="portal-shell">
     <app-content-subtopbar kicker="Admission" title="Mon dossier" [actions]="actions()" />
 
-    <div class="portal-header card">
-        <div class="portal-header__status">
-            <p-tag [value]="statusLabel()" [severity]="statusSeverity()" />
-        </div>
-
-        <div class="portal-meta">
-            <span>Dernière modification : <strong>{{ lastUpdatedLabel() }}</strong></span>
-        </div>
-    </div>
-
-    <form [formGroup]="form" class="portal-form card">
-        <section class="portal-section">
-            <h3>Identité</h3>
-            <div class="grid grid-cols-12 gap-4">
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="last_name">Nom</label>
-                    <input pInputText id="last_name" class="w-full" formControlName="last_name" />
-                    @if (isInvalid('last_name')) {
-                    <small class="field-error">Obligatoire.</small>
-                    }
-                </div>
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="middle_name">Post-nom</label>
-                    <input pInputText id="middle_name" class="w-full" formControlName="middle_name" />
-                </div>
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="first_name">Prénom</label>
-                    <input pInputText id="first_name" class="w-full" formControlName="first_name" />
-                </div>
-
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="gender">Genre</label>
-                    <p-select id="gender" class="w-full" formControlName="gender" [options]="genderOptions"
-                        optionLabel="label" optionValue="value" />
-                </div>
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="birth_date">Date de naissance</label>
-                    <p-datepicker id="birth_date" class="w-full" formControlName="birth_date" dateFormat="yy-mm-dd"
-                        [showIcon]="true" dataType="string" />
-                </div>
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="birth_place">Lieu de naissance</label>
-                    <input pInputText id="birth_place" class="w-full" formControlName="birth_place" />
-                </div>
-
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="marital_status">État civil</label>
-                    <p-select id="marital_status" class="w-full" formControlName="marital_status"
-                        [options]="maritalStatusOptions" optionLabel="label" optionValue="value" />
-                </div>
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="nationality">Nationalité</label>
-                    <input pInputText id="nationality" class="w-full" formControlName="nationality" />
-                </div>
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="email">Email</label>
-                    <input pInputText id="email" type="email" class="w-full" formControlName="email" />
-                </div>
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="phone">Téléphone</label>
-                    <input pInputText id="phone" class="w-full" formControlName="phone" />
-                </div>
-            </div>
-        </section>
-
-        <section class="portal-section">
-            <h3>Origine</h3>
-            <div class="grid grid-cols-12 gap-4">
-                <div class="col-span-12 md:col-span-3">
-                    <label class="field-label" for="province">Province</label>
-                    <input pInputText id="province" class="w-full" formControlName="province" />
-                </div>
-                <div class="col-span-12 md:col-span-3">
-                    <label class="field-label" for="territory">Territoire</label>
-                    <input pInputText id="territory" class="w-full" formControlName="territory" />
-                </div>
-                <div class="col-span-12 md:col-span-3">
-                    <label class="field-label" for="sector">Secteur</label>
-                    <input pInputText id="sector" class="w-full" formControlName="sector" />
-                </div>
-                <div class="col-span-12 md:col-span-3">
-                    <label class="field-label" for="commune">Village / Commune</label>
-                    <input pInputText id="commune" class="w-full" formControlName="commune" />
-                </div>
-            </div>
-        </section>
-
-        <section class="portal-section">
-            <h3>Choix académique</h3>
-            <div class="grid grid-cols-12 gap-4">
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="faculty_id">Faculté</label>
-                    <p-select id="faculty_id" class="w-full" formControlName="faculty_id" [options]="faculties()"
-                        optionLabel="label" optionValue="value"
-                        placeholder="{{ academicLabels().facultyLabel || 'Sélectionner' }}" />
-                </div>
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="program_id">Filière</label>
-                    <p-select id="program_id" class="w-full" formControlName="program_id" [options]="programs()"
-                        optionLabel="label" optionValue="value"
-                        placeholder="{{ academicLabels().programLabel || 'Sélectionner' }}" />
-                </div>
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="level_id">Promotion</label>
-                    <p-select id="level_id" class="w-full" formControlName="level_id" [options]="levels()"
-                        optionLabel="label" optionValue="value"
-                        placeholder="{{ academicLabels().levelLabel || 'Sélectionner' }}" />
-                </div>
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="candidature_type">Type de candidature</label>
-                    <p-select id="candidature_type" class="w-full" formControlName="candidature_type"
-                        [options]="candidatureTypeOptions" optionLabel="label" optionValue="value" />
-                </div>
-            </div>
-        </section>
-
-        <section class="portal-section">
-            <h3>Parcours scolaire</h3>
-            <div class="grid grid-cols-12 gap-4">
-                <div class="col-span-12 md:col-span-6">
-                    <label class="field-label" for="school_name">École</label>
-                    <input pInputText id="school_name" class="w-full" formControlName="school_name" />
-                </div>
-                <div class="col-span-12 md:col-span-6">
-                    <label class="field-label" for="option">Option</label>
-                    <input pInputText id="option" class="w-full" formControlName="option" />
-                </div>
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="percentage">Pourcentage</label>
-                    <input pInputText id="percentage" type="number" class="w-full" formControlName="percentage" />
-                </div>
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="graduation_year">Année d’obtention</label>
-                    <input pInputText id="graduation_year" type="number" class="w-full"
-                        formControlName="graduation_year" />
-                </div>
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="study_country">Pays d’étude</label>
-                    <input pInputText id="study_country" class="w-full" formControlName="study_country" />
-                </div>
-                <div class="col-span-12 md:col-span-4">
-                    <label class="field-label" for="study_city">Ville d’étude</label>
-                    <input pInputText id="study_city" class="w-full" formControlName="study_city" />
-                </div>
-            </div>
-        </section>
-
-        <section class="portal-section">
-            <h3>Tuteur</h3>
-            <div class="grid grid-cols-12 gap-4">
-                <div class="col-span-12 md:col-span-6">
-                    <label class="field-label" for="tutor_full_name">Nom complet</label>
-                    <input pInputText id="tutor_full_name" class="w-full" formControlName="tutor_full_name" />
-                </div>
-                <div class="col-span-12 md:col-span-6">
-                    <label class="field-label" for="tutor_phone">Téléphone</label>
-                    <input pInputText id="tutor_phone" class="w-full" formControlName="tutor_phone" />
-                </div>
-                <div class="col-span-12 md:col-span-6">
-                    <label class="field-label" for="tutor_email">Email</label>
-                    <input pInputText id="tutor_email" type="email" class="w-full" formControlName="tutor_email" />
-                </div>
-                <div class="col-span-12 md:col-span-6">
-                    <label class="field-label" for="tutor_profession">Profession</label>
-                    <input pInputText id="tutor_profession" class="w-full" formControlName="tutor_profession" />
-                </div>
-            </div>
-        </section>
-
-        <section class="portal-section">
-            <h3>Contact d’urgence</h3>
-            <div class="grid grid-cols-12 gap-4">
-                <div class="col-span-12 md:col-span-6">
-                    <label class="field-label" for="emergency_full_name">Nom complet</label>
-                    <input pInputText id="emergency_full_name" class="w-full" formControlName="emergency_full_name" />
-                </div>
-                <div class="col-span-12 md:col-span-6">
-                    <label class="field-label" for="emergency_phone">Téléphone</label>
-                    <input pInputText id="emergency_phone" class="w-full" formControlName="emergency_phone" />
-                </div>
-                <div class="col-span-12 md:col-span-6">
-                    <label class="field-label" for="emergency_email">Email</label>
-                    <input pInputText id="emergency_email" type="email" class="w-full"
-                        formControlName="emergency_email" />
-                </div>
-                <div class="col-span-12 md:col-span-6">
-                    <label class="field-label" for="emergency_relationship">Lien / relation</label>
-                    <input pInputText id="emergency_relationship" class="w-full"
-                        formControlName="emergency_relationship" />
-                </div>
-            </div>
-        </section>
-    </form>
-
-    <section class="portal-docs card">
-        <h3>Documents</h3>
-
-        @if (supportingDocuments().length) {
-        <div class="document-grid">
-            @for (document of supportingDocuments(); track document.id) {
-            <article class="document-item">
-                @if (documentKind(document) === 'image') {
-                <p-image [src]="documentViewUrl(document)" [previewImageSrc]="documentViewUrl(document)"
-                    [alt]="loadedDocumentLabel(document)" [preview]="true" [imageStyle]="{
-                    width: '100%',
-                    height: '10rem',
-                    objectFit: 'cover'
-                }" (onImageError)="onDocumentImageError(document)" />
+    <!-- En-tête : identité, statut et informations clés -->
+    <header class="dossier-hero">
+        <div class="dossier-hero__identity">
+            <div class="dossier-avatar" aria-hidden="true">
+                @if (photoUrl()) {
+                <img [src]="photoUrl()" alt="" />
                 } @else {
-                <div class="document-placeholder">
-                    <i [class]="documentKind(document) === 'pdf' ? 'pi pi-file-pdf' : 'pi pi-file'"></i>
-                </div>
-                }
-
-                <div class="document-information">
-                    <strong>{{ loadedDocumentLabel(document) }}</strong>
-                    @if (document.file_name) {
-                    <span>{{ document.file_name }}</span>
-                    }
-                    <span>{{ document.uploaded_at | date: 'dd/MM/yyyy HH:mm' }}</span>
-                </div>
-
-                <div class="document-actions">
-                    @if (documentKind(document) === 'pdf') {
-                    <button pButton type="button" icon="pi pi-eye" label="Prévisualiser" size="small"
-                        (click)="openDocument(document)"></button>
-                    } @else if (documentKind(document) === 'unknown') {
-                    <a pButton [href]="documentViewUrl(document)" target="_blank" rel="noopener noreferrer"
-                        icon="pi pi-external-link" label="Ouvrir" size="small"></a>
-                    }
-
-                    @if (canManageDocuments()) {
-                    <button pButton type="button" icon="pi pi-upload" label="Remplacer" size="small" [outlined]="true"
-                        [disabled]="uploading()" (click)="replaceLoadedDocument(document.document_type)"></button>
-                    }
-                </div>
-            </article>
-            }
-        </div>
-        } @else {
-        <div class="empty-documents">
-            <i class="pi pi-file"></i>
-            <span>Aucun document chargé.</span>
-        </div>
-        }
-
-        @if (canManageDocuments()) {
-        <div class="portal-docs__upload">
-            @for (doc of pendingDocs(); track doc.type) {
-            <input type="file" hidden [id]="'portal_doc_' + doc.type"
-                accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*"
-                (change)="onDocumentSelected($event, doc.type)" />
-            }
-
-            @if (missingPendingDocs().length) {
-            <p class="portal-hint">Ajoutez les pièces manquantes.</p>
-            @for (doc of missingPendingDocs(); track doc.type) {
-            <div class="portal-docs__row">
-                <label [for]="'portal_doc_' + doc.type">{{ doc.label }}</label>
-                <button pButton type="button" class="p-button-outlined p-button-sm"
-                    [label]="doc.file ? doc.file.name : 'Choisir un fichier'"
-                    (click)="openDocumentPicker(doc.type)"></button>
-                @if (doc.file) {
-                <button pButton type="button" icon="pi pi-times" class="p-button-text p-button-danger p-button-sm"
-                    (click)="removePendingDocument(doc.type)"></button>
+                <span>{{ initials() }}</span>
                 }
             </div>
-            }
-            <button pButton type="button" label="Téléverser les documents" icon="pi pi-upload" class="mt-3"
-                [loading]="uploading()" [disabled]="uploading()" (click)="uploadPendingDocuments()"></button>
-            }
+            <div class="dossier-hero__text">
+                <div class="dossier-hero__title">
+                    <h2>{{ fullName() }}</h2>
+                    <p-tag [value]="statusLabel()" [severity]="statusSeverity()" [rounded]="true" />
+                </div>
+                <div class="dossier-hero__contact">
+                    @if (c.email) {
+                    <span><i class="pi pi-envelope"></i>{{ c.email }}</span>
+                    }
+                    @if (c.phone) {
+                    <span><i class="pi pi-phone"></i>{{ c.phone }}</span>
+                    }
+                </div>
+            </div>
         </div>
-        }
-    </section>
+
+        <dl class="dossier-facts">
+            <div>
+                <dt>Faculté</dt>
+                <dd>{{ academicLabels().facultyLabel || '—' }}</dd>
+            </div>
+            <div>
+                <dt>Filière</dt>
+                <dd>{{ academicLabels().programLabel || '—' }}</dd>
+            </div>
+            <div>
+                <dt>Promotion</dt>
+                <dd>{{ academicLabels().levelLabel || '—' }}</dd>
+            </div>
+            <div>
+                <dt>Année académique</dt>
+                <dd>{{ academicLabels().academicYearLabel || '—' }}</dd>
+            </div>
+        </dl>
+    </header>
+
+    <div class="portal-layout">
+        <main class="portal-main">
+            @if (!editing()) {
+            @for (section of sections(); track section.id) {
+            <section class="dossier-card" [id]="'portal-' + section.id">
+                <header class="dossier-card__header">
+                    <span class="dossier-card__icon"><i [class]="section.icon"></i></span>
+                    <h3>{{ section.title }}</h3>
+                </header>
+                @for (group of section.groups; track $index) {
+                <div class="dossier-group">
+                    @if (group.title) {
+                    <div class="dossier-subtitle">{{ group.title }}</div>
+                    }
+                    <dl class="dossier-fields">
+                        @for (field of group.fields; track field.label) {
+                        <div [class.dossier-field--wide]="field.wide">
+                            <dt>{{ field.label }}</dt>
+                            <dd [class.dossier-field--empty]="field.value === '—'">{{ field.value }}</dd>
+                        </div>
+                        }
+                    </dl>
+                </div>
+                }
+            </section>
+            }
+            } @else {
+            <form [formGroup]="form" class="portal-form">
+                <section class="dossier-card">
+                    <header class="dossier-card__header">
+                        <span class="dossier-card__icon"><i class="pi pi-user"></i></span>
+                        <h3>Identité</h3>
+                    </header>
+                    <div class="grid grid-cols-12 gap-4">
+                        <div class="col-span-12"><div class="dossier-subtitle">Informations générales</div></div>
+                        <div class="col-span-12 md:col-span-4">
+                            <label class="field-label" for="last_name">Nom</label>
+                            <input pInputText id="last_name" class="w-full" formControlName="last_name" />
+                            @if (isInvalid('last_name')) {
+                            <small class="field-error">Obligatoire.</small>
+                            }
+                        </div>
+                        <div class="col-span-12 md:col-span-4">
+                            <label class="field-label" for="middle_name">Post-nom</label>
+                            <input pInputText id="middle_name" class="w-full" formControlName="middle_name" />
+                        </div>
+                        <div class="col-span-12 md:col-span-4">
+                            <label class="field-label" for="first_name">Prénom</label>
+                            <input pInputText id="first_name" class="w-full" formControlName="first_name" />
+                        </div>
+                        <div class="col-span-12 md:col-span-4">
+                            <label class="field-label" for="gender">Genre</label>
+                            <p-select inputId="gender" class="w-full" formControlName="gender" [options]="genderOptions" optionLabel="label" optionValue="value" />
+                        </div>
+                        <div class="col-span-12 md:col-span-4">
+                            <label class="field-label" for="birth_date">Date de naissance</label>
+                            <p-datepicker inputId="birth_date" class="w-full" formControlName="birth_date" dateFormat="yy-mm-dd" [showIcon]="true" dataType="string" />
+                        </div>
+                        <div class="col-span-12 md:col-span-4">
+                            <label class="field-label" for="birth_place">Lieu de naissance</label>
+                            <input pInputText id="birth_place" class="w-full" formControlName="birth_place" />
+                        </div>
+                        <div class="col-span-12 md:col-span-4">
+                            <label class="field-label" for="marital_status">État civil</label>
+                            <p-select inputId="marital_status" class="w-full" formControlName="marital_status" [options]="maritalStatusOptions" optionLabel="label" optionValue="value" />
+                        </div>
+                        <div class="col-span-12 md:col-span-4">
+                            <label class="field-label" for="nationality">Nationalité</label>
+                            <input pInputText id="nationality" class="w-full" formControlName="nationality" />
+                        </div>
+                        <div class="col-span-12"><div class="dossier-subtitle">Coordonnées</div></div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="email">Email</label>
+                            <input pInputText id="email" type="email" class="w-full" formControlName="email" />
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="phone">Téléphone</label>
+                            <input pInputText id="phone" class="w-full" formControlName="phone" />
+                        </div>
+                        <div class="col-span-12"><div class="dossier-subtitle">Origine</div></div>
+                        <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                            <label class="field-label" for="province">Province</label>
+                            <input pInputText id="province" class="w-full" formControlName="province" />
+                        </div>
+                        <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                            <label class="field-label" for="territory">Territoire</label>
+                            <input pInputText id="territory" class="w-full" formControlName="territory" />
+                        </div>
+                        <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                            <label class="field-label" for="sector">Secteur</label>
+                            <input pInputText id="sector" class="w-full" formControlName="sector" />
+                        </div>
+                        <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                            <label class="field-label" for="commune">Village / Commune</label>
+                            <input pInputText id="commune" class="w-full" formControlName="commune" />
+                        </div>
+                    </div>
+                </section>
+
+                <section class="dossier-card">
+                    <header class="dossier-card__header">
+                        <span class="dossier-card__icon"><i class="pi pi-building-columns"></i></span>
+                        <h3>Choix académique</h3>
+                    </header>
+                    <div class="grid grid-cols-12 gap-4">
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="faculty_id">Faculté</label>
+                            <p-select inputId="faculty_id" class="w-full" formControlName="faculty_id" [options]="faculties()" optionLabel="label" optionValue="value" placeholder="{{ academicLabels().facultyLabel || 'Sélectionner' }}" />
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="program_id">Filière</label>
+                            <p-select inputId="program_id" class="w-full" formControlName="program_id" [options]="programs()" optionLabel="label" optionValue="value" placeholder="{{ academicLabels().programLabel || 'Sélectionner' }}" />
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="level_id">Promotion</label>
+                            <p-select inputId="level_id" class="w-full" formControlName="level_id" [options]="levels()" optionLabel="label" optionValue="value" placeholder="{{ academicLabels().levelLabel || 'Sélectionner' }}" />
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="candidature_type">Type de candidature</label>
+                            <p-select inputId="candidature_type" class="w-full" formControlName="candidature_type" [options]="candidatureTypeOptions" optionLabel="label" optionValue="value" />
+                        </div>
+                    </div>
+                </section>
+
+                <section class="dossier-card">
+                    <header class="dossier-card__header">
+                        <span class="dossier-card__icon"><i class="pi pi-book"></i></span>
+                        <h3>Parcours scolaire</h3>
+                    </header>
+                    <div class="grid grid-cols-12 gap-4">
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="school_name">École</label>
+                            <input pInputText id="school_name" class="w-full" formControlName="school_name" />
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="option">Option</label>
+                            <input pInputText id="option" class="w-full" formControlName="option" />
+                        </div>
+                        <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                            <label class="field-label" for="percentage">Pourcentage</label>
+                            <input pInputText id="percentage" type="number" class="w-full" formControlName="percentage" />
+                        </div>
+                        <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                            <label class="field-label" for="graduation_year">Année d’obtention</label>
+                            <input pInputText id="graduation_year" type="number" class="w-full" formControlName="graduation_year" />
+                        </div>
+                        <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                            <label class="field-label" for="study_country">Pays d’étude</label>
+                            <input pInputText id="study_country" class="w-full" formControlName="study_country" />
+                        </div>
+                        <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                            <label class="field-label" for="study_city">Ville d’étude</label>
+                            <input pInputText id="study_city" class="w-full" formControlName="study_city" />
+                        </div>
+                    </div>
+                </section>
+
+                <section class="dossier-card">
+                    <header class="dossier-card__header">
+                        <span class="dossier-card__icon"><i class="pi pi-users"></i></span>
+                        <h3>Tuteur et contact d’urgence</h3>
+                    </header>
+                    <div class="grid grid-cols-12 gap-4">
+                        <div class="col-span-12"><div class="dossier-subtitle">Tuteur</div></div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="tutor_full_name">Nom complet</label>
+                            <input pInputText id="tutor_full_name" class="w-full" formControlName="tutor_full_name" />
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="tutor_profession">Profession</label>
+                            <input pInputText id="tutor_profession" class="w-full" formControlName="tutor_profession" />
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="tutor_phone">Téléphone</label>
+                            <input pInputText id="tutor_phone" class="w-full" formControlName="tutor_phone" />
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="tutor_email">Email</label>
+                            <input pInputText id="tutor_email" type="email" class="w-full" formControlName="tutor_email" />
+                        </div>
+                        <div class="col-span-12"><div class="dossier-subtitle">Contact d’urgence</div></div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="emergency_full_name">Nom complet</label>
+                            <input pInputText id="emergency_full_name" class="w-full" formControlName="emergency_full_name" />
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="emergency_relationship">Lien / relation</label>
+                            <input pInputText id="emergency_relationship" class="w-full" formControlName="emergency_relationship" />
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="emergency_phone">Téléphone</label>
+                            <input pInputText id="emergency_phone" class="w-full" formControlName="emergency_phone" />
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="field-label" for="emergency_email">Email</label>
+                            <input pInputText id="emergency_email" type="email" class="w-full" formControlName="emergency_email" />
+                        </div>
+                    </div>
+                </section>
+            </form>
+            }
+
+        </main>
+
+        <!-- Colonne latérale -->
+        <aside class="portal-aside">
+            <!-- Documents -->
+            <section class="dossier-card" id="portal-documents">
+                <header class="dossier-card__header">
+                    <span class="dossier-card__icon"><i class="pi pi-paperclip"></i></span>
+                    <h3>Documents</h3>
+                    <span class="dossier-card__count">{{ completion().provided }}/{{ completion().total }} pièces</span>
+                </header>
+
+                <ul class="document-list">
+                    @for (item of requiredDocuments(); track item.type) {
+                    <li class="document-row" [class.document-row--missing]="!item.document">
+                        <span class="document-row__thumb">
+                            @if (item.document && documentKind(item.document) === 'image') {
+                            <p-image [src]="documentViewUrl(item.document)" [previewImageSrc]="documentViewUrl(item.document)" [alt]="item.label" [preview]="true"
+                                [imageStyle]="{ width: '100%', height: '100%', objectFit: 'cover' }" (onImageError)="onDocumentImageError(item.document)" />
+                            } @else {
+                            <i [class]="!item.document ? 'pi pi-cloud-upload' : documentKind(item.document) === 'pdf' ? 'pi pi-file-pdf' : 'pi pi-file'"></i>
+                            }
+                        </span>
+
+                        <span class="document-row__text">
+                            <strong>{{ item.label }}</strong>
+                            @if (item.document) {
+                            <small>
+                                {{ item.document.file_name || 'Fichier déposé' }} · {{ item.document.uploaded_at | date: 'dd/MM/yyyy' }}
+                            </small>
+                            } @else {
+                            <small class="document-row__missing">À fournir</small>
+                            }
+                        </span>
+
+                        <span class="document-row__actions">
+                            @if (item.document) {
+                            @if (documentKind(item.document) === 'pdf') {
+                            <button pButton type="button" icon="pi pi-eye" [text]="true" [rounded]="true" severity="secondary" [attr.aria-label]="'Prévisualiser ' + item.label" (click)="openDocument(item.document)"></button>
+                            } @else if (documentKind(item.document) === 'unknown') {
+                            <a pButton [href]="documentViewUrl(item.document)" target="_blank" rel="noopener noreferrer" icon="pi pi-external-link" [text]="true" [rounded]="true" severity="secondary" [attr.aria-label]="'Ouvrir ' + item.label"></a>
+                            }
+                            @if (canManageDocuments()) {
+                            <button pButton type="button" label="Remplacer" icon="pi pi-refresh" size="small" [outlined]="true" severity="secondary" [disabled]="uploading()" (click)="replaceLoadedDocument(item.type)"></button>
+                            }
+                            } @else if (canManageDocuments()) {
+                            @for (draft of missingPendingDocs(); track draft.type) {
+                            @if (draft.type === item.type) {
+                            @if (draft.file) {
+                            <span class="document-row__file">{{ draft.file.name }}</span>
+                            <button pButton type="button" icon="pi pi-times" [text]="true" [rounded]="true" severity="danger" [attr.aria-label]="'Retirer ' + draft.file.name" (click)="removePendingDocument(draft.type)"></button>
+                            } @else {
+                            <button pButton type="button" label="Choisir" icon="pi pi-upload" size="small" [outlined]="true" (click)="openDocumentPicker(draft.type)"></button>
+                            }
+                            }
+                            }
+                            }
+                        </span>
+                    </li>
+                    }
+                </ul>
+
+                @if (canManageDocuments()) {
+                @for (doc of pendingDocs(); track doc.type) {
+                <input type="file" hidden [id]="'portal_doc_' + doc.type" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*" (change)="onDocumentSelected($event, doc.type)" />
+                }
+                @if (missingPendingDocs().length) {
+                <div class="document-upload">
+                    <button pButton type="button" label="Téléverser les documents choisis" icon="pi pi-upload" [loading]="uploading()" [disabled]="uploading() || !hasPendingFiles()" (click)="uploadPendingDocuments()"></button>
+                </div>
+                }
+                }
+            </section>
+        </aside>
+    </div>
 
     <p-dialog [header]="previewTitle()" [visible]="previewVisible()" (visibleChange)="onPreviewVisibleChange($event)"
         [modal]="true" [maximizable]="true" [style]="{ width: '75vw' }" [contentStyle]="{ padding: '0' }"
