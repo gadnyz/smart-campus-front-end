@@ -184,6 +184,27 @@ describe('CandidateDetail', () => {
         expect(component.academicLabels()?.facultyLabel).toBe('Sciences');
     });
 
+    it('should read the dossier with the shared components, without the candidate upload actions', () => {
+        fixture.detectChanges();
+        const element = fixture.nativeElement as HTMLElement;
+
+        expect(element.querySelector('app-candidate-dossier-hero')).not.toBeNull();
+        expect(element.querySelector('app-candidate-dossier-sections')).not.toBeNull();
+        expect(element.querySelector('.document-row__missing')?.textContent?.trim()).toBe('Non fournie');
+        expect(element.textContent).not.toContain('Choisir');
+        expect(element.textContent).not.toContain('Remplacer');
+    });
+
+    it('should resolve documents through the staff route', () => {
+        const document = { id: 'doc-1', document_type: 'DIPLOMA' as const, file_url: '', uploaded_at: '2026-10-02T09:00:00Z' };
+        candidateService.resolveDocumentViewUrl.and.returnValue(of('https://s3/doc-1'));
+
+        component.documentUrls.load([document]);
+
+        expect(candidateService.resolveDocumentViewUrl).toHaveBeenCalledWith('c1', document);
+        expect(component.documentUrls.url(document)).toBe('https://s3/doc-1');
+    });
+
     it('should allow validate and reject for pending candidates with permission', () => {
         expect(component.canValidate()).toBeTrue();
         expect(component.canReject()).toBeTrue();

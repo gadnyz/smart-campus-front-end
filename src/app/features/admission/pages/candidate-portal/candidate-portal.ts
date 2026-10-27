@@ -9,15 +9,10 @@ import { DatePicker } from 'primeng/datepicker';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
-import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { forkJoin, Observable, of } from 'rxjs';
-import { catchError, finalize, map, tap } from 'rxjs/operators';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { DialogModule } from 'primeng/dialog';
-import { ImageModule } from 'primeng/image';
+import { forkJoin, of } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
 
-import { isSignedUrlExpiredOrExpiring } from '@/app/shared/utils/signed-url';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import {
     CandidateDocument,
@@ -35,23 +30,18 @@ import { AcademicPermission } from '@/app/features/academic/permissions/permissi
 import { AdmissionAcademicReferenceService, SelectOption } from '../../services/admission-academic-reference.service';
 import { CandidateService } from '../../services/candidate.service';
 import {
-    candidateStatusSeverity,
-    formatCandidateDate,
-    formatCandidateGender,
-    formatCandidatureType,
-    formatMaritalStatus,
-    formatCandidateDocumentType,
-    formatCandidatureStatus,
-    resolveCandidateDocumentKind
-} from '../../utils/candidate-format';
-
-/** Une rubrique du dossier en lecture : des paires libellé / valeur. */
-export interface PortalSection {
-    id: string;
-    title: string;
-    icon: string;
-    groups: { title?: string; fields: { label: string; value: string; wide?: boolean }[] }[];
-}
+    CandidateDossierDocuments,
+    CandidateDocumentPreview,
+    CandidateDossierHero,
+    CandidateDossierSections,
+    DossierDocumentUrls,
+    DossierSection,
+    REQUIRED_DOCUMENT_TYPES,
+    buildDossierSections,
+    candidateFullName,
+    photoDocument,
+    requiredDocuments
+} from '../../components/candidate-dossier';
 
 const FIELD_LABELS: Record<string, string> = {
     faculty_id: 'Faculté',
@@ -95,8 +85,6 @@ type DocDraft = {
     selector: 'app-candidate-portal',
     standalone: true,
     imports: [
-        DialogModule,
-        ImageModule,
         CommonModule,
         ReactiveFormsModule,
         ButtonModule,
@@ -104,9 +92,12 @@ type DocDraft = {
         InputTextModule,
         SelectModule,
         SkeletonModule,
-        TagModule,
         ToastModule,
-        ContentSubtopbar
+        ContentSubtopbar,
+        CandidateDossierHero,
+        CandidateDossierSections,
+        CandidateDossierDocuments,
+        CandidateDocumentPreview
     ],
     providers: [MessageService],
     templateUrl: './candidate-portal.html',
@@ -124,7 +115,6 @@ export class CandidatePortal implements OnInit {
     readonly studentPlaceholder = signal(false);
 
 
-    private readonly sanitizer = inject(DomSanitizer);
 
     readonly loading = signal(true);
     readonly saving = signal(false);
@@ -147,43 +137,20 @@ export class CandidatePortal implements OnInit {
         document.getElementById(`portal_doc_${type}`)?.click();
     }
 
-    readonly pendingDocs = signal<DocDraft[]>([
-        { type: 'ID_CARD', label: 'Pièce d’identité', file: null },
-        { type: 'DIPLOMA', label: 'Diplôme', file: null },
-        { type: 'TRANSCRIPT', label: 'Bulletins / Relevés de notes', file: null },
-        { type: 'PAYMENT_SLIP', label: 'Preuve de paiement', file: null }
-    ]);
+    readonly pendingDocs = signal<DocDraft[]>(REQUIRED_DOCUMENT_TYPES.map((document) => ({ ...document, file: null })));
 
     readonly status = computed(() => this.candidate()?.candidature.status ?? null);
-
-    readonly statusLabel = computed(() => {
-        const s = this.status();
-        return s ? formatCandidatureStatus(s) : '';
-    });
-
-    readonly statusSeverity = computed(() => {
-        const s = this.status();
-        return s ? candidateStatusSeverity(s) : 'secondary';
-    });
 
     readonly canEdit = computed(() => {
         const status = this.status();
         return status === 'DRAFT' || status === 'PENDING';
     });
     readonly canManageDocuments = computed(() => this.canEdit());
-    readonly documentViewUrls = signal<Record<string, string>>({});
+    /** URL signées des pièces, par la route du candidat (`/candidates/me/...`). */
+    readonly documentUrls = new DossierDocumentUrls((document) => this.candidateService.resolveOwnDocumentViewUrl(document), this.destroyRef);
+    readonly photoLoadFailed = signal(false);
     readonly previewDocument = signal<CandidateDocument | null>(null);
     readonly previewVisible = signal(false);
-
-    private readonly documentViewUrlRefreshAttempts = new Map<string, number>();
-    private readonly maxDocumentViewUrlRefreshes = 2;
-
-    readonly supportingDocuments = computed(
-        () =>
-            this.candidate()?.documents?.filter(
-                (document) => document.document_type !== 'PHOTO'
-            ) ?? []
-    );
 
     readonly missingPendingDocs = computed(() => {
         const present = new Set(
@@ -192,33 +159,9 @@ export class CandidatePortal implements OnInit {
         return this.pendingDocs().filter((d) => !present.has(d.type));
     });
 
-    readonly previewTitle = computed(() => {
+    readonly previewUrl = computed(() => {
         const document = this.previewDocument();
-        return document
-            ? formatCandidateDocumentType(document.document_type)
-            : 'Prévisualisation du document';
-    });
-
-    readonly safePreviewUrl = computed<SafeResourceUrl | null>(() => {
-        const document = this.previewDocument();
-        if (!document || this.documentKind(document) !== 'pdf') {
-            return null;
-        }
-
-        const viewUrl = this.documentViewUrls()[document.id];
-        if (!viewUrl) {
-            return null;
-        }
-
-        try {
-            const url = new URL(viewUrl, window.location.origin);
-            if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-                return null;
-            }
-            return this.sanitizer.bypassSecurityTrustResourceUrl(url.toString());
-        } catch {
-            return null;
-        }
+        return document ? this.documentUrls.url(document) : '';
     });
 
     readonly missingDocumentTypes = computed(() => {
@@ -265,139 +208,22 @@ export class CandidatePortal implements OnInit {
 
     readonly fullName = computed(() => {
         const c = this.candidate();
-        return c ? [c.first_name, c.middle_name, c.last_name].filter(Boolean).join(' ') : '';
-    });
-
-    readonly initials = computed(() => {
-        const c = this.candidate();
-        return c ? `${c.first_name?.[0] ?? ''}${c.last_name?.[0] ?? ''}`.toUpperCase() : '';
+        return c ? candidateFullName(c) : '';
     });
 
     readonly photoUrl = computed(() => {
-        const photo = this.candidate()?.documents?.find((document) => document.document_type === 'PHOTO');
-        return photo ? (this.documentViewUrls()[photo.id] ?? '') : '';
+        const photo = photoDocument(this.candidate());
+        return photo && !this.photoLoadFailed() ? this.documentUrls.url(photo) : '';
     });
 
     /** Pièces obligatoires : fournie ou manquante. */
-    readonly requiredDocuments = computed(() => {
-        const documents = this.candidate()?.documents ?? [];
-        return this.pendingDocs().map((draft) => ({
-            type: draft.type,
-            label: draft.label,
-            document: documents.find((document) => document.document_type === draft.type) ?? null
-        }));
-    });
+    readonly requiredDocuments = computed(() => requiredDocuments(this.candidate()));
 
     readonly hasPendingFiles = computed(() => this.pendingDocs().some((draft) => draft.file));
 
-    readonly completion = computed(() => {
-        const required = this.requiredDocuments();
-        const provided = required.filter((item) => item.document).length;
-        return { provided, total: required.length, percent: required.length ? Math.round((provided / required.length) * 100) : 100 };
-    });
-
-    readonly sections = computed<PortalSection[]>(() => {
+    readonly sections = computed<DossierSection[]>(() => {
         const c = this.candidate();
-        if (!c) {
-            return [];
-        }
-        const labels = this.academicLabels();
-        const text = (value: unknown) => (value === null || value === undefined || value === '' ? '—' : String(value));
-        const school = c.academic_background;
-        return [
-            {
-                id: 'identity',
-                title: 'Identité',
-                icon: 'pi pi-user',
-                groups: [
-                    {
-                        title: 'Informations générales',
-                        fields: [
-                            { label: 'Nom', value: text(c.last_name) },
-                            { label: 'Post-nom', value: text(c.middle_name) },
-                            { label: 'Prénom', value: text(c.first_name) },
-                            { label: 'Genre', value: text(c.gender && formatCandidateGender(c.gender)) },
-                            { label: 'Date de naissance', value: text(formatCandidateDate(c.birth_date)) },
-                            { label: 'Lieu de naissance', value: text(c.birth_place) },
-                            { label: 'État civil', value: text(c.marital_status && formatMaritalStatus(c.marital_status)) },
-                            { label: 'Nationalité', value: text(c.nationality) }
-                        ]
-                    },
-                    {
-                        title: 'Coordonnées',
-                        fields: [
-                            { label: 'Email', value: text(c.email) },
-                            { label: 'Téléphone', value: text(c.phone) }
-                        ]
-                    },
-                    {
-                        title: 'Origine',
-                        fields: [
-                            { label: 'Province', value: text(c.origin?.province) },
-                            { label: 'Territoire', value: text(c.origin?.territory) },
-                            { label: 'Secteur', value: text(c.origin?.sector) },
-                            { label: 'Village / Commune', value: text(c.origin?.commune) }
-                        ]
-                    }
-                ]
-            },
-            {
-                id: 'academic',
-                title: 'Choix académique',
-                icon: 'pi pi-building-columns',
-                groups: [
-                    {
-                        fields: [
-                            { label: 'Faculté', value: text(labels.facultyLabel) },
-                            { label: 'Filière', value: text(labels.programLabel) },
-                            { label: 'Promotion', value: text(labels.levelLabel) },
-                            { label: 'Type de candidature', value: text(c.candidature?.type && formatCandidatureType(c.candidature.type)) }
-                        ]
-                    }
-                ]
-            },
-            {
-                id: 'schooling',
-                title: 'Parcours scolaire',
-                icon: 'pi pi-book',
-                groups: [
-                    {
-                        fields: [
-                            { label: 'École', value: text(school?.school_name), wide: true },
-                            { label: 'Option', value: text(school?.option) },
-                            { label: 'Pourcentage', value: school?.percentage != null ? `${school.percentage} %` : '—' },
-                            { label: 'Année d’obtention', value: text(school?.graduation_year) },
-                            { label: 'Lieu d’étude', value: text([school?.study_city, school?.study_country].filter(Boolean).join(', ')) }
-                        ]
-                    }
-                ]
-            },
-            {
-                id: 'contacts',
-                title: 'Tuteur et contact d’urgence',
-                icon: 'pi pi-users',
-                groups: [
-                    {
-                        title: 'Tuteur',
-                        fields: [
-                            { label: 'Nom complet', value: text(c.tutor?.full_name) },
-                            { label: 'Profession', value: text(c.tutor?.profession) },
-                            { label: 'Téléphone', value: text(c.tutor?.phone) },
-                            { label: 'Email', value: text(c.tutor?.email) }
-                        ]
-                    },
-                    {
-                        title: 'Contact d’urgence',
-                        fields: [
-                            { label: 'Nom complet', value: text(c.emergency_contact?.full_name) },
-                            { label: 'Lien', value: text(c.emergency_contact?.relationship) },
-                            { label: 'Téléphone', value: text(c.emergency_contact?.phone) },
-                            { label: 'Email', value: text(c.emergency_contact?.email) }
-                        ]
-                    }
-                ]
-            }
-        ];
+        return c ? buildDossierSections(c, this.academicLabels()) : [];
     });
 
     readonly genderOptions = [
@@ -511,7 +337,8 @@ export class CandidatePortal implements OnInit {
                 this.editing.set(false);
                 this.resolveLabels(c);
                 this.loadAcademicOptions(c.faculty_id, c.program_id);
-                this.resolveDocumentViewUrls(c);
+                this.photoLoadFailed.set(false);
+                this.documentUrls.load(c.documents ?? []);
                 this.loading.set(false);
             },
             error: (error: unknown) => {
@@ -602,47 +429,23 @@ export class CandidatePortal implements OnInit {
         return invalid.length ? `À compléter : ${invalid.join(', ')}.` : 'Vérifiez les champs obligatoires.';
     }
 
-    documentLabel(type: CandidateDocumentType): string {
-        return formatCandidateDocumentType(type);
-    }
-
-    loadedDocumentLabel(document: CandidateDocument): string {
-        return formatCandidateDocumentType(document.document_type);
-    }
-
-    documentViewUrl(document: CandidateDocument): string {
-        return this.documentViewUrls()[document.id] ?? '';
-    }
-
-    documentKind(document: CandidateDocument): 'image' | 'pdf' | 'unknown' {
-        return resolveCandidateDocumentKind(document);
-    }
-
     openDocument(document: CandidateDocument): void {
-        const viewUrl = this.documentViewUrl(document);
+        this.documentUrls.fresh(document).subscribe((url) => {
+            if (!url) return;
+            this.previewDocument.set(document);
+            this.previewVisible.set(true);
+        });
+    }
 
-        if (!viewUrl || isSignedUrlExpiredOrExpiring(viewUrl)) {
-            this.refreshDocumentViewUrl(document).subscribe((refreshedUrl) => {
-                if (!refreshedUrl) return;
-                this.previewDocument.set(document);
-                this.previewVisible.set(true);
-            });
-            return;
-        }
-
-        this.previewDocument.set(document);
-        this.previewVisible.set(true);
+    onPhotoImageError(): void {
+        const photo = photoDocument(this.candidate());
+        if (!photo) return;
+        const previous = this.documentUrls.url(photo);
+        this.documentUrls.refresh(photo).subscribe((url) => this.photoLoadFailed.set(!url || url === previous));
     }
 
     onDocumentImageError(document: CandidateDocument): void {
-        this.refreshDocumentViewUrl(document).subscribe();
-    }
-
-    onPreviewVisibleChange(visible: boolean): void {
-        this.previewVisible.set(visible);
-        if (!visible) {
-            this.previewDocument.set(null);
-        }
+        this.documentUrls.refresh(document).subscribe();
     }
 
     replaceLoadedDocument(type: CandidateDocumentType): void {
@@ -726,55 +529,6 @@ export class CandidatePortal implements OnInit {
                 }
             });
     }
-
-    private resolveDocumentViewUrls(candidate: CandidateResponse): void {
-        const documents = candidate.documents ?? [];
-        this.documentViewUrlRefreshAttempts.clear();
-
-        if (!documents.length) {
-            this.documentViewUrls.set({});
-            return;
-        }
-
-        forkJoin(
-            documents.map((document) =>
-                this.candidateService.resolveOwnDocumentViewUrl(document).pipe(
-                    map((url) => ({ id: document.id, url })),
-                    catchError(() => of({ id: document.id, url: '' }))
-                )
-            )
-        )
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((entries) => {
-                this.documentViewUrls.set(
-                    Object.fromEntries(entries.map(({ id, url }) => [id, url]))
-                );
-            });
-    }
-
-    private refreshDocumentViewUrl(document: CandidateDocument): Observable<string> {
-        const candidateId = this.candidate()?.id;
-        if (!candidateId) return of('');
-
-        const attempts = this.documentViewUrlRefreshAttempts.get(document.id) ?? 0;
-        if (attempts >= this.maxDocumentViewUrlRefreshes) {
-            return of(this.documentViewUrls()[document.id] ?? '');
-        }
-
-        this.documentViewUrlRefreshAttempts.set(document.id, attempts + 1);
-
-        return this.candidateService.resolveOwnDocumentViewUrl(document).pipe(
-            tap((url) => {
-                this.documentViewUrls.update((current) => ({
-                    ...current,
-                    [document.id]: url
-                }));
-            }),
-            catchError(() => of(''))
-        );
-    }
-
-
 
     isInvalid(controlName: string): boolean {
         const control = this.form.get(controlName);

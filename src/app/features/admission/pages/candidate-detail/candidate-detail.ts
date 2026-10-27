@@ -10,33 +10,22 @@ import {
     signal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-    DomSanitizer,
-    SafeResourceUrl
-} from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
-import { DividerModule } from 'primeng/divider';
-import { ImageModule } from 'primeng/image';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { SkeletonModule } from 'primeng/skeleton';
-import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 
 import {
     EMPTY,
-    Observable,
     catchError,
     distinctUntilChanged,
     filter,
-    finalize,
     forkJoin,
     map,
     of,
@@ -54,7 +43,6 @@ import {
     ContentSubtopbar,
     SubtopbarAction
 } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
-import { isSignedUrlExpiredOrExpiring } from '@/app/shared/utils/signed-url';
 
 import {
     CandidateDocument,
@@ -70,29 +58,18 @@ import {
 } from '../../services/admission-academic-reference.service';
 import { CandidateService } from '../../services/candidate.service';
 import {
-    CandidateStatusSeverity,
-    candidateStatusSeverity,
-    formatCandidateDate,
-    formatCandidateDateTime,
-    formatCandidateDocumentType,
-    formatCandidateGender,
-    formatCandidatureStatus,
-    formatCandidatureType,
-    formatMaritalStatus,
-    resolveCandidateDocumentKind
-} from '../../utils/candidate-format';
-
-type CandidateDetailRow = {
-    label: string;
-    value: string | number | null | undefined;
-};
-
-type CandidateDetailSection = {
-    title: string;
-    description: string;
-    icon: string;
-    rows: CandidateDetailRow[];
-};
+    CandidateDocumentPreview,
+    CandidateDossierDocuments,
+    CandidateDossierHero,
+    CandidateDossierSections,
+    DossierDocumentUrls,
+    DossierSection,
+    buildDossierSections,
+    candidateFullName,
+    photoDocument,
+    requiredDocuments
+} from '../../components/candidate-dossier';
+import { candidateStatusSeverity, formatCandidatureStatus } from '../../utils/candidate-format';
 
 type CandidateName = Pick<
     CandidateResponse,
@@ -105,19 +82,18 @@ type CandidateName = Pick<
     imports: [
         CommonModule,
         FormsModule,
-        AvatarModule,
         ButtonModule,
-        CardModule,
         ConfirmDialogModule,
         DialogModule,
-        DividerModule,
-        ImageModule,
         ProgressBarModule,
         SkeletonModule,
-        TagModule,
         TextareaModule,
         ToastModule,
-        ContentSubtopbar
+        ContentSubtopbar,
+        CandidateDossierHero,
+        CandidateDossierSections,
+        CandidateDossierDocuments,
+        CandidateDocumentPreview
     ],
     templateUrl: './candidate-detail.html',
     styleUrl: './candidate-detail.scss',
@@ -130,7 +106,6 @@ export class CandidateDetail implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);
-    private readonly sanitizer = inject(DomSanitizer);
 
     private readonly candidateService =
         inject(CandidateService);
@@ -169,20 +144,17 @@ export class CandidateDetail implements OnInit {
         signal<CandidateAcademicLabels | null>(null);
 
     readonly photoLoadFailed = signal(false);
-    readonly previewDocument =
-        signal<CandidateDocument | null>(null);
-
+    readonly previewDocument = signal<CandidateDocument | null>(null);
     readonly previewVisible = signal(false);
 
     readonly rejectDialogVisible = signal(false);
     readonly rejectReason = signal('');
 
-    readonly documentViewUrls = signal<Record<string, string>>({});
-
-    private readonly documentViewUrlRefreshAttempts =
-        new Map<string, number>();
-
-    private readonly maxDocumentViewUrlRefreshes = 2;
+    /** URL signées des pièces, par la route du personnel. */
+    readonly documentUrls = new DossierDocumentUrls(
+        (document) => this.candidateService.resolveDocumentViewUrl(this.requestedCandidateId() || this.candidate()?.id || '', document),
+        this.destroyRef
+    );
 
     readonly busy = computed(
         () =>
@@ -227,300 +199,22 @@ export class CandidateDetail implements OnInit {
             : 'Détail candidature';
     });
 
-    readonly candidateInitial = computed(() => {
-        const current = this.candidate();
-
-        return (
-            current?.first_name?.trim().charAt(0) ||
-            current?.last_name?.trim().charAt(0) ||
-            '?'
-        ).toUpperCase();
-    });
-
-    readonly photoDocument = computed(
-        () =>
-            this.candidate()?.documents?.find(
-                (document) =>
-                    document.document_type === 'PHOTO'
-            ) ?? null
-    );
-
     readonly photoUrl = computed(() => {
-        if (this.photoLoadFailed()) {
-            return '';
-        }
-
-        const photo = this.photoDocument();
-
-        return photo
-            ? this.documentViewUrls()[photo.id] ?? ''
-            : '';
+        const photo = photoDocument(this.candidate());
+        return photo && !this.photoLoadFailed() ? this.documentUrls.url(photo) : '';
     });
 
-    readonly supportingDocuments = computed(
-        () =>
-            this.candidate()?.documents?.filter(
-                (document) =>
-                    document.document_type !== 'PHOTO'
-            ) ?? []
-    );
+    readonly documents = computed(() => requiredDocuments(this.candidate()));
 
-    readonly previewTitle = computed(() => {
+    readonly previewUrl = computed(() => {
         const document = this.previewDocument();
-
-        return document
-            ? formatCandidateDocumentType(
-                document.document_type
-            )
-            : 'Prévisualisation du document';
+        return document ? this.documentUrls.url(document) : '';
     });
 
-    readonly safePreviewUrl =
-        computed<SafeResourceUrl | null>(() => {
-            const document = this.previewDocument();
-
-            if (
-                !document ||
-                this.documentKind(document) !== 'pdf'
-            ) {
-                return null;
-            }
-
-            const viewUrl =
-                this.documentViewUrls()[document.id];
-
-            if (!viewUrl) {
-                return null;
-            }
-
-            try {
-                const url = new URL(
-                    viewUrl,
-                    window.location.origin
-                );
-
-                if (
-                    url.protocol !== 'http:' &&
-                    url.protocol !== 'https:'
-                ) {
-                    return null;
-                }
-
-                return this.sanitizer
-                    .bypassSecurityTrustResourceUrl(
-                        url.toString()
-                    );
-            } catch {
-                return null;
-            }
-        });
-
-    readonly detailSections =
-        computed<CandidateDetailSection[]>(() => {
-            const candidate = this.candidate();
-            const labels = this.academicLabels();
-
-            if (!candidate) return [];
-
-            return [
-                {
-                    title: 'Informations personnelles',
-                    description:
-                        'Identité, contact et origine du candidat.',
-                    icon: 'pi pi-user',
-                    rows: [
-                        {
-                            label: 'Prénom',
-                            value: candidate.first_name
-                        },
-                        {
-                            label: 'Post-nom',
-                            value: candidate.middle_name
-                        },
-                        {
-                            label: 'Nom',
-                            value: candidate.last_name
-                        },
-                        {
-                            label: 'Genre',
-                            value: formatCandidateGender(
-                                candidate.gender
-                            )
-                        },
-                        {
-                            label: 'Date de naissance',
-                            value: formatCandidateDate(
-                                candidate.birth_date
-                            )
-                        },
-                        {
-                            label: 'Lieu de naissance',
-                            value: candidate.birth_place
-                        },
-                        {
-                            label: 'État civil',
-                            value: formatMaritalStatus(
-                                candidate.marital_status
-                            )
-                        },
-                        {
-                            label: 'Nationalité',
-                            value: candidate.nationality
-                        },
-                        {
-                            label: 'Email',
-                            value: candidate.email
-                        },
-                        {
-                            label: 'Téléphone',
-                            value: candidate.phone
-                        },
-                        {
-                            label: 'Province',
-                            value: candidate.origin.province
-                        },
-                        {
-                            label: 'Territoire',
-                            value: candidate.origin.territory
-                        },
-                        {
-                            label: 'Secteur',
-                            value: candidate.origin.sector
-                        },
-                        {
-                            label: 'Commune',
-                            value: candidate.origin.commune
-                        }
-                    ]
-                },
-                {
-                    title: 'Choix académiques',
-                    description:
-                        'Cursus demandé et parcours scolaire.',
-                    icon: 'pi pi-graduation-cap',
-                    rows: [
-                        {
-                            label: 'Type de candidature',
-                            value: formatCandidatureType(
-                                candidate.candidature.type
-                            )
-                        },
-                        {
-                            label: 'Soumise le',
-                            value: formatCandidateDateTime(
-                                candidate.candidature
-                                    .submitted_at
-                            )
-                        },
-                        {
-                            label: 'Année académique',
-                            value:
-                                labels?.academicYearLabel ??
-                                candidate.academic_year_id
-                        },
-                        {
-                            label: 'Faculté',
-                            value:
-                                labels?.facultyLabel ??
-                                candidate.faculty_id
-                        },
-                        {
-                            label: 'Programme',
-                            value:
-                                labels?.programLabel ??
-                                candidate.program_id
-                        },
-                        {
-                            label: 'Niveau',
-                            value:
-                                labels?.levelLabel ??
-                                candidate.level_id
-                        },
-                        {
-                            label: 'École',
-                            value:
-                                candidate.academic_background
-                                    .school_name
-                        },
-                        {
-                            label: 'Option',
-                            value:
-                                candidate.academic_background
-                                    .option
-                        },
-                        {
-                            label: 'Pourcentage',
-                            value:
-                                `${candidate.academic_background.percentage}%`
-                        },
-                        {
-                            label: 'Année de fin',
-                            value:
-                                candidate.academic_background
-                                    .graduation_year
-                        },
-                        {
-                            label: 'Pays des études',
-                            value:
-                                candidate.academic_background
-                                    .study_country
-                        },
-                        {
-                            label: 'Ville des études',
-                            value:
-                                candidate.academic_background
-                                    .study_city
-                        }
-                    ]
-                },
-                {
-                    title: 'Famille et urgence',
-                    description:
-                        'Tuteur et personne à contacter.',
-                    icon: 'pi pi-users',
-                    rows: [
-                        {
-                            label: 'Nom du tuteur',
-                            value: candidate.tutor.full_name
-                        },
-                        {
-                            label: 'Email du tuteur',
-                            value: candidate.tutor.email
-                        },
-                        {
-                            label: 'Téléphone du tuteur',
-                            value: candidate.tutor.phone
-                        },
-                        {
-                            label: 'Profession du tuteur',
-                            value: candidate.tutor.profession
-                        },
-                        {
-                            label: 'Contact d’urgence',
-                            value:
-                                candidate.emergency_contact
-                                    .full_name
-                        },
-                        {
-                            label: 'Email d’urgence',
-                            value:
-                                candidate.emergency_contact.email
-                        },
-                        {
-                            label: 'Téléphone d’urgence',
-                            value:
-                                candidate.emergency_contact.phone
-                        },
-                        {
-                            label: 'Lien avec le candidat',
-                            value:
-                                candidate.emergency_contact
-                                    .relationship
-                        }
-                    ]
-                }
-            ];
-        });
+    readonly sections = computed<DossierSection[]>(() => {
+        const candidate = this.candidate();
+        return candidate ? buildDossierSections(candidate, this.academicLabels()) : [];
+    });
 
     readonly canValidate = computed(() => {
         const status =
@@ -659,7 +353,7 @@ export class CandidateDetail implements OnInit {
                 this.academicLabels.set(labels);
                 this.loading.set(false);
                 this.refreshing.set(false);
-                this.resolveDocumentViewUrls(candidate);
+                this.documentUrls.load(candidate.documents ?? []);
                 this.prefetchAdjacentCandidates();
             });
     }
@@ -738,111 +432,32 @@ export class CandidateDetail implements OnInit {
     }
 
     fullName(candidate: CandidateName): string {
-        return [
-            candidate.first_name,
-            candidate.middle_name,
-            candidate.last_name
-        ]
-            .filter(Boolean)
-            .join(' ');
-    }
-
-    statusLabel(status: CandidatureStatus): string {
-        return formatCandidatureStatus(status);
-    }
-
-    statusSeverity(
-        status: CandidatureStatus
-    ): CandidateStatusSeverity {
-        return candidateStatusSeverity(status);
-    }
-
-    documentLabel(
-        document: CandidateDocument
-    ): string {
-        return formatCandidateDocumentType(
-            document.document_type
-        );
-    }
-
-    documentViewUrl(document: CandidateDocument): string {
-        return this.documentViewUrls()[document.id] ?? '';
-    }
-
-    documentKind(
-        document: CandidateDocument
-    ): 'image' | 'pdf' | 'unknown' {
-        return resolveCandidateDocumentKind(document);
+        return candidateFullName(candidate);
     }
 
     openDocument(document: CandidateDocument): void {
-        const viewUrl = this.documentViewUrl(document);
-
-        if (
-            !viewUrl ||
-            isSignedUrlExpiredOrExpiring(viewUrl)
-        ) {
-            this.refreshDocumentViewUrl(document).subscribe(
-                (refreshedUrl) => {
-                    if (!refreshedUrl) {
-                        return;
-                    }
-
-                    this.previewDocument.set(document);
-                    this.previewVisible.set(true);
-                }
-            );
-            return;
-        }
-
-        this.previewDocument.set(document);
-        this.previewVisible.set(true);
+        this.documentUrls.fresh(document).subscribe((url) => {
+            if (!url) {
+                return;
+            }
+            this.previewDocument.set(document);
+            this.previewVisible.set(true);
+        });
     }
 
     onPhotoImageError(): void {
-        const photo = this.photoDocument();
-
+        const photo = photoDocument(this.candidate());
         if (!photo) {
             this.photoLoadFailed.set(true);
             return;
         }
-
-        const attempts =
-            this.documentViewUrlRefreshAttempts.get(photo.id) ??
-            0;
-
-        if (attempts >= this.maxDocumentViewUrlRefreshes) {
-            this.photoLoadFailed.set(true);
-            return;
-        }
-
-        this.refreshDocumentViewUrl(photo).subscribe((url) => {
-            if (!url) {
-                this.photoLoadFailed.set(true);
-            }
-        });
+        const previous = this.documentUrls.url(photo);
+        // Une URL renouvelée identique ne chargera pas mieux : la page affiche alors les initiales.
+        this.documentUrls.refresh(photo).subscribe((url) => this.photoLoadFailed.set(!url || url === previous));
     }
 
     onDocumentImageError(document: CandidateDocument): void {
-        this.refreshDocumentViewUrl(document).subscribe();
-    }
-
-    onPreviewVisibleChange(visible: boolean): void {
-        this.previewVisible.set(visible);
-
-        if (!visible) {
-            this.previewDocument.set(null);
-        }
-    }
-
-    displayValue(
-        value: string | number | null | undefined
-    ): string {
-        return value === null ||
-            value === undefined ||
-            value === ''
-            ? '-'
-            : String(value);
+        this.documentUrls.refresh(document).subscribe();
     }
 
     goToList(): void {
@@ -897,8 +512,7 @@ export class CandidateDetail implements OnInit {
         this.requestedCandidateId.set(id);
         this.photoLoadFailed.set(false);
         this.academicLabels.set(null);
-        this.documentViewUrls.set({});
-        this.documentViewUrlRefreshAttempts.clear();
+        this.documentUrls.clear();
 
         const cached =
             this.candidateService.peekCandidate(id);
@@ -915,111 +529,6 @@ export class CandidateDetail implements OnInit {
 
         this.loading.set(!hasCurrentCandidate);
         this.refreshing.set(hasCurrentCandidate);
-    }
-
-    private resolveDocumentViewUrls(
-        candidate: CandidateResponse
-    ): void {
-        const documents = candidate.documents ?? [];
-
-        if (!documents.length) {
-            this.documentViewUrls.set({});
-            return;
-        }
-
-        forkJoin(
-            documents.map((document) =>
-                this.candidateService
-                    .resolveDocumentViewUrl(
-                        candidate.id,
-                        document
-                    )
-                    .pipe(
-                        map((url) => ({
-                            id: document.id,
-                            url
-                        })),
-                        catchError(() =>
-                            of({
-                                id: document.id,
-                                url: ''
-                            })
-                        )
-                    )
-            )
-        )
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((entries) => {
-                const urls = Object.fromEntries(
-                    entries.map(({ id, url }) => [id, url])
-                );
-
-                this.documentViewUrls.set(urls);
-
-                const photo = documents.find(
-                    (document) =>
-                        document.document_type === 'PHOTO'
-                );
-
-                if (photo && urls[photo.id]) {
-                    this.photoLoadFailed.set(false);
-                }
-            });
-    }
-
-    private refreshDocumentViewUrl(
-        document: CandidateDocument
-    ): Observable<string> {
-        const candidateId =
-            this.requestedCandidateId() ||
-            this.candidate()?.id;
-
-        if (!candidateId) {
-            return of('');
-        }
-
-        const attempts =
-            this.documentViewUrlRefreshAttempts.get(
-                document.id
-            ) ?? 0;
-
-        if (attempts >= this.maxDocumentViewUrlRefreshes) {
-            return of(
-                this.documentViewUrls()[document.id] ?? ''
-            );
-        }
-
-        this.documentViewUrlRefreshAttempts.set(
-            document.id,
-            attempts + 1
-        );
-
-        return this.candidateService
-            .resolveDocumentViewUrl(candidateId, document)
-            .pipe(
-                tap((url) => {
-                    this.documentViewUrls.update((current) => ({
-                        ...current,
-                        [document.id]: url
-                    }));
-
-                    if (
-                        document.document_type === 'PHOTO' &&
-                        url
-                    ) {
-                        this.photoLoadFailed.set(false);
-                    }
-                }),
-                catchError(() => of('')),
-                finalize(() => {
-                    if (
-                        document.document_type === 'PHOTO' &&
-                        !this.documentViewUrls()[document.id]
-                    ) {
-                        this.photoLoadFailed.set(true);
-                    }
-                })
-            );
     }
 
     private validateCandidate(id: string): void {

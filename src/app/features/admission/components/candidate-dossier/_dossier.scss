@@ -1,0 +1,108 @@
+// Styles communs du dossier candidat (« Mon dossier » et détail d'une candidature).
+// Couleurs tirées du thème (clair / sombre) : aucune valeur en dur hors des teintes d'état.
+
+@mixin tokens {
+    --dossier-radius: var(--content-border-radius, 10px);
+    --dossier-muted: var(--text-color-secondary);
+    --dossier-line: var(--surface-border);
+    --dossier-success: var(--p-green-500, #22c55e);
+    --dossier-danger: var(--p-red-500, #ef4444);
+    --dossier-warn: var(--p-amber-500, #f59e0b);
+}
+
+@mixin card {
+    .dossier-card {
+        padding: 1.25rem 1.5rem;
+        border: 1px solid var(--dossier-line);
+        border-radius: var(--dossier-radius);
+        background: var(--surface-card);
+        scroll-margin-top: 1rem;
+    }
+
+    .dossier-card__header {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        margin-bottom: 1rem;
+
+        h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+    }
+
+    .dossier-card__icon {
+        display: grid;
+        place-items: center;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 8px;
+        background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+        color: var(--primary-color);
+        font-size: 0.875rem;
+    }
+
+    .dossier-card__count {
+        margin-left: auto;
+        color: var(--dossier-muted);
+        font-size: 0.8125rem;
+    }
+
+    .dossier-subtitle {
+        color: var(--dossier-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    @media (max-width: 767px) {
+        .dossier-card {
+            padding: 1rem;
+        }
+    }
+}
+
+/** Page : en-tête, puis rubriques à gauche et documents dans une colonne latérale. */
+@mixin layout {
+    .portal-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .portal-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 24rem;
+        gap: 1.25rem;
+        align-items: start;
+    }
+
+    .portal-main {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        min-width: 0;
+    }
+
+    .portal-aside {
+        position: sticky;
+        top: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        min-width: 0;
+    }
+
+    @media (max-width: 1199px) {
+        .portal-layout {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        // Sur écran étroit, les documents suivent les rubriques.
+        .portal-aside {
+            position: static;
+        }
+    }
+}
