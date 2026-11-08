@@ -1,5 +1,5 @@
 import { normalizeProfessor, professorDisplayName } from './professor.model';
-import { normalizeStudent, studentDisplayName, studentMatchesQuery } from './student.model';
+import { normalizeStudent, studentDisplayName } from './student.model';
 
 describe('academic display names and normalization', () => {
     it('should format a professor full name', () => {
@@ -53,24 +53,21 @@ describe('academic display names and normalization', () => {
         expect(student.level_name).toBe('Licence 1');
     });
 
-    it('should match advanced student search filters', () => {
+    it('should read the promotion of a listed student, sent flat by the API', () => {
         const student = normalizeStudent({
             id: 'st-1',
             first_name: 'Ada',
             last_name: 'Lovelace',
-            gender: 'MALE',
-            nationality: 'Zambienne',
             faculty_id: 'fac-info',
-            matricule: 'FST-001'
+            faculty_name: 'Sciences informatiques',
+            program_id: 'pr-1',
+            program_name: 'Génie Logiciel',
+            program_level_id: 'pl-1',
+            level_name: 'Licence 1'
         });
 
-        expect(
-            studentMatchesQuery(student, { gender: 'MALE', facultyId: 'fac-info', nationality: 'congolaise' })
-        ).toBeFalse();
-        expect(
-            studentMatchesQuery(student, { gender: 'MALE', facultyId: 'fac-info', nationality: 'zambienne' })
-        ).toBeTrue();
-        expect(studentMatchesQuery(student, { gender: 'FEMALE' })).toBeFalse();
-        expect(studentMatchesQuery(student, { matricule: 'fst-001' })).toBeTrue();
+        expect(student.level_id).toBe('pl-1');
+        expect(student.level_name).toBe('Licence 1');
+        expect(student.program_name).toBe('Génie Logiciel');
     });
 });

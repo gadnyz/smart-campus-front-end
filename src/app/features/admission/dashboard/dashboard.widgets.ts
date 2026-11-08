@@ -1,5 +1,5 @@
 import { DashboardWidget } from '@/app/core/modules/app-feature.model';
-import { AdmissionPermission } from '../permissions/permission.model';
+import { AdmissionManage } from '../permissions/permission.model';
 import { CandidateStatsWidget } from './components/candidate-stats-widget';
 
 export const admissionDashboardWidgets: DashboardWidget[] = [
@@ -8,7 +8,7 @@ export const admissionDashboardWidgets: DashboardWidget[] = [
         title: 'Candidatures',
         module: 'admission',
         component: CandidateStatsWidget,
-        permissions: [AdmissionPermission.AdmissionCandidateUpdateAll],
+        permissions: AdmissionManage.Candidate,
         mode: 'any',
         size: 'sm',
         order: 16

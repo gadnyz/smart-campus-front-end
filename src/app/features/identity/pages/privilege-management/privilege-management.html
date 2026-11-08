@@ -1,0 +1,92 @@
+<p-toast />
+<p-confirmdialog [style]="{ width: '450px' }" />
+
+<app-content-subtopbar kicker="" title="Privilèges" [actions]="actions()" />
+
+<div class="card">
+    <p-table styleClass="stack-table" #dt [value]="rows()" [loading]="loading()" [paginator]="true" [rows]="20"
+        [rowsPerPageOptions]="[20, 50, 100]" [globalFilterFields]="['name', 'groupLabel', 'actionLabel', 'scopeLabel']"
+        [rowHover]="true" dataKey="id" currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} privilèges"
+        [showCurrentPageReport]="true" [tableStyle]="{ 'min-width': '50rem' }">
+        <ng-template pTemplate="caption">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <div class="font-semibold text-xl">Catalogue des privilèges</div>
+                    <div class="text-sm text-color-secondary">Ils s’attribuent par les rôles, dans l’écran Rôles.</div>
+                </div>
+                <p-iconfield>
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text" placeholder="Rechercher..." aria-label="Rechercher un privilège"
+                        (input)="onGlobalFilter(dt, $event)" />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="name" style="min-width: 18rem">Autorité <p-sortIcon field="name" /></th>
+                <th pSortableColumn="groupLabel">Ressource <p-sortIcon field="groupLabel" /></th>
+                <th>Action</th>
+                <th>Portée</th>
+                @if (canDelete()) {
+                <th style="width: 6rem">Actions</th>
+                }
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-privilege>
+            <tr>
+                <td data-label="Autorité"><code class="text-sm">{{ privilege.name }}</code></td>
+                <td data-label="Ressource">{{ privilege.groupLabel }}</td>
+                <td data-label="Action">{{ privilege.actionLabel }}</td>
+                <td data-label="Portée">
+                    @if (privilege.scopeLabel) {
+                    <p-tag [value]="privilege.scopeLabel" [severity]="privilege.scopeSeverity" />
+                    } @else {
+                    <span class="text-color-secondary">—</span>
+                    }
+                </td>
+                @if (canDelete()) {
+                <td class="stack-actions">
+                    <button pButton type="button" icon="pi pi-trash" rounded outlined severity="danger"
+                        [loading]="deletingId() === privilege.id" [attr.aria-label]="'Supprimer ' + privilege.name"
+                        (click)="confirmDelete(privilege)"></button>
+                </td>
+                }
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td [attr.colspan]="canDelete() ? 5 : 4">Aucun privilège trouvé.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog header="Nouveau privilège" [visible]="createDialogVisible()" (visibleChange)="createDialogVisible.set($event)"
+    [modal]="true" [style]="{ width: '32rem' }" [breakpoints]="{ '640px': '95vw' }">
+    <form [formGroup]="createForm" class="flex flex-col gap-4" (ngSubmit)="submitCreate()">
+        <div>
+            <label for="privilege-name" class="block text-sm mb-1">Autorité</label>
+            <input pInputText id="privilege-name" formControlName="name" class="w-full" autocomplete="off"
+                placeholder="module:ressource:action:portée" />
+            @let name = createForm.controls.name;
+            @if (name.touched && name.hasError('required')) {
+            <small class="block mt-1 text-red-500">L’autorité est obligatoire.</small>
+            } @else if (name.touched && name.hasError('pattern')) {
+            <small class="block mt-1 text-red-500">Format attendu : module:ressource:action, suivi ou non d’une portée (own, promotion, program, faculty, all), en minuscules.</small>
+            } @else if (name.hasError('duplicate')) {
+            <small class="block mt-1 text-red-500">Ce privilège existe déjà.</small>
+            } @else if (preview()) {
+            <small class="block mt-1 text-color-secondary">{{ preview() }}</small>
+            } @else {
+            <small class="block mt-1 text-color-secondary">Exemple : academic:course:read:faculty</small>
+            }
+        </div>
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined (click)="createDialogVisible.set(false)"></button>
+            <button pButton type="submit" label="Créer" icon="pi pi-check" [loading]="creating()" [disabled]="creating()"></button>
+        </div>
+    </form>
+</p-dialog>

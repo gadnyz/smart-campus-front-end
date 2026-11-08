@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
@@ -47,6 +48,7 @@ type YearOption = { label: string; value: string | null };
         ContentSubtopbar
     ],
     templateUrl: './semesters.html',
+    styleUrl: './semesters.scss',
     providers: [ConfirmationService, MessageService]
 })
 export class SemestersPage implements OnInit {
@@ -119,7 +121,7 @@ export class SemestersPage implements OnInit {
                 this.loadSemesters();
             },
             error: (error: HttpErrorResponse) => {
-                this.showError(error.error?.detail ?? 'Impossible de charger les années académiques.');
+                this.showError(apiErrorMessage(error, 'Impossible de charger les années académiques.'));
             }
         });
     }
@@ -238,7 +240,7 @@ export class SemestersPage implements OnInit {
                 this.showSuccess(`Semestre ${semester.code} supprimé.`);
             },
             error: (error: HttpErrorResponse) => {
-                this.showError(error.error?.detail ?? 'Impossible de supprimer ce semestre.');
+                this.showError(apiErrorMessage(error, 'Impossible de supprimer ce semestre.'));
             }
         });
     }
@@ -260,7 +262,7 @@ export class SemestersPage implements OnInit {
             error: (error: HttpErrorResponse) => {
                 this.semesters.set([]);
                 this.loading.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de charger les semestres.');
+                this.showError(apiErrorMessage(error, 'Impossible de charger les semestres.'));
             }
         });
     }

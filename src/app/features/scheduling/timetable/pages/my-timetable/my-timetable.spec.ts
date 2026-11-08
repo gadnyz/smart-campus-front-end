@@ -42,6 +42,7 @@ function entry(overrides: Partial<TimetableEntry>): TimetableEntry {
     return {
         id: 'e-1',
         timetable_id: 'tt-1',
+        host_program_level_id: '',
         date: '2026-10-05',
         start_hour: '08:00:00',
         end_hour: '10:00:00',
@@ -57,6 +58,8 @@ function entry(overrides: Partial<TimetableEntry>): TimetableEntry {
         note: '',
         created_at: '',
         updated_at: '',
+        audience_program_level_ids: [],
+        warnings: [],
         ...overrides
     };
 }

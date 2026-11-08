@@ -31,6 +31,8 @@ export interface SessionLine {
     room_id: string;
     session_type: SessionType;
     note: string;
+    /** Autres promotions qui assistent aux séances de la ligne (tronc commun). */
+    shared_with: string[];
     /** Séance déjà enregistrée pour chaque jour de la ligne (mode édition). */
     entry_ids: Partial<Record<WeekDay, string>>;
 }

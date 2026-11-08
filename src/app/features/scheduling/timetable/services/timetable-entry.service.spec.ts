@@ -59,7 +59,7 @@ describe('TimetableEntryService', () => {
         let week = -1;
         service.getForWeek('tt-1', '2026-10-05').subscribe((entries) => (week = entries.length));
         const weekRequest = httpTesting.expectOne((req) => req.url === `${baseUrl}/timetable/tt-1/week`);
-        expect(weekRequest.request.params.get('referenceDate')).toBe('2026-10-05');
+        expect(weekRequest.request.params.get('reference_date')).toBe('2026-10-05');
         weekRequest.flush([{ id: 'e-1' }]);
         expect(week).toBe(1);
 

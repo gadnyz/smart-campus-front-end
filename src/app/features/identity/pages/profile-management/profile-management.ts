@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -43,6 +44,7 @@ type ProfileTableRow = UserProfileResponse & {
         ContentSubtopbar
     ],
     templateUrl: './profile-management.html',
+    styleUrl: './profile-management.scss',
     providers: [ConfirmationService, MessageService]
 })
 export class ProfileManagement implements OnInit {
@@ -164,7 +166,7 @@ export class ProfileManagement implements OnInit {
             error: (error: HttpErrorResponse) => {
                 this.roles.set([]);
                 this.loadingRoles.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de charger les rôles.');
+                this.showError(apiErrorMessage(error, 'Impossible de charger les rôles.'));
             }
         });
     }
@@ -207,7 +209,7 @@ export class ProfileManagement implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.creating.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de créer le profil.');
+                this.showError(apiErrorMessage(error, 'Impossible de créer le profil.'));
             }
         });
     }
@@ -241,7 +243,7 @@ export class ProfileManagement implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.deletingId.set(null);
-                this.showError(error.error?.detail ?? 'Impossible de supprimer le profil.');
+                this.showError(apiErrorMessage(error, 'Impossible de supprimer le profil.'));
             }
         });
     }
@@ -302,7 +304,7 @@ export class ProfileManagement implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.attaching.set(false);
-                this.showError(error.error?.detail ?? 'Impossible d\'ajouter les rôles.');
+                this.showError(apiErrorMessage(error, 'Impossible d\'ajouter les rôles.'));
             }
         });
     }

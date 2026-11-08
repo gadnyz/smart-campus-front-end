@@ -1,0 +1,173 @@
+<form [formGroup]="form()" class="portal-form">
+    <section class="dossier-card">
+        <header class="dossier-card__header">
+            <span class="dossier-card__icon"><i class="pi pi-user"></i></span>
+            <h3>Identité</h3>
+        </header>
+        <div class="grid grid-cols-12 gap-4">
+            <div class="col-span-12"><div class="dossier-subtitle">Informations générales</div></div>
+            <div class="col-span-12 md:col-span-4">
+                <label class="field-label" for="last_name">Nom</label>
+                <input pInputText id="last_name" class="w-full" formControlName="last_name" />
+                @if (isInvalid('last_name')) {
+                <small class="field-error">Obligatoire.</small>
+                }
+            </div>
+            <div class="col-span-12 md:col-span-4">
+                <label class="field-label" for="middle_name">Post-nom</label>
+                <input pInputText id="middle_name" class="w-full" formControlName="middle_name" />
+            </div>
+            <div class="col-span-12 md:col-span-4">
+                <label class="field-label" for="first_name">Prénom</label>
+                <input pInputText id="first_name" class="w-full" formControlName="first_name" />
+            </div>
+            <div class="col-span-12 md:col-span-4">
+                <label class="field-label" for="gender">Genre</label>
+                <p-select inputId="gender" class="w-full" formControlName="gender" [options]="genderOptions" optionLabel="label" optionValue="value" />
+            </div>
+            <div class="col-span-12 md:col-span-4">
+                <label class="field-label" for="birth_date">Date de naissance</label>
+                <p-datepicker inputId="birth_date" class="w-full" formControlName="birth_date" dateFormat="yy-mm-dd" [showIcon]="true" dataType="string" />
+            </div>
+            <div class="col-span-12 md:col-span-4">
+                <label class="field-label" for="birth_place">Lieu de naissance</label>
+                <input pInputText id="birth_place" class="w-full" formControlName="birth_place" />
+            </div>
+            <div class="col-span-12 md:col-span-4">
+                <label class="field-label" for="marital_status">État civil</label>
+                <p-select inputId="marital_status" class="w-full" formControlName="marital_status" [options]="maritalStatusOptions" optionLabel="label" optionValue="value" />
+            </div>
+            <div class="col-span-12 md:col-span-4">
+                <label class="field-label" for="nationality">Nationalité</label>
+                <input pInputText id="nationality" class="w-full" formControlName="nationality" />
+            </div>
+            <div class="col-span-12"><div class="dossier-subtitle">Coordonnées</div></div>
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="email">Email</label>
+                <input pInputText id="email" type="email" class="w-full" formControlName="email" />
+            </div>
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="phone">Téléphone</label>
+                <input pInputText id="phone" class="w-full" formControlName="phone" />
+            </div>
+            <div class="col-span-12"><div class="dossier-subtitle">Origine</div></div>
+            <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                <label class="field-label" for="province">Province</label>
+                <input pInputText id="province" class="w-full" formControlName="province" />
+            </div>
+            <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                <label class="field-label" for="territory">Territoire</label>
+                <input pInputText id="territory" class="w-full" formControlName="territory" />
+            </div>
+            <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                <label class="field-label" for="sector">Secteur</label>
+                <input pInputText id="sector" class="w-full" formControlName="sector" />
+            </div>
+            <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                <label class="field-label" for="commune">Village / Commune</label>
+                <input pInputText id="commune" class="w-full" formControlName="commune" />
+            </div>
+        </div>
+    </section>
+
+    <section class="dossier-card">
+        <header class="dossier-card__header">
+            <span class="dossier-card__icon"><i class="pi pi-building-columns"></i></span>
+            <h3>Choix académique</h3>
+        </header>
+        <div class="grid grid-cols-12 gap-4">
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="faculty_id">Faculté</label>
+                <p-select inputId="faculty_id" class="w-full" formControlName="faculty_id" [options]="choices().faculties()" optionLabel="label" optionValue="value" placeholder="{{ labels()?.facultyLabel || 'Sélectionner' }}" />
+            </div>
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="program_id">Filière</label>
+                <p-select inputId="program_id" class="w-full" formControlName="program_id" [options]="choices().programs()" optionLabel="label" optionValue="value" placeholder="{{ labels()?.programLabel || 'Sélectionner' }}" />
+            </div>
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="level_id">Promotion</label>
+                <p-select inputId="level_id" class="w-full" formControlName="level_id" [options]="choices().levels()" optionLabel="label" optionValue="value" placeholder="{{ labels()?.levelLabel || 'Sélectionner' }}" />
+            </div>
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="candidature_type">Type de candidature</label>
+                <p-select inputId="candidature_type" class="w-full" formControlName="candidature_type" [options]="candidatureTypeOptions" optionLabel="label" optionValue="value" />
+            </div>
+        </div>
+    </section>
+
+    <section class="dossier-card">
+        <header class="dossier-card__header">
+            <span class="dossier-card__icon"><i class="pi pi-book"></i></span>
+            <h3>Parcours scolaire</h3>
+        </header>
+        <div class="grid grid-cols-12 gap-4">
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="school_name">École</label>
+                <input pInputText id="school_name" class="w-full" formControlName="school_name" />
+            </div>
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="option">Option</label>
+                <input pInputText id="option" class="w-full" formControlName="option" />
+            </div>
+            <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                <label class="field-label" for="percentage">Pourcentage</label>
+                <input pInputText id="percentage" type="number" class="w-full" formControlName="percentage" />
+            </div>
+            <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                <label class="field-label" for="graduation_year">Année d’obtention</label>
+                <input pInputText id="graduation_year" type="number" class="w-full" formControlName="graduation_year" />
+            </div>
+            <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                <label class="field-label" for="study_country">Pays d’étude</label>
+                <input pInputText id="study_country" class="w-full" formControlName="study_country" />
+            </div>
+            <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                <label class="field-label" for="study_city">Ville d’étude</label>
+                <input pInputText id="study_city" class="w-full" formControlName="study_city" />
+            </div>
+        </div>
+    </section>
+
+    <section class="dossier-card">
+        <header class="dossier-card__header">
+            <span class="dossier-card__icon"><i class="pi pi-users"></i></span>
+            <h3>Tuteur et contact d’urgence</h3>
+        </header>
+        <div class="grid grid-cols-12 gap-4">
+            <div class="col-span-12"><div class="dossier-subtitle">Tuteur</div></div>
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="tutor_full_name">Nom complet</label>
+                <input pInputText id="tutor_full_name" class="w-full" formControlName="tutor_full_name" />
+            </div>
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="tutor_profession">Profession</label>
+                <input pInputText id="tutor_profession" class="w-full" formControlName="tutor_profession" />
+            </div>
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="tutor_phone">Téléphone</label>
+                <input pInputText id="tutor_phone" class="w-full" formControlName="tutor_phone" />
+            </div>
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="tutor_email">Email</label>
+                <input pInputText id="tutor_email" type="email" class="w-full" formControlName="tutor_email" />
+            </div>
+            <div class="col-span-12"><div class="dossier-subtitle">Contact d’urgence</div></div>
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="emergency_full_name">Nom complet</label>
+                <input pInputText id="emergency_full_name" class="w-full" formControlName="emergency_full_name" />
+            </div>
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="emergency_relationship">Lien / relation</label>
+                <input pInputText id="emergency_relationship" class="w-full" formControlName="emergency_relationship" />
+            </div>
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="emergency_phone">Téléphone</label>
+                <input pInputText id="emergency_phone" class="w-full" formControlName="emergency_phone" />
+            </div>
+            <div class="col-span-12 md:col-span-6">
+                <label class="field-label" for="emergency_email">Email</label>
+                <input pInputText id="emergency_email" type="email" class="w-full" formControlName="emergency_email" />
+            </div>
+        </div>
+    </section>
+</form>

@@ -1,4 +1,6 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
+import { writeAuthorities } from '@/app/core/permissions/permission-scope';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -13,7 +15,6 @@ import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { PermissionService } from '@/app/core/permissions/permission.service';
-import { AcademicPermission } from '../../permissions/permission.model';
 import { Faculty } from '../../models/faculty.model';
 import { FacultyService } from '../../services/faculty.service';
 import { AcademicCatalogService } from '../../services/academic-catalog.service';
@@ -35,6 +36,7 @@ import { DetailNavigationService } from '@/app/shared/navigation/detail-navigati
         ContentSubtopbar
     ],
     templateUrl: './faculty-list.html',
+    styleUrl: './faculty-list.scss',
     providers: [MessageService]
 })
 export class FacultyListPage implements OnInit {
@@ -64,7 +66,7 @@ export class FacultyListPage implements OnInit {
             severity: 'info',
             outlined: false,
             command: () => this.openCreateDialog(),
-            permissions: [AcademicPermission.FacultyCreateAll],
+            permissions: writeAuthorities('academic:faculty:create'),
             mode: 'any'
         }
     ]);
@@ -115,7 +117,7 @@ export class FacultyListPage implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.saving.set(false);
-                this.showError(error.error?.detail ?? 'Impossible d’enregistrer la faculté.');
+                this.showError(apiErrorMessage(error, 'Impossible d’enregistrer la faculté.'));
             }
         });
     }
@@ -144,7 +146,7 @@ export class FacultyListPage implements OnInit {
             error: (error: HttpErrorResponse) => {
                 this.faculties.set([]);
                 this.loading.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de charger les facultés.');
+                this.showError(apiErrorMessage(error, 'Impossible de charger les facultés.'));
             }
         });
     }

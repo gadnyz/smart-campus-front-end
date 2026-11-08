@@ -30,20 +30,12 @@ describe('UserList', () => {
     };
 
     beforeEach(async () => {
-        usersService = jasmine.createSpyObj<UsersService>('UsersService', ['getUsers', 'deleteUser']);
+        usersService = jasmine.createSpyObj<UsersService>('UsersService', ['getAllUsers', 'deleteUser']);
         permissionService = jasmine.createSpyObj<PermissionService>('PermissionService', ['hasAnyPermission']);
         detailNavigation = jasmine.createSpyObj<DetailNavigationService>('DetailNavigationService', ['setContext']);
 
         permissionService.hasAnyPermission.and.returnValue(false);
-        usersService.getUsers.and.returnValue(
-            of({
-                content: [],
-                page: 0,
-                size: 100,
-                total_elements: 0,
-                total_pages: 0
-            })
-        );
+        usersService.getAllUsers.and.returnValue(of([]));
 
         await TestBed.configureTestingModule({
             imports: [UserList],
@@ -64,7 +56,7 @@ describe('UserList', () => {
 
     it('should create and load users on init', () => {
         expect(component).toBeTruthy();
-        expect(usersService.getUsers).toHaveBeenCalledWith({ page: 0, size: 100 });
+        expect(usersService.getAllUsers).toHaveBeenCalled();
     });
 
     describe('Risk #3 — empty API must not contradict UI', () => {
@@ -81,15 +73,7 @@ describe('UserList', () => {
         });
 
         it('should display users when API returns content', () => {
-            usersService.getUsers.and.returnValue(
-                of({
-                    content: [sampleUser],
-                    page: 0,
-                    size: 100,
-                    total_elements: 1,
-                    total_pages: 1
-                })
-            );
+            usersService.getAllUsers.and.returnValue(of([sampleUser]));
 
             component.loadUsers();
             fixture.detectChanges();
@@ -106,7 +90,7 @@ describe('UserList', () => {
     });
 
     it('should toast an error and clear the list on load failure', () => {
-        usersService.getUsers.and.returnValue(throwError(() => new Error('network')));
+        usersService.getAllUsers.and.returnValue(throwError(() => new Error('network')));
 
         component.loadUsers();
 

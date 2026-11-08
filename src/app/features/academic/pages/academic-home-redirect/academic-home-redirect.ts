@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { PermissionService } from '@/app/core/permissions/permission.service';
-import { AcademicPermission } from '../../permissions/permission.model';
+import { AcademicManage, AcademicPermission } from '../../permissions/permission.model';
 
 @Component({
     selector: 'app-academic-home-redirect',
@@ -12,37 +12,18 @@ export class AcademicHomeRedirect implements OnInit {
     private readonly router = inject(Router);
     private readonly permissionService = inject(PermissionService);
 
+    /** Premier écran accessible : les écrans de gestion d'abord, puis les écrans personnels. */
     ngOnInit(): void {
-        if (this.permissionService.hasAnyPermission([AcademicPermission.FacultyUpdateAll])) {
-            void this.router.navigate(['/academic/faculties']);
-            return;
-        }
-
-        if (this.permissionService.hasAnyPermission([AcademicPermission.FacultyReadOwn])) {
-            void this.router.navigate(['/academic/my-faculty']);
-            return;
-        }
-
-        if (this.permissionService.hasAnyPermission([AcademicPermission.CourseUpdateAll])) {
-            void this.router.navigate(['/academic/courses']);
-            return;
-        }
-
-        if (this.permissionService.hasAnyPermission([AcademicPermission.CourseReadOwn, AcademicPermission.ProfessorReadOwn])) {
-            void this.router.navigate(['/academic/my-courses']);
-            return;
-        }
-
-        if (this.permissionService.hasAnyPermission([AcademicPermission.ProfessorUpdateAll])) {
-            void this.router.navigate(['/academic/professors']);
-            return;
-        }
-
-        if (this.permissionService.hasAnyPermission([AcademicPermission.StudentUpdateAll])) {
-            void this.router.navigate(['/academic/students']);
-            return;
-        }
-
-        void this.router.navigate(['/access-denied']);
+        const has = (permissions: readonly string[]) => this.permissionService.hasAnyPermission(permissions);
+        const targets: [readonly string[], string][] = [
+            [AcademicManage.Faculty, '/academic/faculties'],
+            [[AcademicPermission.FacultyReadOwn], '/academic/my-faculty'],
+            [AcademicManage.Course, '/academic/courses'],
+            [[AcademicPermission.CourseReadOwn, AcademicPermission.ProfessorReadOwn], '/academic/my-courses'],
+            [AcademicManage.Professor, '/academic/professors'],
+            [AcademicManage.Student, '/academic/students']
+        ];
+        const target = targets.find(([permissions]) => has(permissions))?.[1] ?? '/access-denied';
+        void this.router.navigate([target]);
     }
 }

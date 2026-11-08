@@ -1,13 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { AuthService } from '@/app/core/auth/services/auth.service';
+import { PermissionService } from '@/app/core/permissions/permission.service';
 
-/**
- * Profils connus du backend (`ProfileType`) qui changent ce que montre la planification.
- * Le SAF (secrétaire académique de faculté) est le profil `ACADEMIC_SECRETARY`, rattaché à sa
- * faculté par `users.faculty_id`.
- */
-const ADMIN = 'ADMIN';
-const ACADEMIC_SECRETARY = 'ACADEMIC_SECRETARY';
+/** Lire les horaires : la portée `all` choisit sa faculté, une portée plus étroite garde la sienne. */
+const TIMETABLE_READ = 'scheduling:timetable:read';
+
+/** Profils qui ont un emploi du temps personnel. */
 const STUDENT = 'STUDENT';
 const PROFESSOR = 'PROFESSOR';
 
@@ -19,31 +17,23 @@ export function scopeQuery(facultyId: string | null): { facultyId?: string } {
 }
 
 /**
- * Portée des horaires pour l'utilisateur connecté.
- *
- * <p>Attention : c'est un filtre d'affichage. Tant que le backend n'a pas de portée
- * `:faculty`, un SAF qui détient les droits `:all` peut lire les autres facultés par l'API ;
- * seul le serveur peut réellement cloisonner.
+ * Portée des horaires pour l'utilisateur connecté, lue sur ses privilèges : avec
+ * `scheduling:timetable:read:all` il voit toutes les facultés, avec une portée plus étroite
+ * (`faculty`…) celle de son compte (`users.faculty_id`). Le serveur cloisonne de son côté.
  */
 @Injectable({ providedIn: 'root' })
 export class TimetableScopeService {
     private readonly authService = inject(AuthService);
+    private readonly permissionService = inject(PermissionService);
 
     /** Faculté à laquelle limiter les horaires, ou `null` quand l'utilisateur les voit tous. */
     facultyId(): string | null {
-        const user = this.authService.getCurrentUser();
-        const profiles = user?.profiles ?? [];
-        if (profiles.includes(ADMIN) || !profiles.includes(ACADEMIC_SECRETARY)) {
-            return null;
-        }
-        return user?.faculty_id ?? null;
+        return this.isScoped() ? (this.authService.getCurrentUser()?.faculty_id ?? null) : null;
     }
 
-    /** SAF sans faculté renseignée : il ne doit rien voir plutôt que tout voir. */
+    /** Portée faculté sans faculté renseignée : il ne doit rien voir plutôt que tout voir. */
     facultyMissing(): boolean {
-        const user = this.authService.getCurrentUser();
-        const profiles = user?.profiles ?? [];
-        return !profiles.includes(ADMIN) && profiles.includes(ACADEMIC_SECRETARY) && !user?.faculty_id;
+        return this.isScoped() && !this.authService.getCurrentUser()?.faculty_id;
     }
 
     /** Emploi du temps personnel : celui d'un professeur prime s'il est aussi étudiant. */
@@ -53,5 +43,10 @@ export class TimetableScopeService {
             return 'professor';
         }
         return profiles.includes(STUDENT) ? 'student' : null;
+    }
+
+    private isScoped(): boolean {
+        const scope = this.permissionService.scopeOf(TIMETABLE_READ);
+        return scope !== null && scope !== 'all';
     }
 }

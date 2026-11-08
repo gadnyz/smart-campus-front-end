@@ -1,10 +1,10 @@
 <p-toast />
 <p-confirmdialog [style]="{ width: '450px' }" />
 
-<app-content-subtopbar kicker="Paramètres Academic" title="Semestres" [actions]="actions()" />
+<app-content-subtopbar kicker="" title="Semestres" [actions]="actions()" />
 
 <div class="card">
-    <p-table #dt [value]="semesters()" [loading]="loading()" [paginator]="true" [rows]="10"
+    <p-table styleClass="stack-table" #dt [value]="semesters()" [loading]="loading()" [paginator]="true" [rows]="10"
         [rowsPerPageOptions]="[10, 20, 50]" [globalFilterFields]="['code', 'name']" [rowHover]="true" dataKey="id"
         responsiveLayout="scroll" currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} semestres"
         [showCurrentPageReport]="true" [tableStyle]="{ 'min-width': '50rem' }">
@@ -38,16 +38,16 @@
 
         <ng-template pTemplate="body" let-semester>
             <tr>
-                <td>{{ semester.code }}</td>
-                <td>{{ semester.name }}</td>
-                <td>{{ semester.semester_order }}</td>
-                <td>{{ yearLabel(semester.academic_year_id) }}</td>
-                <td>{{ semester.start_date | date: 'dd/MM/yyyy' }}</td>
-                <td>{{ semester.end_date | date: 'dd/MM/yyyy' }}</td>
-                <td>
+                <td data-label="Code">{{ semester.code }}</td>
+                <td data-label="Nom">{{ semester.name }}</td>
+                <td data-label="Ordre">{{ semester.semester_order }}</td>
+                <td data-label="Année">{{ yearLabel(semester.academic_year_id) }}</td>
+                <td data-label="Début">{{ semester.start_date | date: 'dd/MM/yyyy' }}</td>
+                <td data-label="Fin">{{ semester.end_date | date: 'dd/MM/yyyy' }}</td>
+                <td class="stack-actions">
                     <div class="flex gap-2">
                         @if (canUpdate()) {
-                        <button pButton type="button" icon="pi pi-pencil" rounded outlined severity="info"
+                        <button pButton type="button" icon="pi pi-pencil" rounded outlined
                             [attr.aria-label]="'Modifier ' + semester.code" (click)="openEditDialog(semester)"></button>
                         }
                         @if (canDelete()) {

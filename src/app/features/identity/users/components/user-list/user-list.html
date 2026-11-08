@@ -1,7 +1,7 @@
 <p-toast />
 
 <div class="card">
-    <p-table
+    <p-table styleClass="stack-table"
         #dt
         [value]="rows()"
         [loading]="loading()"
@@ -55,17 +55,17 @@
 
         <ng-template pTemplate="body" let-user>
             <tr>
-                <td>{{ user.username }}</td>
-                <td>{{ user.email }}</td>
-                <td>{{ user.profilesLabel }}</td>
-                <td>
+                <td data-label="Nom d'utilisateur">{{ user.username }}</td>
+                <td data-label="Email">{{ user.email }}</td>
+                <td data-label="Profils">{{ user.profilesLabel }}</td>
+                <td data-label="Dernière connexion">
                     @if (user.last_connected_at) {
                     <span>{{ user.last_connected_at | date: 'dd/MM/yyyy HH:mm' }}</span>
                     } @else {
                     <span class="text-color-secondary">Jamais</span>
                     }
                 </td>
-                <td>
+                <td class="stack-actions">
                     <div class="flex items-center gap-2">
                         <a
                             pButton
@@ -73,7 +73,6 @@
                             icon="pi pi-arrow-right"
                             rounded
                             outlined
-                            severity="info"
                             [attr.aria-label]="'Voir ' + user.username"
                         ></a>
                     </div>

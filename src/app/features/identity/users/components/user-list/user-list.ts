@@ -31,7 +31,6 @@ export class UserList implements OnInit {
     private readonly detailNavigation = inject(DetailNavigationService);
 
     private readonly navigationScope = 'identity.users';
-    private readonly pageSize = 100;
 
     readonly users = signal<User[]>([]);
     readonly loading = signal(false);
@@ -50,17 +49,17 @@ export class UserList implements OnInit {
     loadUsers(): void {
         this.loading.set(true);
 
-        this.usersService.getUsers({ page: 0, size: this.pageSize }).subscribe({
-            next: (response) => {
-                this.users.set(response.content);
+        this.usersService.getAllUsers().subscribe({
+            next: (users) => {
+                this.users.set(users);
                 this.detailNavigation.setContext({
                     scope: this.navigationScope,
                     listRoute: ['/settings/identity/users'],
-                    page: response.page,
-                    size: response.size,
-                    totalElements: response.total_elements,
-                    totalPages: response.total_pages,
-                    items: response.content.map((user) => ({
+                    page: 0,
+                    size: users.length,
+                    totalElements: users.length,
+                    totalPages: 1,
+                    items: users.map((user) => ({
                         id: user.id,
                         label: user.username
                     }))

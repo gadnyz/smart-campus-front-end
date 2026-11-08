@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { permissionGuard } from '@/app/core/permissions/permission.guard';
-import { AcademicPermission } from './permissions/permission.model';
+import { AcademicManage, AcademicPermission } from './permissions/permission.model';
 import { AcademicHomeRedirect } from './pages/academic-home-redirect/academic-home-redirect';
 import { FacultyListPage } from './pages/faculty-list/faculty-list';
 import { FacultyDetailPage } from './pages/faculty-detail/faculty-detail';
@@ -15,6 +15,10 @@ import { StudentDetailPage } from './pages/student-detail/student-detail';
 import { MyCoursesPage } from './pages/my-courses/my-courses';
 
 
+/**
+ * Écrans de gestion : une écriture sur la ressource à une portée de gestion (promotion, programme,
+ * faculté, tout) ou la lecture de tout (`AcademicManage`). Les écrans personnels restent en `:own`.
+ */
 export default [
     {
         path: 'my-faculty',
@@ -30,7 +34,8 @@ export default [
         component: FacultyListPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.FacultyUpdateAll]
+            permissions: AcademicManage.Faculty,
+            mode: 'any'
         }
     },
     {
@@ -38,7 +43,7 @@ export default [
         component: FacultyDetailPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.FacultyUpdateAll, AcademicPermission.FacultyReadOwn],
+            permissions: [...AcademicManage.Faculty, AcademicPermission.FacultyReadOwn],
             mode: 'any'
         }
     },
@@ -47,7 +52,7 @@ export default [
         component: CourseUnitListPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.CourseUnitUpdateAll, AcademicPermission.FacultyReadOwn],
+            permissions: AcademicManage.CourseUnit,
             mode: 'any'
         }
     },
@@ -56,7 +61,7 @@ export default [
         component: CourseUnitDetailPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.CourseUnitUpdateAll, AcademicPermission.FacultyReadOwn],
+            permissions: AcademicManage.CourseUnit,
             mode: 'any'
         }
     },
@@ -65,7 +70,7 @@ export default [
         component: CourseListPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.CourseUpdateAll, AcademicPermission.CourseReadOwn],
+            permissions: AcademicManage.Course,
             mode: 'any'
         }
     },
@@ -74,7 +79,7 @@ export default [
         component: CourseDetailPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.CourseUpdateAll, AcademicPermission.CourseReadOwn],
+            permissions: [...AcademicManage.Course, AcademicPermission.CourseReadOwn, AcademicPermission.ProfessorReadOwn],
             mode: 'any'
         }
     },
@@ -92,7 +97,8 @@ export default [
         component: ProfessorListPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.ProfessorUpdateAll]
+            permissions: AcademicManage.Professor,
+            mode: 'any'
         }
     },
     {
@@ -100,7 +106,7 @@ export default [
         component: ProfessorDetailPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.ProfessorUpdateAll, AcademicPermission.ProfessorReadOwn],
+            permissions: [...AcademicManage.Professor, AcademicPermission.ProfessorReadOwn],
             mode: 'any'
         }
     },
@@ -109,7 +115,8 @@ export default [
         component: StudentListPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.StudentUpdateAll]
+            permissions: AcademicManage.Student,
+            mode: 'any'
         }
     },
     {
@@ -117,7 +124,8 @@ export default [
         component: StudentDetailPage,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AcademicPermission.StudentUpdateAll]
+            permissions: AcademicManage.Student,
+            mode: 'any'
         }
     },
     { path: '', component: AcademicHomeRedirect }

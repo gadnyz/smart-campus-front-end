@@ -1,3 +1,5 @@
+import { manageAuthorities } from '@/app/core/permissions/permission-scope';
+
 /**
  * Autorités du module Academic. Portées : `own`, `promotion`, `program`, `faculty`, `all`
  * (voir `core/permissions/permission-scope.ts`) ; seules celles déclarées par le backend figurent ici.
@@ -77,3 +79,22 @@ export const AcademicPermission = {
 } as const;
 
 export type AcademicPermission = (typeof AcademicPermission)[keyof typeof AcademicPermission];
+/** Ressources du module, pour les droits indépendants de la portée (`canWrite`, `canManage`). */
+export const AcademicResource = {
+    Faculty: 'academic:faculty',
+    Program: 'academic:program',
+    CourseUnit: 'academic:course-unit',
+    Course: 'academic:course',
+    CourseAssignment: 'academic:course-assignment',
+    Professor: 'academic:professor',
+    Student: 'academic:student'
+} as const;
+
+/** Clés ouvrant chaque écran de gestion : une écriture à portée de gestion, ou la lecture de tout. */
+export const AcademicManage = {
+    Faculty: manageAuthorities(AcademicResource.Faculty),
+    CourseUnit: manageAuthorities(AcademicResource.CourseUnit),
+    Course: manageAuthorities(AcademicResource.Course),
+    Professor: manageAuthorities(AcademicResource.Professor),
+    Student: manageAuthorities(AcademicResource.Student)
+} as const;

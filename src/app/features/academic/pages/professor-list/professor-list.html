@@ -1,9 +1,9 @@
 <p-toast />
 
-<app-content-subtopbar kicker="Academic" title="Professeurs" [actions]="actions()" />
+<app-content-subtopbar kicker="Académique" title="Professeurs" [actions]="actions()" />
 
 <div class="card">
-    <p-table #dt [value]="rows()" [loading]="loading()" [paginator]="true" [rows]="10"
+    <p-table styleClass="stack-table" #dt [value]="rows()" [loading]="loading()" [paginator]="true" [rows]="10"
         [rowsPerPageOptions]="[10, 20, 50]"
         [globalFilterFields]="['display_name', 'email', 'matricule', 'faculty_name', 'grade_label']" [rowHover]="true"
         dataKey="id" sortField="grade_label" [sortOrder]="1" rowGroupMode="subheader" groupRowsBy="grade_label"
@@ -13,10 +13,20 @@
         <ng-template pTemplate="caption">
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div class="font-semibold text-xl">Corps enseignant par grade</div>
-                <p-iconfield>
-                    <p-inputicon styleClass="pi pi-search" />
-                    <input pInputText type="text" placeholder="Rechercher..." (input)="onGlobalFilter(dt, $event)" />
-                </p-iconfield>
+                <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                    @if (!facultyLocked()) {
+                    <p-select [options]="facultyOptions()" optionLabel="label" optionValue="value"
+                        [ngModel]="selectedFacultyId()" (ngModelChange)="onFacultyFilterChange($event)"
+                        [showClear]="true" [filter]="true" placeholder="Toutes les facultés" appendTo="body"
+                        class="w-full md:w-16rem" ariaLabel="Filtrer par faculté" />
+                    } @else {
+                    <span class="text-sm text-color-secondary whitespace-nowrap"><i class="pi pi-building-columns mr-1"></i>{{ facultyOptions()[0]?.label }}</span>
+                    }
+                    <p-iconfield>
+                        <p-inputicon styleClass="pi pi-search" />
+                        <input pInputText type="text" placeholder="Rechercher..." (input)="onGlobalFilter(dt, $event)" />
+                    </p-iconfield>
+                </div>
             </div>
         </ng-template>
 
@@ -40,12 +50,12 @@
 
         <ng-template pTemplate="body" let-row>
             <tr>
-                <td>{{ row.display_name }}</td>
-                <td>{{ row.email || '—' }}</td>
-                <td>{{ row.faculty_name || '—' }}</td>
-                <td>{{ row.matricule || '—' }}</td>
-                <td>
-                    <button pButton type="button" icon="pi pi-arrow-right" rounded outlined severity="info"
+                <td data-label="Nom">{{ row.display_name }}</td>
+                <td data-label="E-mail">{{ row.email || '—' }}</td>
+                <td data-label="Faculté">{{ row.faculty_name || '—' }}</td>
+                <td data-label="Matricule">{{ row.matricule || '—' }}</td>
+                <td class="stack-actions">
+                    <button pButton type="button" icon="pi pi-arrow-right" rounded outlined
                         [attr.aria-label]="'Détail ' + row.display_name" (click)="openDetail(row)"></button>
                 </td>
             </tr>
@@ -84,11 +94,13 @@
                 <p-select inputId="gender" formControlName="gender" [options]="genderOptions" optionLabel="label"
                     optionValue="value" appendTo="body" class="w-full" />
             </div>
+            @if (!facultyLocked()) {
             <div>
                 <label class="block text-sm text-color-secondary mb-1" for="faculty_id">Faculté *</label>
                 <p-select formControlName="faculty_id" [options]="facultyOptions()" optionLabel="label"
                     optionValue="value" appendTo="body" class="w-full" />
             </div>
+            }
             <div>
                 <label class="block text-sm text-color-secondary mb-1" for="professor_grade_id">Grade *</label>
                 <p-select inputId="professor_grade_id" formControlName="professor_grade_id" [options]="gradeOptions()"

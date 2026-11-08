@@ -2,8 +2,8 @@
 // de son libellé (attribut data-label). Au-dessus du seuil, le tableau reste un tableau.
 //
 // Usage, dans la feuille d'un composant :
-//   @use '../../styles/stacked-table' as stacked;
-//   @include stacked.stacked-table('.timetable-stack');
+//   @use 'shared/ui/styles/stacked-table' as stacked; (chemin relatif depuis le composant)
+//   @include stacked.stacked-table('.stack-table');
 @mixin stacked-table($selector, $breakpoint: 639.98px) {
     @media (max-width: $breakpoint) {
         :host ::ng-deep #{$selector} {
@@ -24,26 +24,38 @@
                 border-bottom: 1px solid var(--p-content-border-color);
             }
 
+            // Libellé à gauche, contenu à droite ; une cellule à plusieurs éléments (nom puis
+            // sous-titre) les empile dans la colonne du contenu au lieu de les couper côte à côte.
             tbody > tr > td {
-                display: flex;
+                display: grid;
+                grid-template-columns: 6.5rem minmax(0, 1fr);
                 align-items: baseline;
-                gap: 0.75rem;
+                column-gap: 0.75rem;
                 padding: 0;
                 border: none;
                 min-width: 0;
                 overflow-wrap: anywhere;
+
+                > * {
+                    grid-column: 2;
+                    justify-self: start;
+                    min-width: 0;
+                }
             }
 
             tbody > tr > td[data-label]::before {
                 content: attr(data-label);
-                flex: 0 0 6.5rem;
+                grid-column: 1;
+                grid-row: 1 / span 10;
                 color: var(--p-text-muted-color);
                 font-size: 0.8125rem;
             }
 
             // Actions : en bas de la carte, alignées à droite.
             tbody > tr > td.stack-actions {
+                display: flex;
                 justify-content: flex-end;
+                gap: 0.5rem;
             }
 
             // Ligne de messages (colspan) et message « aucune ligne » : pleine largeur, sans libellé.

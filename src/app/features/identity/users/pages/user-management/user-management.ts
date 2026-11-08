@@ -8,7 +8,7 @@ import { IdentityPermission } from '@/app/features/identity/permissions/permissi
     standalone: true,
     imports: [ContentSubtopbar, UserList],
     template: `
-        <app-content-subtopbar kicker="Gestion des utilisateurs" title="Liste" [actions]="actions" />
+        <app-content-subtopbar kicker="" title="Utilisateurs" [actions]="actions" />
 
         <app-user-list />
     `,

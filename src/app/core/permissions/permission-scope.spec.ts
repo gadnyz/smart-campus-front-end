@@ -1,4 +1,4 @@
-import { PERMISSION_SCOPE_LABELS, parseAuthority, scopedAuthority, widestScope } from './permission-scope';
+import { PERMISSION_SCOPE_LABELS, manageAuthorities, parseAuthority, scopedAuthority, widestScope, writeAuthorities } from './permission-scope';
 
 describe('permission-scope', () => {
     it('should split an authority into permission and scope', () => {
@@ -26,5 +26,26 @@ describe('permission-scope', () => {
 
     it('should label every scope in French', () => {
         expect(Object.values(PERMISSION_SCOPE_LABELS)).toEqual(['Personnel', 'Promotion', 'Programme', 'Faculté', 'Tous']);
+    });
+
+    it('should list the write authorities beyond oneself, own excluded', () => {
+        expect(writeAuthorities('academic:student:update')).toEqual([
+            'academic:student:update:promotion',
+            'academic:student:update:program',
+            'academic:student:update:faculty',
+            'academic:student:update:all'
+        ]);
+    });
+
+    it('should open a management screen to any write, or to reading one’s faculty or everything', () => {
+        const keys = manageAuthorities('admission:candidate');
+        expect(keys).toContain('admission:candidate:create:faculty');
+        expect(keys).toContain('admission:candidate:delete:all');
+        expect(keys).toContain('admission:candidate:read:all');
+        expect(keys).not.toContain('admission:candidate:update:own');
+        expect(keys).toContain('admission:candidate:read:faculty');
+        expect(keys).not.toContain('admission:candidate:read:promotion');
+        expect(keys).not.toContain('admission:candidate:read:own');
+        expect(keys.length).toBe(14);
     });
 });

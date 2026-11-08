@@ -1,4 +1,6 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
+import { writeAuthorities } from '@/app/core/permissions/permission-scope';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -48,6 +50,7 @@ import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.serv
         ContentSubtopbar
     ],
     templateUrl: './course-list.html',
+    styleUrl: './course-list.scss',
     providers: [MessageService]
 })
 export class CourseListPage implements OnInit {
@@ -122,13 +125,13 @@ export class CourseListPage implements OnInit {
             severity: 'info',
             outlined: false,
             command: () => this.openCreateDialog(),
-            permissions: [AcademicPermission.CourseCreateAll],
+            permissions: writeAuthorities('academic:course:create'),
             mode: 'any'
         }
     ]);
 
     private readonly facultyScope = inject(FacultyScopeService);
-    readonly facultyLocked = computed(() => this.facultyScope.isFacultyScoped());
+    readonly facultyLocked = computed(() => this.facultyScope.isScopedFor('academic:course:read'));
 
     ngOnInit(): void {
         this.form.controls.faculty_id.valueChanges.subscribe((facultyId) => {
@@ -154,7 +157,7 @@ export class CourseListPage implements OnInit {
             }
         });
 
-        const locked = this.facultyScope.scopedId();
+        const locked = this.facultyScope.scopedIdFor('academic:course:read');
         if (locked) {
             this.scopedFacultyId.set(locked);
             this.selectedFacultyId.set(locked);
@@ -172,6 +175,11 @@ export class CourseListPage implements OnInit {
             next: (faculties) =>
                 this.faculties.set([...faculties].sort((a, b) => a.name.localeCompare(b.name)))
         });
+        const working = this.facultyScope.workingFacultyId();
+        if (working) {
+            this.onFacultyFilterChange(working);
+            return;
+        }
         this.load();
     }
 
@@ -180,6 +188,9 @@ export class CourseListPage implements OnInit {
     }
 
     onFacultyFilterChange(facultyId: string | null): void {
+        if (!this.facultyLocked()) {
+            this.facultyScope.rememberFaculty(facultyId);
+        }
         this.selectedFacultyId.set(facultyId);
         this.selectedProgramId.set(null);
         this.selectedProgramLevelId.set(null);
@@ -263,7 +274,7 @@ export class CourseListPage implements OnInit {
                 },
                 error: (error: HttpErrorResponse) => {
                     this.saving.set(false);
-                    this.showError(error.error?.detail ?? 'Impossible d’enregistrer le cours.');
+                    this.showError(apiErrorMessage(error, 'Impossible d’enregistrer le cours.'));
                 }
             });
     }
@@ -297,9 +308,11 @@ export class CourseListPage implements OnInit {
         const programLevelId = this.selectedProgramLevelId();
 
         if (!programLevelId) {
-            if (!this.facultyLocked() && this.canReadAll() && !this.selectedFacultyId()) {
+            // Sans promotion : les cours de la faculté choisie (ou imposée), sinon tous pour la portée all.
+            const facultyId = this.scopedFacultyId() ?? this.selectedFacultyId();
+            if (facultyId || (!this.facultyLocked() && this.canReadAll())) {
                 this.loading.set(true);
-                this.courseService.getAll().subscribe({
+                this.courseService.getAll(facultyId).subscribe({
                     next: (courses) => this.afterCourses(courses, null),
                     error: (error: HttpErrorResponse) => this.onLoadError(error)
                 });
@@ -339,7 +352,7 @@ export class CourseListPage implements OnInit {
     private onLoadError(error: HttpErrorResponse): void {
         this.courses.set([]);
         this.loading.set(false);
-        this.showError(error.error?.detail ?? 'Impossible de charger les cours.');
+        this.showError(apiErrorMessage(error, 'Impossible de charger les cours.'));
     }
 
     private loadUnits(programLevelId: string): void {

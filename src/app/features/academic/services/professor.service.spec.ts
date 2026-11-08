@@ -9,7 +9,9 @@ describe('ProfessorService', () => {
     let service: ProfessorService;
     let httpTesting: HttpTestingController;
     const baseUrl = `${environment.apiBaseUrl}/api/v1/professors`;
-    const listUrl = `${baseUrl}?page=0&size=100`;
+    /** Une page de `GET /professors`, telle que le service la demande pour tout charger. */
+    const isList = (facultyId?: string) => (req: { url: string; params: { get(name: string): string | null } }) =>
+        req.url === baseUrl && req.params.get('size') === '100' && req.params.get('faculty_id') === (facultyId ?? null);
 
     const professor: Professor = {
         id: 'prof-1',
@@ -48,23 +50,27 @@ describe('ProfessorService', () => {
         httpTesting.verify();
     });
 
-    it('should list professors from an array payload', () => {
+    it('should load every page of professors, beyond the 100 of a single page', () => {
         let result: Professor[] | undefined;
         service.getAll().subscribe((professors) => (result = professors));
 
-        const request = httpTesting.expectOne(listUrl);
-        expect(request.request.method).toBe('GET');
-        request.flush([professor]);
+        const first = httpTesting.expectOne(isList());
+        expect(first.request.params.get('page')).toBe('0');
+        expect(first.request.params.get('sort')).toBe('last_name,asc');
+        first.flush({ content: [professor], page: 0, size: 100, total_elements: 101, total_pages: 2 });
+        const second = httpTesting.expectOne(isList());
+        expect(second.request.params.get('page')).toBe('1');
+        second.flush({ content: [{ ...professor, id: 'prof-2' }], page: 1, size: 100, total_elements: 101, total_pages: 2 });
 
-        expect(result).toEqual([jasmine.objectContaining(professor)]);
+        expect(result?.map((item) => item.id)).toEqual(['prof-1', 'prof-2']);
     });
 
-    it('should unwrap a paged professors payload', () => {
-        let result: Professor[] | undefined;
-        service.getAll().subscribe((professors) => (result = professors));
+    it('should search a page of professors with the query parameters of the API', () => {
+        service.list({ facultyId: 'fac-1', professorGradeId: 'grade-1', search: 'Mbu', page: 2, size: 20 }).subscribe();
 
-        httpTesting.expectOne(listUrl).flush({ content: [professor] });
-        expect(result?.[0].id).toBe('prof-1');
+        const request = httpTesting.expectOne((req) => req.url === baseUrl);
+        expect(request.request.params.keys().sort()).toEqual(['faculty_id', 'page', 'professor_grade_id', 'search', 'size']);
+        request.flush({ content: [], page: 2, size: 20, total_elements: 0, total_pages: 0 });
     });
 
     it('should normalize nested faculty and grade on getById', () => {
@@ -87,10 +93,12 @@ describe('ProfessorService', () => {
         let byFaculty: Professor[] | undefined;
         let byGrade: Professor[] | undefined;
         service.getByFaculty('fac-1').subscribe((items) => (byFaculty = items));
-        httpTesting.expectOne(`${baseUrl}/faculty/fac-1?page=0&size=100`).flush([professor]);
+        httpTesting.expectOne(isList('fac-1')).flush({ content: [professor], page: 0, size: 100, total_elements: 1, total_pages: 1 });
 
         service.getByGrade('grade-1').subscribe((items) => (byGrade = items));
-        httpTesting.expectOne(`${baseUrl}/grade/grade-1?page=0&size=100`).flush({ content: [professor] });
+        httpTesting
+            .expectOne((req) => req.url === baseUrl && req.params.get('professor_grade_id') === 'grade-1')
+            .flush({ content: [professor], page: 0, size: 100, total_elements: 1, total_pages: 1 });
 
         expect(byFaculty?.[0].id).toBe('prof-1');
         expect(byGrade?.[0].id).toBe('prof-1');
@@ -100,14 +108,16 @@ describe('ProfessorService', () => {
         service.create(payload).subscribe();
         const create = httpTesting.expectOne(baseUrl);
         expect(create.request.method).toBe('POST');
-        expect(create.request.body).toEqual({ ...payload, grade_id: 'grade-1' });
+        // Le corps du contrat, sans grade_id, matricule ni user_id.
+        expect(create.request.body).toEqual(payload);
         create.flush(professor);
 
         service.update('prof-1', payload).subscribe();
         const update = httpTesting.expectOne(`${baseUrl}/prof-1`);
         expect(update.request.method).toBe('PUT');
-        expect(update.request.body.grade_id).toBe('grade-1');
         expect(update.request.body.professor_grade_id).toBe('grade-1');
+        expect('grade_id' in update.request.body).toBeFalse();
+        expect('email' in update.request.body).toBeFalse();
         update.flush(professor);
 
         service.delete('prof-1').subscribe();
@@ -129,7 +139,7 @@ describe('ProfessorService', () => {
         service.resolveCurrent('user-1', professor.email).subscribe((item) => (result = item));
 
         httpTesting.expectOne(`${baseUrl}/me`).flush({ detail: 'Not found' }, { status: 404, statusText: 'Not Found' });
-        httpTesting.expectOne(listUrl).flush([professor]);
+        httpTesting.expectOne(isList()).flush({ content: [professor], page: 0, size: 100, total_elements: 1, total_pages: 1 });
         expect(result?.id).toBe('prof-1');
     });
 
@@ -138,7 +148,7 @@ describe('ProfessorService', () => {
         service.resolveCurrent('other', 'nobody@smart-campus.org').subscribe((item) => (result = item));
 
         httpTesting.expectOne(`${baseUrl}/me`).flush({ detail: 'Not found' }, { status: 404, statusText: 'Not Found' });
-        httpTesting.expectOne(listUrl).flush([professor]);
+        httpTesting.expectOne(isList()).flush({ content: [professor], page: 0, size: 100, total_elements: 1, total_pages: 1 });
         expect(result).toBeNull();
     });
 });

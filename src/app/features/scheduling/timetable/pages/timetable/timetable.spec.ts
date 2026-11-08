@@ -38,6 +38,7 @@ const validated: Timetable = {
 const session: TimetableEntry = {
     id: 'e-1',
     timetable_id: 'tt-1',
+    host_program_level_id: 'pl-1',
     date: '2026-10-05',
     start_hour: '08:00:00',
     end_hour: '10:00:00',
@@ -52,7 +53,9 @@ const session: TimetableEntry = {
     session_type: 'LECTURE',
     note: '',
     created_at: '',
-    updated_at: ''
+    updated_at: '',
+    audience_program_level_ids: [],
+    warnings: []
 };
 
 describe('TimetablePage (calendrier)', () => {
@@ -164,19 +167,35 @@ describe('TimetablePage (calendrier)', () => {
         expect(component.selectedSession()?.professor_name).toBe('PO Ada Lovelace');
     });
 
-    it('should limit an academic secretary to the programs and drafts of their faculty', () => {
-        createComponent(['scheduling:timetable:update:all'], { profiles: ['ACADEMIC_SECRETARY'], faculty_id: 'fac-1' });
+    it('should limit a faculty scope to the programs and drafts of their faculty', () => {
+        createComponent(['scheduling:timetable:read:faculty', 'scheduling:timetable:update:faculty'], { profiles: ['ACADEMIC_SECRETARY'], faculty_id: 'fac-1' });
 
         expect(programService.getByFaculty).toHaveBeenCalledWith('fac-1');
         expect(programService.getAll).not.toHaveBeenCalled();
         expect(timetableService.list).toHaveBeenCalledWith({ status: 'DRAFT', facultyId: 'fac-1', page: 0, size: 1 });
     });
 
-    it('should show nothing to an academic secretary without faculty', () => {
-        createComponent(['scheduling:timetable:read:all'], { profiles: ['ACADEMIC_SECRETARY'], faculty_id: null });
+    it('should show nothing to a faculty scope without faculty', () => {
+        createComponent(['scheduling:timetable:read:faculty'], { profiles: ['ACADEMIC_SECRETARY'], faculty_id: null });
 
         expect(programService.getAll).not.toHaveBeenCalled();
         expect(programService.getByFaculty).not.toHaveBeenCalled();
         expect(component.loadError()).toContain('rattaché à aucune faculté');
+    });
+
+    it('should let the all scope choose a faculty first, and remember it', () => {
+        sessionStorage.removeItem('smartcampus.working-faculty');
+        createComponent(['scheduling:timetable:read:all']);
+        component.programs.set([
+            { id: 'p-1', name: 'Informatique', faculty_id: 'fac-1', faculty_name: 'Sciences', levels: [] },
+            { id: 'p-2', name: 'Gestion', faculty_id: 'fac-2', faculty_name: 'Économie', levels: [] }
+        ] as never);
+
+        expect(component.facultyChoice).toBeTrue();
+        expect(component.facultyOptions().map((option) => option.label)).toEqual(['Économie', 'Sciences']);
+        component.onFacultyChange('fac-1');
+        expect(component.programOptions().map((option) => option.label)).toEqual(['Informatique']);
+        expect(sessionStorage.getItem('smartcampus.working-faculty')).toBe('fac-1');
+        sessionStorage.removeItem('smartcampus.working-faculty');
     });
 });

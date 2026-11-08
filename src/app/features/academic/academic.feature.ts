@@ -1,12 +1,12 @@
 import { AppFeature } from '@/app/core/modules/app-feature.model';
-import { AcademicPermission } from './permissions/permission.model';
+import { AcademicManage, AcademicPermission } from './permissions/permission.model';
 import { academicDashboardWidgets } from './dashboard/dashboard.widgets';
 
 
 
 export const academicFeature: AppFeature = {
     key: 'Academique',
-    label: 'Academique',
+    label: 'Académique',
     order: 15,
     route: {
         path: 'academic',
@@ -14,7 +14,7 @@ export const academicFeature: AppFeature = {
     },
     menu: [
         {
-            label: 'Academique',
+            label: 'Académique',
             order: 15,
             items: [
                 {
@@ -22,21 +22,23 @@ export const academicFeature: AppFeature = {
                     icon: 'pi pi-fw pi-building',
                     routerLink: ['/academic/my-faculty'],
                     permissions: [AcademicPermission.FacultyReadOwn],
-                    hiddenWhenPermissions: [AcademicPermission.FacultyUpdateAll],
+                    hiddenWhenPermissions: AcademicManage.Faculty,
+                    hiddenWhenMode: 'any',
                     order: 5
                 },
                 {
                     label: 'Facultés',
                     icon: 'pi pi-fw pi-building',
                     routerLink: ['/academic/faculties'],
-                    permissions: [AcademicPermission.FacultyUpdateAll],
+                    permissions: AcademicManage.Faculty,
+                    mode: 'any',
                     order: 10
                 },
                 {
                     label: 'Unités d’enseignement',
                     icon: 'pi pi-fw pi-th-large',
                     routerLink: ['/academic/course-units'],
-                    permissions: [AcademicPermission.CourseUnitUpdateAll, AcademicPermission.FacultyReadOwn],
+                    permissions: AcademicManage.CourseUnit,
                     mode: 'any',
                     order: 15
                 },
@@ -44,7 +46,7 @@ export const academicFeature: AppFeature = {
                     label: 'Cours',
                     icon: 'pi pi-fw pi-book',
                     routerLink: ['/academic/courses'],
-                    permissions: [AcademicPermission.CourseUpdateAll, AcademicPermission.CourseReadOwn],
+                    permissions: AcademicManage.Course,
                     mode: 'any',
                     order: 20
                 },
@@ -54,21 +56,24 @@ export const academicFeature: AppFeature = {
                     routerLink: ['/academic/my-courses'],
                     permissions: [AcademicPermission.CourseReadOwn, AcademicPermission.ProfessorReadOwn],
                     mode: 'any',
-                    hiddenWhenPermissions: [AcademicPermission.CourseUpdateAll],
+                    hiddenWhenPermissions: AcademicManage.Course,
+                    hiddenWhenMode: 'any',
                     order: 25
                 },
                 {
                     label: 'Professeurs',
                     icon: 'pi pi-fw pi-users',
                     routerLink: ['/academic/professors'],
-                    permissions: [AcademicPermission.ProfessorUpdateAll],
+                    permissions: AcademicManage.Professor,
+                    mode: 'any',
                     order: 30
                 },
                 {
                     label: 'Étudiants',
                     icon: 'pi pi-fw pi-id-card',
                     routerLink: ['/academic/students'],
-                    permissions: [AcademicPermission.StudentUpdateAll],
+                    permissions: AcademicManage.Student,
+                    mode: 'any',
                     order: 40
                 }
             ]
@@ -76,7 +81,7 @@ export const academicFeature: AppFeature = {
     ],
     settingsTab: {
         key: 'academic',
-        label: 'Academic',
+        label: 'Académique',
         order: 25,
         routerLink: ['/settings/academic/years'],
         permissions: [

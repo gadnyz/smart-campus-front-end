@@ -1,0 +1,68 @@
+code_ec;code_ue;intitule;ordre;credits;cmi_h;td_h;tp_h;volume_total_h
+IFB1111-EC1;IFB1111;Informatique et bureautique;1;5;30;30;15;75
+LPR1111-EC1;LPR1111;Langage de Programmation-1;1;4;30;15;15;60
+ALG1111-EC1;ALG1111;Algorithmique 1;1;4;25;20;15;60
+LTE1111-EC1;LTE1111;Anglais 1;1;3;20;15;10;45
+LTE1111-EC2;LTE1111;Français;2;3;20;15;10;45
+IRM1111-EC1;IRM1111;Introduction à la recherche et méthodologie du travail;1;3;15;15;15;45
+VSE1111-EC1;VSE1111;Valeurs, principes et symboles de la République et Éthique;1;3;30;15;0;45
+MIF1111-EC1;MIF1111;Mathématique pour Ingénieur Informaticien;1;5;35;25;15;75
+CPG1121-EC1;CPG1121;Comptabilité Générale;1;3;25;10;10;45
+PRO1121-EC1;PRO1121;Programmation Web-1;1;4;30;15;15;60
+DRC1121-EC1;DRC1121;Droit Civil et Législation Sociale;1;3;30;15;0;45
+AOR1121-EC1;AOR1121;Architecture des ordinateurs et réseaux;1;4;30;20;10;60
+PHY1121-EC1;PHY1121;Électricité;1;3;20;15;10;45
+PHY1121-EC2;PHY1121;Électronique;2;4;30;15;15;60
+INE1121-EC1;INE1121;Introduction à l'Économie;1;3;25;10;10;45
+PSI1121-EC1;PSI1121;Projet-1;1;6;10;0;80;90
+AMP1231-EC1;AMP1231;Algorithmique et Méthodes de programmation;1;4;30;15;15;60
+LPO1231-EC1;LPO1231;Langages de Programmation Objet;1;4;30;15;15;60
+MBD1231-EC1;MBD1231;Méthode Merise;1;4;25;20;15;60
+MBD1231-EC2;MBD1231;Base de données;2;3;20;15;10;45
+STA1231-EC1;STA1231;Statistique;1;3;20;15;10;45
+GII1231-EC1;GII1231;Géométrie pour Ingénieur Informaticien;1;3;20;15;10;45
+SYE1231-EC1;SYE1231;Système d'exploitation;1;4;30;15;15;60
+CLO1231-EC1;CLO1231;Circuits logiques;1;5;35;30;10;75
+PRO1242-EC1;PRO1242;Programmation Web-2;1;4;30;15;15;60
+MAN1241-EC1;MAN1241;Méthodes et Analyse Numérique;1;4;30;15;15;60
+RIF1241-EC1;RIF1241;Réseaux Informatiques-1;1;5;30;30;15;75
+AGT1241-EC1;AGT1241;Anglais Technique-2;1;3;20;15;10;45
+GPI1241-EC1;GPI1241;Gestion de Projets Informatiques;1;3;25;15;5;45
+INF404-EC1;INF404;Techniques de Maintenance-1;1;5;30;30;15;75
+PSI1242-EC1;PSI1242;Projet-2;1;6;10;0;80;90
+MOB1351-EC1;MOB1351;Modélisation Objet;1;5;30;30;15;75
+GRH1351-EC1;GRH1351;Gestion des Ressources Humaines;1;3;20;15;10;45
+AGT1352-EC1;AGT1352;Anglais Technique-3;1;3;20;15;10;45
+TBD1351-EC1;TBD1351;Techniques de Base de données;1;5;30;30;15;75
+INA1351-EC1;INA1351;Intelligence Artificielle;1;4;25;20;15;60
+COE1351-EC1;COE1351;Commerce Électronique;1;5;30;30;15;75
+TEL1351-EC1;TEL1351;Télématique;1;5;30;30;15;75
+PRB1361-EC1;PRB1361;Programmation Objet-2 (Python);1;4;25;20;15;60
+MRI1361-EC1;MRI1361;Méthodes de Recherche en Informatique;1;4;25;20;15;60
+ENT1361-EC1;ENT1361;Entrepreneuriat;1;4;25;20;15;60
+SEI1361-EC1;SEI1361;Sécurité Informatique;1;4;25;20;15;60
+PSI1363-EC1;PSI1363;Projet-3;1;6;10;0;80;90
+SIF1361-EC1;SIF1361;Stage;1;8;0;0;120;120
+STR1361-EC1;STR1361;Supports de Transmission Réseau;1;4;25;20;15;60
+PAU1361-EC1;PAU1361;Programmation des Automates;1;4;25;20;15;60
+MAL1471-EC1;MAL1471;Machine Learning;1;4;30;15;15;60
+LPM1471-EC1;LPM1471;Langage de Programmation Mobile;1;4;30;15;15;60
+GLO1471-EC1;GLO1471;Génie Logiciel;1;4;25;20;15;60
+ABD1471-EC1;ABD1471;Administration de Base de données;1;5;30;25;20;75
+CSF1471-EC1;CSF1471;Conception des Systèmes d'Information;1;4;25;20;15;60
+ICR1471-EC1;ICR1471;Introduction à la Cryptologie;1;5;30;25;20;75
+INF707-EC1;INF707;Programmation Objet-3 (Python);1;4;25;20;15;60
+DIC1481-EC1;DIC1481;Droit Informatique et Cybercriminalité;1;3;20;10;15;45
+DIF1481-EC1;DIF1481;Déontologie de l'Informaticien;1;2;25;5;0;30
+SEF1481-EC1;SEF1481;Séminaire Informatique;1;2;25;5;0;30
+AIF1481-EC1;AIF1481;Audit Informatique;1;3;20;15;10;45
+PSI1484-EC1;PSI1484;Projet Tutoré;1;10;0;0;150;150
+SIF1482-EC1;SIF1482;Stage Académique;1;10;0;0;150;150
+RTE1471-EC1;RTE1471;Réseaux de Télécommunication;1;5;30;25;20;75
+ART1471-EC1;ART1471;Atelier Réseaux et Télécom;1;4;25;20;15;60
+ASR1471-EC1;ASR1471;Administration Système & Réseaux;1;5;30;25;20;75
+CAR1471-EC1;CAR1471;Conception des Architectures Réseaux;1;4;25;20;15;60
+PJV1471-EC1;PJV1471;Programmation de Jeu Vidéo avec Python;1;5;30;25;20;75
+CSI1471-EC1;CSI1471;Conception des Systèmes Intelligents;1;5;30;25;20;75
+MEC1471-EC1;MEC1471;Mécatronique;1;4;25;20;15;60
+PIA1471-EC1;PIA1471;Programmation en Intelligence Artificielle;1;4;25;20;15;60

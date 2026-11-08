@@ -64,9 +64,10 @@ export class RepartitionUsers implements OnInit {
             return;
         }
 
-        this.usersService.getUsers({ page: 0, size: 100 }).subscribe({
-            next: (response) => {
-                this.users.set(response.content);
+        // Tous les utilisateurs : une répartition calculée sur les 100 premiers serait fausse.
+        this.usersService.getAllUsers().subscribe({
+            next: (users) => {
+                this.users.set(users);
                 this.initChart();
             },
             error: () => {

@@ -73,16 +73,17 @@ export interface Student {
     documents?: StudentDocument[];
 }
 
+/** Filtres de `GET /students` : rien d'autre n'est appliqué par l'API. */
 export interface StudentQuery {
     page?: number;
     size?: number;
-    gender?: StudentGender | null;
     facultyId?: string | null;
     programId?: string | null;
-    levelId?: string | null;
-    nationality?: string | null;
-    matricule?: string | null;
-    q?: string | null;
+    /** La promotion (`program_level_id`), pas le niveau seul. */
+    programLevelId?: string | null;
+    academicYearId?: string | null;
+    /** Début du matricule, du prénom, du nom ou du post-nom. */
+    search?: string | null;
 }
 
 export interface StudentRequest {
@@ -134,58 +135,6 @@ export function formatStudentMaritalStatus(value?: StudentMaritalStatus | null):
     return STUDENT_MARITAL_STATUS_OPTIONS.find((option) => option.value === value)?.label ?? '—';
 }
 
-export function studentMatchesQuery(student: Student, query: StudentQuery): boolean {
-    if (query.gender && student.gender !== query.gender) {
-        return false;
-    }
-
-    if (query.facultyId && student.faculty_id !== query.facultyId) {
-        return false;
-    }
-
-    if (query.programId && student.program_id !== query.programId) {
-        return false;
-    }
-
-    if (query.levelId && student.level_id !== query.levelId) {
-        return false;
-    }
-
-    if (query.nationality) {
-        const expected = query.nationality.trim().toLowerCase();
-        if (!(student.nationality ?? '').toLowerCase().includes(expected)) {
-            return false;
-        }
-    }
-
-    if (query.matricule) {
-        const expected = query.matricule.trim().toLowerCase();
-        if (!(student.matricule ?? '').toLowerCase().includes(expected)) {
-            return false;
-        }
-    }
-
-    if (query.q) {
-        const haystack = [
-            studentDisplayName(student),
-            student.email,
-            student.matricule,
-            student.faculty_name,
-            student.program_name,
-            student.nationality
-        ]
-            .filter(Boolean)
-            .join(' ')
-            .toLowerCase();
-
-        if (!haystack.includes(query.q.trim().toLowerCase())) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 export function normalizeStudent(raw: unknown): Student {
     const source = (raw ?? {}) as Record<string, unknown>;
     const faculty = source['faculty'] ?? source['faculty_id'];
@@ -223,7 +172,8 @@ export function normalizeStudent(raw: unknown): Student {
         program_id: refId(program),
         program_name: (source['program_name'] as string | undefined) ?? refName(program),
         program_code: (source['program_code'] as string | undefined) ?? refCode(program),
-        level_id: refId(nestedLevel) ?? refId(level),
+        // La liste renvoie la promotion à plat (`program_level_id`, `level_name`).
+        level_id: (source['program_level_id'] as string | undefined) ?? refId(nestedLevel) ?? refId(level),
         level_code: (source['level_code'] as string | undefined) ?? refCode(nestedLevel),
         level_name: (source['level_name'] as string | undefined) ?? refName(nestedLevel),
         academic_year_id: refId(year),

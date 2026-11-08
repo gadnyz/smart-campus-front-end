@@ -48,7 +48,7 @@ export class AppMenu implements OnInit {
                 order: 0,
                 items: [
                     {
-                        label: 'Dashboard',
+                        label: 'Tableau de bord',
                         icon: 'pi pi-fw pi-home',
                         routerLink: ['/']
                     }

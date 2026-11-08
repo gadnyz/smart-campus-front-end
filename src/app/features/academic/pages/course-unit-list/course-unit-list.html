@@ -1,9 +1,9 @@
 <p-toast />
 
-<app-content-subtopbar kicker="Academic" title="Unités d’enseignement" [actions]="actions()" />
+<app-content-subtopbar kicker="Académique" title="Unités d’enseignement" [actions]="actions()" />
 
 <div class="card">
-    <p-table #dt [value]="units()" [loading]="loading()" [paginator]="true" [rows]="10"
+    <p-table styleClass="stack-table" #dt [value]="units()" [loading]="loading()" [paginator]="true" [rows]="10"
         [rowsPerPageOptions]="[10, 20, 50]" [globalFilterFields]="['code']" [rowHover]="true" dataKey="id"
         responsiveLayout="scroll" currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} UE"
         [showCurrentPageReport]="true" [tableStyle]="{ 'min-width': '40rem' }">
@@ -11,10 +11,14 @@
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div class="font-semibold text-xl">Liste des UE</div>
                 <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                    @if (!facultyLocked()) {
                     <p-select [options]="facultyOptions()" optionLabel="label" optionValue="value"
                         [ngModel]="selectedFacultyId()" (ngModelChange)="onFacultyFilterChange($event)"
-                        [showClear]="!facultyLocked()" [disabled]="facultyLocked()" placeholder="Faculté"
+                        [showClear]="true" placeholder="Choisir une faculté" [filter]="true"
                         appendTo="body" class="w-full md:w-14rem" />
+                    } @else {
+                    <span class="text-sm text-color-secondary whitespace-nowrap"><i class="pi pi-building-columns mr-1"></i>{{ facultyOptions()[0]?.label }}</span>
+                    }
 
                     <p-select [options]="programOptions()" optionLabel="label" optionValue="value"
                         [ngModel]="selectedProgramId()" (ngModelChange)="onProgramFilterChange($event)"
@@ -40,15 +44,15 @@
         </ng-template>
         <ng-template pTemplate="body" let-unit>
             <tr>
-                <td>{{ unit.code }}</td>
-                <td>{{ blocLabel(unit.knowledge_skills_bloc) }}</td>
-                <td>
+                <td data-label="Code">{{ unit.code }}</td>
+                <td data-label="Bloc">{{ blocLabel(unit.knowledge_skills_bloc) }}</td>
+                <td class="stack-actions">
                     <div class="flex gap-2">
-                        <button pButton type="button" icon="pi pi-arrow-right" rounded outlined severity="info"
-                            (click)="openDetail(unit)"></button>
+                        <button pButton type="button" icon="pi pi-arrow-right" rounded outlined
+                            [attr.aria-label]="'Ouvrir l’UE ' + unit.code" (click)="openDetail(unit)"></button>
                         @if (canUpdate()) {
-                        <button pButton type="button" icon="pi pi-pencil" rounded outlined severity="info"
-                            (click)="openEditDialog(unit)"></button>
+                        <button pButton type="button" icon="pi pi-pencil" rounded outlined
+                            [attr.aria-label]="'Modifier l’UE ' + unit.code" (click)="openEditDialog(unit)"></button>
                         }
                     </div>
                 </td>
@@ -65,11 +69,13 @@
 <p-dialog [header]="dialogTitle()" [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)"
     [modal]="true" [style]="{ width: '32rem' }">
     <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="submit()">
+        @if (!facultyLocked()) {
         <div>
             <label class="block text-sm text-color-secondary mb-1">Faculté</label>
             <p-select formControlName="faculty_id" [options]="facultyOptions()" optionLabel="label" optionValue="value"
                 appendTo="body" class="w-full" />
         </div>
+        }
         <div>
             <label class="block text-sm text-color-secondary mb-1">Programme</label>
             <p-select formControlName="program_id" [options]="programOptions()" optionLabel="label" optionValue="value"

@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
@@ -16,7 +17,7 @@ import { ToastModule } from 'primeng/toast';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { AcademicPermission } from '../../../permissions/permission.model';
-import { AcademicYear } from '../../../models/academic-year.model';
+import { AcademicYear, academicYearLabel } from '../../../models/academic-year.model';
 import { AcademicYearService } from '../../../services/academic-year.service';
 import { AcademicCatalogService } from '../../../services/academic-catalog.service';
 
@@ -39,6 +40,7 @@ import { AcademicCatalogService } from '../../../services/academic-catalog.servi
         ContentSubtopbar
     ],
     templateUrl: './academic-years.html',
+    styleUrl: './academic-years.scss',
     providers: [ConfirmationService, MessageService]
 })
 export class AcademicYearsPage implements OnInit {
@@ -70,7 +72,7 @@ export class AcademicYearsPage implements OnInit {
             start_date: [null as Date | null, Validators.required],
             end_date: [null as Date | null, Validators.required]
         },
-        { validators: AcademicYearsPage.dateRangeValidator }
+        { validators: [AcademicYearsPage.dateRangeValidator, AcademicYearsPage.labelMatchesDatesValidator] }
     );
 
     readonly actions = computed<SubtopbarAction[]>(() => [
@@ -85,8 +87,21 @@ export class AcademicYearsPage implements OnInit {
         }
     ]);
 
+    /** Dernier libellé proposé : tant que l'utilisateur ne l'a pas changé, il suit les dates. */
+    private suggestedLabel = '';
+
     ngOnInit(): void {
         this.load();
+        const suggest = () => {
+            const { label, start_date, end_date } = this.createForm.getRawValue();
+            const next = academicYearLabel(start_date, end_date);
+            if (next && (!label.trim() || label === this.suggestedLabel)) {
+                this.createForm.controls.label.setValue(next);
+            }
+            this.suggestedLabel = next;
+        };
+        this.createForm.controls.start_date.valueChanges.subscribe(suggest);
+        this.createForm.controls.end_date.valueChanges.subscribe(suggest);
     }
 
     load(): void {
@@ -100,7 +115,7 @@ export class AcademicYearsPage implements OnInit {
             error: (error: HttpErrorResponse) => {
                 this.years.set([]);
                 this.loading.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de charger les années académiques.');
+                this.showError(apiErrorMessage(error, 'Impossible de charger les années académiques.'));
             }
         });
 
@@ -139,6 +154,7 @@ export class AcademicYearsPage implements OnInit {
     }
 
     openCreateDialog(): void {
+        this.suggestedLabel = '';
         this.createForm.reset({ label: '', start_date: null, end_date: null });
         this.createDialogVisible.set(true);
     }
@@ -177,7 +193,7 @@ export class AcademicYearsPage implements OnInit {
                 },
                 error: (error: HttpErrorResponse) => {
                     this.creating.set(false);
-                    this.showError(error.error?.detail ?? 'Impossible de créer l’année académique.');
+                    this.showError(apiErrorMessage(error, 'Impossible de créer l’année académique.'));
                 }
             });
     }
@@ -221,7 +237,7 @@ export class AcademicYearsPage implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.mutatingId.set(null);
-                this.showError(error.error?.detail ?? 'Impossible d’activer cette année.');
+                this.showError(apiErrorMessage(error, 'Impossible d’activer cette année.'));
             }
         });
     }
@@ -241,7 +257,7 @@ export class AcademicYearsPage implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.mutatingId.set(null);
-                this.showError(error.error?.detail ?? 'Impossible de clôturer cette année.');
+                this.showError(apiErrorMessage(error, 'Impossible de clôturer cette année.'));
             }
         });
     }
@@ -277,6 +293,13 @@ export class AcademicYearsPage implements OnInit {
         }
 
         return end.getTime() > start.getTime() ? null : { dateRange: true };
+    }
+
+    /** Le libellé doit correspondre aux dates : « 2026-2026 » pour une année à cheval est refusé. */
+    private static labelMatchesDatesValidator(group: AbstractControl): ValidationErrors | null {
+        const label = String(group.get('label')?.value ?? '').trim();
+        const expected = academicYearLabel(group.get('start_date')?.value as Date | null, group.get('end_date')?.value as Date | null);
+        return !label || !expected || label === expected ? null : { labelMismatch: expected };
     }
 
     canActivate(year: AcademicYear): boolean {

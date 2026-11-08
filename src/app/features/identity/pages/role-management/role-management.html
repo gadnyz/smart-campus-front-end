@@ -1,10 +1,10 @@
 <p-toast />
 <p-confirmdialog [style]="{ width: '450px' }" />
 
-<app-content-subtopbar kicker="Gestion de l'identité" title="Rôles" [actions]="actions()" />
+<app-content-subtopbar kicker="" title="Rôles" [actions]="actions()" />
 
 <div class="card">
-    <p-table
+    <p-table styleClass="stack-table"
         #dt
         [value]="rows()"
         [loading]="loading()"
@@ -44,19 +44,18 @@
 
         <ng-template pTemplate="body" let-role>
             <tr>
-                <td>{{ role.name }}</td>
-                <td>
+                <td data-label="Nom">{{ role.name }}</td>
+                <td data-label="Liste des privilèges">
                     <app-privilege-groups [privileges]="role.privileges" />
                 </td>
                
-                <td>
+                <td class="stack-actions">
                     <button
                         pButton
                         type="button"
                         icon="pi pi-arrow-right"
                         rounded
                         outlined
-                        severity="info"
                         [attr.aria-label]="'Voir ' + role.name"
                         (click)="openDetail(role)"
                     ></button>

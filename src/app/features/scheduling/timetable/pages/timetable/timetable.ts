@@ -5,10 +5,10 @@ import { EventClickArg, EventInput } from '@fullcalendar/core';
 import { Observable, catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
+import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { Program, ProgramService } from '@/app/features/academic/academic.public-api';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
-import { SchedulingPermission } from '../../../permissions/permission.model';
 import { TimetableCalendar, TimetableCalendarRange } from '../../components/timetable-calendar/timetable-calendar';
 import { TimetableExportMenu } from '../../components/timetable-export-menu/timetable-export-menu';
 import { TimetableSessionDialog } from '../../components/timetable-session-dialog/timetable-session-dialog';
@@ -22,7 +22,7 @@ import { TimetableService } from '../../services/timetable.service';
 import { programLevelOptions } from '../../utils/program-level';
 import { printableFromTimetable } from '../../utils/timetable-print-grid';
 import { toCalendarEvent, toCalendarSession, weeksInRange } from '../../utils/timetable-events';
-import { MANAGE_TIMETABLES, TIMETABLE_PATH } from '../../utils/timetable-routes';
+import { CREATE_TIMETABLES, MANAGE_TIMETABLES, TIMETABLE_PATH } from '../../utils/timetable-routes';
 
 /** Horaires validés d'une promotion lus en une fois : une semaine par horaire, soit deux années. */
 const VALIDATED_PAGE_SIZE = 100;
@@ -56,6 +56,7 @@ export class TimetablePage implements OnInit {
     private readonly programService = inject(ProgramService);
     private readonly permissionService = inject(PermissionService);
     private readonly scope = inject(TimetableScopeService);
+    private readonly facultyScope = inject(FacultyScopeService);
     private readonly destroyRef = inject(DestroyRef);
 
     readonly newTimetableLink = `${TIMETABLE_PATH}/new`;
@@ -63,6 +64,9 @@ export class TimetablePage implements OnInit {
     private readonly facultyId = this.scope.facultyId();
 
     readonly programs = signal<Program[]>([]);
+    /** Portée all : faculté choisie d'abord (la dernière choisie est reprise). */
+    readonly facultyChoice = this.facultyId === null;
+    readonly selectedFacultyId = signal<string | null>(this.facultyId === null ? this.facultyScope.workingFacultyId() : null);
     readonly programId = signal<string | null>(null);
     readonly programLevelId = signal<string | null>(null);
     readonly loadingPrograms = signal(false);
@@ -108,16 +112,27 @@ export class TimetablePage implements OnInit {
             outlined: false,
             routerLink: this.newTimetableLink,
             ariaLabel: 'Ajouter un horaire',
-            permissions: [SchedulingPermission.TimetableCreateAll]
+            permissions: CREATE_TIMETABLES
         }
     ]);
 
-    readonly programOptions = computed<SelectOption[]>(() => this.programs().map((program) => ({ label: program.name, value: program.id })));
+    /** Facultés des programmes chargés, pour qui choisit sa faculté. */
+    readonly facultyOptions = computed<SelectOption[]>(() => {
+        const byId = new Map(this.programs().map((program) => [program.faculty_id, program.faculty_name || program.faculty_id] as const));
+        return [...byId].map(([value, label]) => ({ label, value })).sort((a, b) => a.label.localeCompare(b.label));
+    });
+
+    private readonly visiblePrograms = computed(() => {
+        const facultyId = this.selectedFacultyId();
+        return facultyId ? this.programs().filter((program) => program.faculty_id === facultyId) : this.programs();
+    });
+
+    readonly programOptions = computed<SelectOption[]>(() => this.visiblePrograms().map((program) => ({ label: program.name, value: program.id })));
 
     readonly programLevelOptions = computed<SelectOption[]>(() => programLevelOptions(this.programs(), this.programId()));
 
     /** Filtres renseignés, rappelés sur le bouton « Filtres » quand ils sont repliés (téléphone). */
-    readonly activeFilters = computed(() => [this.programId(), this.programLevelId()].filter(Boolean).length);
+    readonly activeFilters = computed(() => [this.facultyChoice ? this.selectedFacultyId() : null, this.programId(), this.programLevelId()].filter(Boolean).length);
 
     readonly emptyText = computed(() =>
         this.programLevelId() ? 'Aucun horaire validé sur cette période.' : 'Choisissez un programme et un niveau pour afficher leur horaire.'
@@ -160,6 +175,13 @@ export class TimetablePage implements OnInit {
                 this.loadError.set('Impossible de charger les programmes.');
             }
         });
+    }
+
+    onFacultyChange(facultyId: string | null): void {
+        this.facultyScope.rememberFaculty(facultyId);
+        this.selectedFacultyId.set(facultyId);
+        this.programId.set(null);
+        this.programLevelId.set(null);
     }
 
     onProgramChange(programId: string | null): void {

@@ -9,6 +9,7 @@ import { Observable, forkJoin, of } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { PUBLIC_API_REQUEST } from '@/app/core/auth/interceptors/public-api.context';
+import { toApiParams } from '@/app/shared/http/api-params';
 import { environment } from '@/environments/environment';
 
 import {
@@ -25,6 +26,7 @@ import {
     PagedResponse,
     RejectCandidatureRequest,
     SubmitCandidatureRequest,
+    UpdateCandidatureRequest,
     UpdateOwnCandidatureRequest
 } from '../models/candidate.model';
 
@@ -68,26 +70,12 @@ export class CandidateService {
     getAll(
         query: CandidateQuery = {}
     ): Observable<PagedResponse<CandidateListItem>> {
-        let params = new HttpParams();
-
-        if (query.status) {
-            params = params.set('status', query.status);
-        }
-
-        if (query.facultyId) {
-            params = params.set('facultyId', query.facultyId);
-        }
-
-        if (query.page !== undefined) {
-            params = params.set('page', query.page);
-        }
-
-        if (query.size !== undefined) {
-            params = params.set('size', query.size);
-        }
-
-        query.sort?.forEach((sort) => {
-            params = params.append('sort', sort);
+        const params = toApiParams({
+            status: query.status,
+            faculty_id: query.facultyId,
+            page: query.page,
+            size: query.size,
+            sort: query.sort ?? []
         });
 
         return this.http
@@ -404,6 +392,14 @@ export class CandidateService {
     /** Éditable tant que le dossier n’est ni validé ni rejeté. */
     canEditOwn(status: CandidatureStatus | null | undefined): boolean {
         return status === 'DRAFT' || status === 'PENDING';
+    }
+
+    /** Modification par le personnel (évaluateurs, administrateurs). */
+    update(id: string, payload: UpdateCandidatureRequest): Observable<CandidateResponse> {
+        return this.http.put<CandidateResponseApi>(`${this.baseUrl}/${id}`, payload).pipe(
+            map((c) => this.normalizeCandidate(c)),
+            tap((c) => this.detailCache.set(c.id, c))
+        );
     }
 
     // lire / mettre à jour « mon » dossier

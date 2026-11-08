@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -45,6 +46,7 @@ import { RoomService } from '../../../services/room.service';
         ContentSubtopbar
     ],
     templateUrl: './rooms.html',
+    styleUrl: './rooms.scss',
     providers: [ConfirmationService, MessageService]
 })
 export class RoomsPage implements OnInit {
@@ -234,7 +236,7 @@ export class RoomsPage implements OnInit {
             error: (error: HttpErrorResponse) => {
                 this.rooms.set([]);
                 this.loading.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de charger les salles.');
+                this.showError(apiErrorMessage(error, 'Impossible de charger les salles.'));
             }
         });
     }

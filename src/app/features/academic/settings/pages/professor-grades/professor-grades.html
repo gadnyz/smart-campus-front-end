@@ -1,10 +1,10 @@
 <p-toast />
 <p-confirmdialog [style]="{ width: '450px' }" />
 
-<app-content-subtopbar kicker="Paramètres Academic" title="Grades professeurs" [actions]="actions()" />
+<app-content-subtopbar kicker="" title="Grades professeurs" [actions]="actions()" />
 
 <div class="card">
-    <p-table
+    <p-table styleClass="stack-table"
         #dt
         [value]="grades()"
         [loading]="loading()"
@@ -39,9 +39,9 @@
 
         <ng-template pTemplate="body" let-grade>
             <tr>
-                <td>{{ grade.code }}</td>
-                <td>{{ grade.name }}</td>
-                <td>
+                <td data-label="Code">{{ grade.code }}</td>
+                <td data-label="Nom">{{ grade.name }}</td>
+                <td class="stack-actions">
                     <div class="flex gap-2">
                         @if (canUpdate()) {
                         <button
@@ -50,7 +50,6 @@
                             icon="pi pi-pencil"
                             rounded
                             outlined
-                            severity="info"
                             [attr.aria-label]="'Modifier ' + grade.code"
                             (click)="openEditDialog(grade)"
                         ></button>

@@ -22,7 +22,11 @@
 
         <div class="portal-layout">
             <main class="portal-main">
+                @if (editing()) {
+                <app-candidate-dossier-form [form]="form" [choices]="choices" [labels]="academicLabels()" />
+                } @else {
                 <app-candidate-dossier-sections [sections]="sections()" idPrefix="candidate-" />
+                }
             </main>
 
             <aside class="portal-aside">

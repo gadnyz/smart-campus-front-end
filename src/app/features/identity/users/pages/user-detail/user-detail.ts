@@ -1,4 +1,5 @@
 import { CommonModule, Location } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -240,7 +241,7 @@ export class UserDetail implements OnInit {
                     return;
                 }
 
-                this.showError(error.error?.detail ?? 'Impossible de charger les privilèges.');
+                this.showError(apiErrorMessage(error, 'Impossible de charger les privilèges.'));
             }
         });
     }
@@ -260,7 +261,7 @@ export class UserDetail implements OnInit {
             error: (error: HttpErrorResponse) => {
                 this.user.set(null);
                 this.loading.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de charger l\'utilisateur.');
+                this.showError(apiErrorMessage(error, 'Impossible de charger l\'utilisateur.'));
             }
         });
     }
@@ -317,7 +318,7 @@ export class UserDetail implements OnInit {
                     this.validationErrors.set(error.error.invalid_fields);
                 }
 
-                this.showError(error.error?.detail ?? 'Impossible de mettre à jour l\'utilisateur.');
+                this.showError(apiErrorMessage(error, 'Impossible de mettre à jour l\'utilisateur.'));
             }
         });
     }
@@ -351,7 +352,7 @@ export class UserDetail implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.togglingStatus.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de modifier le statut.');
+                this.showError(apiErrorMessage(error, 'Impossible de modifier le statut.'));
             }
         });
     }
@@ -381,7 +382,7 @@ export class UserDetail implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.assigningProfile.set(false);
-                this.showError(error.error?.detail ?? 'Impossible d\'assigner le profil.');
+                this.showError(apiErrorMessage(error, 'Impossible d\'assigner le profil.'));
             }
         });
     }
@@ -404,7 +405,7 @@ export class UserDetail implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.removingProfileName.set(null);
-                this.showError(error.error?.detail ?? 'Impossible de retirer le profil.');
+                this.showError(apiErrorMessage(error, 'Impossible de retirer le profil.'));
             }
         });
     }
@@ -432,7 +433,7 @@ export class UserDetail implements OnInit {
                 next: () => grantNext(index + 1),
                 error: (error: HttpErrorResponse) => {
                     this.grantingPrivilege.set(false);
-                    this.showError(error.error?.detail ?? 'Impossible d\'accorder le privilège.');
+                    this.showError(apiErrorMessage(error, 'Impossible d\'accorder le privilège.'));
                     this.reloadUserAuthorities(currentUser.id);
                 }
             });
@@ -501,7 +502,7 @@ export class UserDetail implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.revokingPrivilegeName.set(null);
-                this.showError(error.error?.detail ?? 'Impossible de révoquer le privilège.');
+                this.showError(apiErrorMessage(error, 'Impossible de révoquer le privilège.'));
             }
         });
     }
@@ -520,7 +521,7 @@ export class UserDetail implements OnInit {
                 void this.router.navigate(['/settings/identity/users']);
             },
             error: (error: HttpErrorResponse) => {
-                this.showError(error.error?.detail ?? 'Impossible de supprimer l\'utilisateur.');
+                this.showError(apiErrorMessage(error, 'Impossible de supprimer l\'utilisateur.'));
             }
         });
     }

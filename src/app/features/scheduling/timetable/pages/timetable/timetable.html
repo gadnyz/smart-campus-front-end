@@ -22,6 +22,23 @@
             [disabledReason]="exportDocuments().length ? null : 'Choisissez une promotion qui a un horaire validé sur la période affichée.'"
         />
         <div timetableFilters class="timetable-filters">
+            @if (facultyChoice) {
+            <p-select
+                [options]="facultyOptions()"
+                optionLabel="label"
+                optionValue="value"
+                [ngModel]="selectedFacultyId()"
+                (ngModelChange)="onFacultyChange($event)"
+                [showClear]="true"
+                [filter]="true"
+                [disabled]="loadingPrograms()"
+                placeholder="Faculté"
+                ariaLabel="Filtrer par faculté"
+                appendTo="body"
+                size="small"
+                class="timetable-filter"
+            />
+            }
             <p-select
                 [options]="programOptions()"
                 optionLabel="label"

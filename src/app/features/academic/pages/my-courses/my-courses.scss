@@ -1,0 +1,3 @@
+@use '../../../../shared/ui/styles/stacked-table' as stacked;
+
+@include stacked.stacked-table('.stack-table');

@@ -23,7 +23,10 @@ export const identityFeature: AppFeature = {
             IdentityPermission.ProfileReadAll,
             IdentityPermission.ProfileUpdateAll,
             IdentityPermission.RoleReadAll,
-            IdentityPermission.RoleUpdateAll
+            IdentityPermission.RoleUpdateAll,
+            IdentityPermission.PrivilegeReadAll,
+            IdentityPermission.PrivilegeCreateAll,
+            IdentityPermission.PrivilegeDeleteAll
         ],
         mode: 'any',
         items: [
@@ -50,6 +53,14 @@ export const identityFeature: AppFeature = {
                 permissions: [IdentityPermission.RoleReadAll, IdentityPermission.RoleUpdateAll],
                 mode: 'any',
                 order: 30
+            },
+            {
+                label: 'Privilèges',
+                icon: 'pi pi-key',
+                routerLink: ['/settings/identity/privileges'],
+                permissions: [IdentityPermission.PrivilegeReadAll, IdentityPermission.PrivilegeCreateAll, IdentityPermission.PrivilegeDeleteAll],
+                mode: 'any',
+                order: 40
             }
         ]
     },

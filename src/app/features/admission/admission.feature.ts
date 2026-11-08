@@ -1,5 +1,5 @@
 import { AppFeature } from '@/app/core/modules/app-feature.model';
-import { AdmissionPermission } from './permissions/permission.model';
+import { AdmissionManage, AdmissionPermission } from './permissions/permission.model';
 import { admissionDashboardWidgets } from './dashboard/dashboard.widgets';
 
 export const admissionFeature: AppFeature = {
@@ -19,7 +19,7 @@ export const admissionFeature: AppFeature = {
                     label: 'Candidatures',
                     icon: 'pi pi-fw pi-id-card',
                     routerLink: ['/admission/candidates'],
-                    permissions: [AdmissionPermission.AdmissionCandidateUpdateAll],
+                    permissions: AdmissionManage.Candidate,
                     order: 10
                 },
                 {
@@ -27,7 +27,7 @@ export const admissionFeature: AppFeature = {
                     icon: 'pi pi-fw pi-folder-open',
                     routerLink: ['/admission/my-application'],
                     permissions: [AdmissionPermission.AdmissionCandidateReadOwn],
-                    hiddenWhenPermissions: [AdmissionPermission.AdmissionCandidateUpdateAll],
+                    hiddenWhenPermissions: AdmissionManage.Candidate,
                     order: 5
                 }
             ],

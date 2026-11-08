@@ -1,0 +1,40 @@
+id_enseignant;nom_complet;grade_code;grade_libelle;faculte_rattachement;source_grade
+ENS001;Antoine Bagula;PO;Professeur Ordinaire;Sciences Informatiques;Titre fourni
+ENS002;Jonathan Kabemba;ASS;Assistant;Sciences Informatiques;Colonne Assistant → ASS (règle)
+ENS003;Nathanael Kasoro;P;Professeur;Sciences Informatiques;Titre fourni
+ENS004;Ortega Kabwe;ASS;Assistant;Sciences Informatiques;Colonne Assistant → ASS (règle)
+ENS005;Audrey Kasongo;ASS;Assistant;Sciences Informatiques;Colonne Assistant → ASS (règle)
+ENS006;Ken Mukendi;CC;Chargé de Cours;Sciences Informatiques;Titre non renseigné → CC (règle)
+ENS007;Fabien Kabeya;CC;Chargé de Cours;Sciences Informatiques;Titre fourni
+ENS008;André Lisongomi;CC;Chargé de Cours;Sciences Informatiques;Titre fourni
+ENS009;Jean-Octave Kabemba;CC;Chargé de Cours;Droit;Titre non renseigné → CC (règle)
+ENS010;Jacques-Octave Kabemba;ASS;Assistant;Droit;Colonne Assistant → ASS (règle)
+ENS011;Axel Bula;P;Professeur;Sciences Informatiques;Titre fourni
+ENS012;Danny Kasongo;ASS;Assistant;Sciences Technologiques;Colonne Assistant → ASS (règle)
+ENS013;Emmanuel Kabanishi;CC;Chargé de Cours;Sciences Informatiques;Titre non renseigné → CC (règle)
+ENS014;Nick Mayumu;Dr;Docteur;Sciences Informatiques;Titre fourni
+ENS015;Jean Pierre Bakatuamba;CC;Chargé de Cours;Sciences Informatiques;Titre fourni
+ENS016;Godwill Ilunga;CT;Chef de Travaux;Sciences Informatiques;Titre fourni
+ENS017;Hyacinthe Diambomba;P;Professeur;Sciences Informatiques;Titre fourni
+ENS018;Yannick Nkulu;ASS;Assistant;Sciences Technologiques;Colonne Assistant → ASS (règle)
+ENS019;Papy Mukanda;CC;Chargé de Cours;Sciences Informatiques;Titre fourni
+ENS020;Nathan Mbayo;ASS;Assistant;Sciences Informatiques;Colonne Assistant → ASS (règle)
+ENS021;Landry Mbale;ASS;Assistant;Sciences Informatiques;Colonne Assistant → ASS (règle)
+ENS022;Charles Muzinga;CC;Chargé de Cours;Sciences Informatiques;Titre fourni
+ENS023;Odette Sangupamba;P;Professeur;Sciences Informatiques;Titre fourni
+ENS024;Gad Tambwe;ASS;Assistant;Sciences Informatiques;Colonne Assistant → ASS (règle)
+ENS025;Junior Muka;PA;Professeur Associé;Sciences Informatiques;Titre fourni
+ENS026;Apolinnaire Ndondo;P;Professeur;Sciences Informatiques;Titre fourni
+ENS027;Dauphin Kamwanga;ASS;Assistant;Sciences Technologiques;Colonne Assistant → ASS (règle)
+ENS028;Auguste Muhau;CT;Chef de Travaux;Sciences Informatiques;Titre fourni
+ENS029;Ebedon Mufind;PA;Professeur Associé;Sciences Informatiques;Titre fourni
+ENS030;Jean-Jacques Kaboko;PA;Professeur Associé;Sciences Informatiques;Titre fourni
+ENS031;Mamie Mujinga;CT;Chef de Travaux;Sciences Informatiques;Titre fourni
+ENS032;Patrick Mukala;P;Professeur;Sciences Informatiques;Titre fourni
+ENS033;Jordan Masakuna;PA;Professeur Associé;Sciences Informatiques;Titre fourni
+ENS034;Dony Mudimbi;CT;Chef de Travaux;Sciences Informatiques;Titre fourni
+ENS035;Selain Kasereka;P;Professeur;Sciences Informatiques;Titre fourni
+ENS036;Emmanuel Kalunga;PA;Professeur Associé;Sciences Informatiques;Titre fourni
+ENS037;Thierry Kanyinda;CC;Chargé de Cours;Sciences Informatiques;Titre fourni
+ENS038;Merlec Mpyana;PA;Professeur Associé;Sciences Informatiques;Titre fourni
+ENS039;Daniel Katual;CC;Chargé de Cours;Sciences Informatiques;Titre non renseigné → CC (règle)

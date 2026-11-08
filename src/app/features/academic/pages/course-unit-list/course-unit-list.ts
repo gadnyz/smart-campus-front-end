@@ -1,4 +1,6 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
+import { writeAuthorities } from '@/app/core/permissions/permission-scope';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -14,8 +16,8 @@ import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
-import { AcademicPermission } from '../../permissions/permission.model';
 import { CourseUnit, KnowledgeSkillsBloc, UE_BLOC_OPTIONS } from '../../models/course-unit.model';
+import { Observable, map, of, switchMap } from 'rxjs';
 import { Faculty } from '../../models/faculty.model';
 import { Program } from '../../models/program.model';
 import { CourseUnitService } from '../../services/course-unit.service';
@@ -41,6 +43,7 @@ import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.serv
         ContentSubtopbar
     ],
     templateUrl: './course-unit-list.html',
+    styleUrl: './course-unit-list.scss',
     providers: [MessageService]
 })
 export class CourseUnitListPage implements OnInit {
@@ -52,7 +55,7 @@ export class CourseUnitListPage implements OnInit {
     private readonly permissionService = inject(PermissionService);
     private readonly fb = inject(FormBuilder);
     private readonly facultyScope = inject(FacultyScopeService);
-    readonly facultyLocked = computed(() => this.facultyScope.isFacultyScoped());
+    readonly facultyLocked = computed(() => this.facultyScope.isScopedFor('academic:course-unit:read'));
 
     readonly units = signal<CourseUnit[]>([]);
     readonly faculties = signal<Faculty[]>([]);
@@ -66,11 +69,13 @@ export class CourseUnitListPage implements OnInit {
     readonly saving = signal(false);
     readonly dialogVisible = signal(false);
     readonly editingId = signal<string | null>(null);
+    /** Bloc de l'UE en cours de modification, pour ne changer le curriculum que s'il a bougé. */
+    private editingBloc: KnowledgeSkillsBloc | null = null;
 
     readonly blocOptions = UE_BLOC_OPTIONS;
 
     readonly canUpdate = computed(() =>
-        this.permissionService.hasAnyPermission([AcademicPermission.CourseUnitUpdateAll])
+        this.permissionService.canWrite('academic:course-unit:update')
     );
 
     readonly dialogTitle = computed(() => (this.editingId() ? 'Modifier l’UE' : 'Nouvelle UE'));
@@ -108,7 +113,7 @@ export class CourseUnitListPage implements OnInit {
             severity: 'info',
             outlined: false,
             command: () => this.openCreateDialog(),
-            permissions: [AcademicPermission.CourseUnitCreateAll]
+            permissions: writeAuthorities('academic:course-unit:create')
         }
     ]);
 
@@ -124,7 +129,7 @@ export class CourseUnitListPage implements OnInit {
             this.formProgramId.set(programId);
         });
 
-        const locked = this.facultyScope.scopedId();
+        const locked = this.facultyScope.scopedIdFor('academic:course-unit:read');
         if (locked) {
             this.scopedFacultyId.set(locked);
             this.selectedFacultyId.set(locked);
@@ -142,7 +147,10 @@ export class CourseUnitListPage implements OnInit {
             next: (faculties) =>
                 this.faculties.set([...faculties].sort((a, b) => a.name.localeCompare(b.name)))
         });
-
+        const working = this.facultyScope.workingFacultyId();
+        if (working) {
+            this.onFacultyFilterChange(working);
+        }
     }
 
     onGlobalFilter(table: Table, event: Event): void {
@@ -150,6 +158,9 @@ export class CourseUnitListPage implements OnInit {
     }
 
     onFacultyFilterChange(facultyId: string | null): void {
+        if (!this.facultyLocked()) {
+            this.facultyScope.rememberFaculty(facultyId);
+        }
         this.selectedFacultyId.set(facultyId);
         this.selectedProgramId.set(null);
         this.selectedProgramLevelId.set(null);
@@ -176,6 +187,8 @@ export class CourseUnitListPage implements OnInit {
         const facultyId = this.scopedFacultyId() ?? this.selectedFacultyId();
         const programId = this.selectedProgramId();
         this.editingId.set(null);
+        this.editingBloc = null;
+        this.enablePlacement();
         this.form.reset(
             {
                 faculty_id: facultyId,
@@ -195,8 +208,9 @@ export class CourseUnitListPage implements OnInit {
 
     openEditDialog(unit: CourseUnit): void {
         const facultyId = this.selectedFacultyId();
-        const programId = unit.program_id ?? this.selectedProgramId();
+        const programId = this.selectedProgramId();
         this.editingId.set(unit.id);
+        this.editingBloc = unit.knowledge_skills_bloc;
         this.form.reset(
             {
                 faculty_id: facultyId,
@@ -211,12 +225,17 @@ export class CourseUnitListPage implements OnInit {
         if (facultyId) {
             this.loadPrograms(facultyId);
         }
+        // L'UE reste dans sa promotion : l'inscrire ailleurs se fait depuis sa fiche (tronc commun).
+        this.form.controls.faculty_id.disable({ emitEvent: false });
+        this.form.controls.program_id.disable({ emitEvent: false });
+        this.form.controls.program_level_id.disable({ emitEvent: false });
         this.dialogVisible.set(true);
     }
 
     closeDialog(): void {
         this.dialogVisible.set(false);
         this.editingId.set(null);
+        this.enablePlacement();
     }
 
     submit(): void {
@@ -226,33 +245,46 @@ export class CourseUnitListPage implements OnInit {
         }
 
         const raw = this.form.getRawValue();
-        const payload = {
-            code: raw.code.trim(),
-            knowledge_skills_bloc: raw.knowledge_skills_bloc as KnowledgeSkillsBloc,
-            program_level_id: raw.program_level_id as string
-        };
+        const code = raw.code.trim();
+        const bloc = raw.knowledge_skills_bloc as KnowledgeSkillsBloc;
+        const programLevelId = raw.program_level_id as string;
         const editingId = this.editingId();
         this.saving.set(true);
 
-        const request$ = editingId
-            ? this.courseUnitService.update(editingId, payload)
-            : this.courseUnitService.create(payload);
+        const request$: Observable<{ code: string }> = editingId
+            ? this.courseUnitService
+                  .update(editingId, { code })
+                  .pipe(
+                      switchMap((unit) =>
+                          bloc === this.editingBloc ? of(unit) : this.courseUnitService.changeBloc(editingId, programLevelId, bloc).pipe(map(() => unit))
+                      )
+                  )
+            : this.courseUnitService.create({ code, knowledge_skills_bloc: bloc, program_level_ids: [programLevelId] });
 
         request$.subscribe({
             next: (unit) => {
                 this.saving.set(false);
                 this.dialogVisible.set(false);
                 this.editingId.set(null);
+                this.enablePlacement();
                 this.selectedProgramId.set(raw.program_id);
-                this.selectedProgramLevelId.set(unit.program_level_id);
+                this.selectedProgramLevelId.set(programLevelId);
                 this.load();
                 this.showSuccess(editingId ? `UE ${unit.code} modifiée.` : `UE ${unit.code} créée.`);
             },
             error: (error: HttpErrorResponse) => {
                 this.saving.set(false);
-                this.showError(error.error?.detail ?? 'Impossible d’enregistrer l’UE.');
+                this.showError(apiErrorMessage(error, 'Impossible d’enregistrer l’UE.'));
             }
         });
+    }
+
+    private enablePlacement(): void {
+        if (!this.scopedFacultyId()) {
+            this.form.controls.faculty_id.enable({ emitEvent: false });
+        }
+        this.form.controls.program_id.enable({ emitEvent: false });
+        this.form.controls.program_level_id.enable({ emitEvent: false });
     }
 
     blocLabel(bloc: string): string {
@@ -297,7 +329,7 @@ export class CourseUnitListPage implements OnInit {
             error: (error: HttpErrorResponse) => {
                 this.units.set([]);
                 this.loading.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de charger les UE.');
+                this.showError(apiErrorMessage(error, 'Impossible de charger les UE.'));
             }
         });
     }

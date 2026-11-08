@@ -1,9 +1,9 @@
 <p-toast />
 
-<app-content-subtopbar kicker="Academic" title="Facultés" [actions]="actions()" />
+<app-content-subtopbar kicker="Académique" title="Facultés" [actions]="actions()" />
 
 <div class="card">
-    <p-table
+    <p-table styleClass="stack-table"
         #dt
         [value]="faculties()"
         [loading]="loading()"
@@ -38,16 +38,15 @@
 
         <ng-template pTemplate="body" let-faculty>
             <tr>
-                <td>{{ faculty.code }}</td>
-                <td>{{ faculty.name }}</td>
-                <td>
+                <td data-label="Code">{{ faculty.code }}</td>
+                <td data-label="Nom">{{ faculty.name }}</td>
+                <td class="stack-actions">
                     <button
                         pButton
                         type="button"
                         icon="pi pi-arrow-right"
                         rounded
                         outlined
-                        severity="info"
                         [attr.aria-label]="'Détail ' + faculty.code"
                         (click)="openDetail(faculty)"
                     ></button>

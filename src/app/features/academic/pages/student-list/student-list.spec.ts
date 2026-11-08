@@ -67,7 +67,15 @@ describe('StudentListPage', () => {
             of([{ id: 'pr-1', code: 'GL', name: 'Génie Logiciel', faculty_id: 'fac-info' }])
         );
         catalog.getProgramsByFaculty.and.returnValue(
-            of([{ id: 'pr-1', code: 'GL', name: 'Génie Logiciel', faculty_id: 'fac-info' }])
+            of([
+                {
+                    id: 'pr-1',
+                    code: 'GL',
+                    name: 'Génie Logiciel',
+                    faculty_id: 'fac-info',
+                    levels: [{ id: 'pl-1', is_common: false, level: { id: 'lvl-1', code: 'L1', name: 'Licence 1' } }]
+                }
+            ])
         );
 
         await TestBed.configureTestingModule({
@@ -108,27 +116,32 @@ describe('StudentListPage', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/academic/students', 'st-2']);
     });
 
-    it('should keep male computer-science students after advanced search', () => {
+    it('should filter by faculty and promotion through the API, trusting its total', () => {
         studentService.getAll.calls.reset();
-        component.advancedOpen.set(true);
-        component.genderFilter.set('MALE');
+        studentService.getAll.and.returnValue(of({ content: [students[1]], page: 0, size: 10, total_elements: 37, total_pages: 4 }));
         component.onFacultyChange('fac-info');
+        component.onProgramChange('pr-1');
+
+        expect(component.programLevels()).toEqual([{ label: 'L1 — Licence 1', value: 'pl-1' }]);
+        component.onProgramLevelChange('pl-1');
 
         expect(studentService.getAll).toHaveBeenCalledWith(
-            jasmine.objectContaining({
-                page: 0,
-                gender: 'MALE',
-                facultyId: 'fac-info'
-            })
+            jasmine.objectContaining({ page: 0, facultyId: 'fac-info', programId: 'pr-1', programLevelId: 'pl-1' })
         );
-        expect(component.students().map((student) => student.id)).toEqual(['st-2']);
         expect(catalog.getProgramsByFaculty).toHaveBeenCalledWith('fac-info');
+        // Aucun filtrage local : la page et le total viennent du serveur.
+        expect(component.students().map((student) => student.id)).toEqual(['st-2']);
+        expect(component.totalElements()).toBe(37);
     });
 
-    it('should keep Zambian students when filtering by nationality', () => {
-        component.nationalityFilter.set('zambienne');
-        component.applySearch(0);
-        expect(component.students().map((student) => student.nationality)).toEqual(['Zambienne']);
+    it('should clear the promotion when the program changes', () => {
+        component.onFacultyChange('fac-info');
+        component.onProgramChange('pr-1');
+        component.onProgramLevelChange('pl-1');
+        component.onProgramChange(null);
+
+        expect(component.programLevelFilter()).toBeNull();
+        expect(component.programLevels()).toEqual([]);
     });
 
     it('should show an empty list when the students endpoint fails', async () => {

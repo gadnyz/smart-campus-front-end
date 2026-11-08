@@ -78,6 +78,7 @@ function entry(overrides: Partial<TimetableEntry>): TimetableEntry {
     return {
         id: 'e-1',
         timetable_id: 'tt-1',
+        host_program_level_id: 'pl-1',
         date: '2026-10-05',
         start_hour: '08:00:00',
         end_hour: '10:00:00',
@@ -93,6 +94,8 @@ function entry(overrides: Partial<TimetableEntry>): TimetableEntry {
         note: '',
         created_at: '',
         updated_at: '',
+        audience_program_level_ids: [],
+        warnings: [],
         ...overrides
     };
 }
@@ -137,7 +140,7 @@ describe('TimetableFormPage', () => {
 
     /** Synchrone (templates déjà inlinés par le builder), pour garder la main sur l'horloge. */
     function createComponent(options: CreateOptions = {}): void {
-        timetableService = jasmine.createSpyObj<TimetableService>('TimetableService', ['list', 'getById', 'create', 'changeStatus', 'delete']);
+        timetableService = jasmine.createSpyObj<TimetableService>('TimetableService', ['list', 'getById', 'create', 'changeStatus', 'delete', 'duplicate']);
         entryService = jasmine.createSpyObj<TimetableEntryService>('TimetableEntryService', ['create', 'update', 'delete', 'getByTimetable']);
         assignmentService = jasmine.createSpyObj<CourseAssignmentService>('CourseAssignmentService', ['getByCourse']);
         const programService = jasmine.createSpyObj<ProgramService>('ProgramService', ['getAll']);
@@ -480,7 +483,7 @@ describe('TimetableFormPage', () => {
                     jasmine.objectContaining({ date: '2026-10-07' })
                 ]
             });
-            expect(router.navigate).toHaveBeenCalledWith(['/scheduling/timetable', 'pending'], { state: { saved: true } });
+            expect(router.navigate).toHaveBeenCalledWith(['/scheduling/timetable', 'pending'], { state: { saved: true, warnings: [] } });
             expect(component.confirmLeave()).toBeTrue();
         });
 
@@ -674,7 +677,8 @@ describe('TimetableFormPage', () => {
             const html = fixture.nativeElement as HTMLElement;
             const buttons = Array.from(html.querySelectorAll('app-content-subtopbar button')).map((button) => button.textContent?.trim());
 
-            expect(buttons).toEqual(['Retour', 'Renvoyer en brouillon', 'Valider']);
+            // Le circuit de statut d'abord, la duplication de semaine ensuite.
+            expect(buttons).toEqual(['Retour', 'Renvoyer en brouillon', 'Valider', 'Dupliquer']);
             expect(html.querySelector('.timetable-form-top p-tag')?.textContent).toContain('Soumis');
 
             (html.querySelectorAll('app-content-subtopbar button')[2] as HTMLButtonElement).click();
@@ -795,6 +799,58 @@ describe('TimetableFormPage', () => {
         it('should leave freely when nothing was created or changed', () => {
             createComponent();
             expect(component.confirmLeave()).toBeTrue();
+        });
+    });
+
+    describe('lot D : partage, avertissements, duplication', () => {
+        const hosted = entry({ id: 'e-mon', date: '2026-10-05' });
+        const guest = entry({ id: 'e-guest', date: '2026-10-06', host_program_level_id: 'pl-2', course_name: 'Anglais' });
+
+        it('should show the sessions of another promotion read-only, and never delete them on save', () => {
+            createComponent({ edit: { timetable: timetable(), entries: [hosted, guest] } });
+
+            expect(component.lines.length).toBe(1);
+            expect(component.sharedInRows().map((row) => row.course)).toEqual(['Anglais']);
+
+            component.save();
+            expect(entryService.delete).not.toHaveBeenCalled();
+        });
+
+        it('should report the double booking warnings once the sessions are saved', () => {
+            createComponent({ edit: { timetable: timetable(), entries: [hosted] } });
+            entryService.update.and.returnValue(of({ ...hosted, note: 'TP', warnings: [{ code: 'PROFESSOR_DOUBLE_BOOKED', message: 'L’enseignant enseigne déjà à cette heure.' }] }));
+            component.lines.at(0).controls.note.setValue('TP');
+
+            component.save();
+
+            expect(router.navigate).toHaveBeenCalledWith(['/scheduling/timetable', 'pending'], {
+                state: { saved: true, warnings: ['Lundi 08:00 · Algèbre : L’enseignant enseigne déjà à cette heure.'] }
+            });
+        });
+
+        it('should duplicate the week into a draft of the next week by default', () => {
+            createComponent({ edit: { timetable: timetable(), entries: [hosted] } });
+            timetableService.duplicate.and.returnValue(of(timetable({ id: 'tt-2', week_start: '2026-10-12' })));
+
+            component.openDuplicate();
+            component.submitDuplicate();
+
+            expect(timetableService.duplicate).toHaveBeenCalledWith('tt-1', '2026-10-12');
+            expect(router.navigate).toHaveBeenCalledWith(['/scheduling/timetable', 'tt-2', 'edit']);
+        });
+
+        it('should name the sessions refused by an all-or-nothing copy', () => {
+            createComponent({ edit: { timetable: timetable(), entries: [entry({ id: 'e-tue', date: '2026-10-06' }), hosted] } });
+            timetableService.duplicate.and.returnValue(
+                throwError(() => new HttpErrorResponse({ status: 422, error: { errors: [{ index: 1, code: 'ROOM_BOOKED', message: 'Salle déjà réservée' }] } }))
+            );
+
+            component.openDuplicate();
+            component.submitDuplicate();
+
+            // Position 1 de la semaine source triée par date : le mardi.
+            expect(component.duplicateErrors()).toEqual(['Mardi 08:00 · Algèbre : Salle déjà réservée']);
+            expect(component.duplicateVisible()).toBeTrue();
         });
     });
 });

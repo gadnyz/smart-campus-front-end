@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { permissionGuard } from '@/app/core/permissions/permission.guard';
-import { AdmissionPermission } from './permissions/permission.model';
+import { AdmissionManage, AdmissionPermission } from './permissions/permission.model';
 import { CandidateManagement } from './pages/candidate-management/candidate-management';
 import { CandidateDetail } from './pages/candidate-detail/candidate-detail';
 
@@ -10,7 +10,7 @@ export default [
         component: CandidateManagement,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AdmissionPermission.AdmissionCandidateUpdateAll],
+            permissions: AdmissionManage.Candidate,
             mode: 'any'
         }
     },
@@ -22,7 +22,7 @@ export default [
         data: {
             permissions: [AdmissionPermission.AdmissionCandidateReadOwn],
             mode: 'any',
-            hiddenWhenPermissions: [AdmissionPermission.AdmissionCandidateUpdateAll]
+            hiddenWhenPermissions: AdmissionManage.Candidate
         }
     },
     {
@@ -30,7 +30,7 @@ export default [
         component: CandidateDetail,
         canActivate: [permissionGuard],
         data: {
-            permissions: [AdmissionPermission.AdmissionCandidateUpdateAll],
+            permissions: AdmissionManage.Candidate,
             mode: 'any'
         }
     },

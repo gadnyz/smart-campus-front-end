@@ -1,4 +1,6 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
+import { writeAuthorities } from '@/app/core/permissions/permission-scope';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -22,7 +24,6 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
 import { DetailNavigationService, DetailNavigationState } from '@/app/shared/navigation/detail-navigation.service';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { resolveAvatarUrl } from '@/app/shared/utils/avatar-url';
-import { AcademicPermission } from '../../permissions/permission.model';
 import {
     STUDENT_GENDER_OPTIONS,
     STUDENT_MARITAL_STATUS_OPTIONS,
@@ -130,7 +131,7 @@ export class StudentDetailPage implements OnInit {
     });
 
     readonly canEdit = computed(() =>
-        this.permissionService.hasAnyPermission([AcademicPermission.StudentUpdateAll])
+        this.permissionService.canWrite('academic:student:update')
     );
 
     readonly canGoPrevious = computed(() => this.navigationState()?.hasPrevious ?? false);
@@ -242,7 +243,7 @@ export class StudentDetailPage implements OnInit {
                 label: 'Modifier',
                 icon: 'pi pi-pencil',
                 command: () => this.startEdit(),
-                permissions: [AcademicPermission.StudentUpdateAll]
+                permissions: writeAuthorities('academic:student:update')
             }
         ];
     });
@@ -385,7 +386,7 @@ export class StudentDetailPage implements OnInit {
                 },
                 error: (error: HttpErrorResponse) => {
                     this.saving.set(false);
-                    this.showError(error.error?.detail ?? 'Impossible de modifier l’étudiant.');
+                    this.showError(apiErrorMessage(error, 'Impossible de modifier l’étudiant.'));
                 }
             });
     }

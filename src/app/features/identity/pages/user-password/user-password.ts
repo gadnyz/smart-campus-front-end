@@ -1,4 +1,5 @@
 import { CommonModule, Location } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -96,7 +97,7 @@ export class UserPassword {
                     this.showSuccess('Mot de passe modifié avec succès.');
                 },
                 error: (error: HttpErrorResponse) => {
-                    this.showError(error.error?.detail ?? 'Impossible de modifier le mot de passe.');
+                    this.showError(apiErrorMessage(error, 'Impossible de modifier le mot de passe.'));
                 }
             });
     }

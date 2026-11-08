@@ -1,6 +1,9 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
+import { writeAuthorities } from '@/app/core/permissions/permission-scope';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -21,7 +24,7 @@ import { AcademicPermission } from '../../permissions/permission.model';
 import { AcademicYear } from '../../models/academic-year.model';
 import { Course } from '../../models/course.model';
 import { CourseAssignment, CourseAssignmentType } from '../../models/course-assignment.model';
-import { CourseUnit, UE_BLOC_OPTIONS } from '../../models/course-unit.model';
+import { CourseUnit, blocLabel } from '../../models/course-unit.model';
 import { Professor } from '../../models/professor.model';
 import { AcademicYearService } from '../../services/academic-year.service';
 import { CourseAssignmentService } from '../../services/course-assignment.service';
@@ -29,7 +32,6 @@ import { CourseService } from '../../services/course.service';
 import { CourseUnitService } from '../../services/course-unit.service';
 import { FacultyService } from '../../services/faculty.service';
 import { ProfessorService } from '../../services/professor.service';
-import { CourseEnrolledStudents } from '../../components/course-enrolled-students/course-enrolled-students';
 import {
     DetailNavigationService,
     DetailNavigationState
@@ -50,8 +52,7 @@ import {
         TextareaModule,
         SelectModule,
         TagModule,
-        ContentSubtopbar,
-        CourseEnrolledStudents
+        ContentSubtopbar
     ],
     templateUrl: './course-detail.html',
     providers: [ConfirmationService, MessageService]
@@ -72,8 +73,13 @@ export class CourseDetailPage implements OnInit {
     private readonly fb = inject(FormBuilder);
 
     readonly course = signal<Course | null>(null);
-    readonly unit = signal<CourseUnit | null>(null);
-    readonly units = signal<CourseUnit[]>([]);
+    /** UE de la promotion d'où l'on vient qui contiennent le cours, avec ses crédits dans chacune. */
+    readonly courseUnits = signal<{ unit: CourseUnit; credits: number }[]>([]);
+    /** Promotion de la liste d'origine : sans elle, l'API ne permet pas de retrouver les UE du cours. */
+    readonly contextProgramLevelId = computed(() => {
+        const value = this.navigationState()?.context.filters?.['programLevelId'];
+        return typeof value === 'string' && value ? value : null;
+    });
     readonly allAssignments = signal<CourseAssignment[]>([]);
     readonly professors = signal<Professor[]>([]);
     readonly currentYear = signal<AcademicYear | null>(null);
@@ -101,11 +107,11 @@ export class CourseDetailPage implements OnInit {
     };
 
     readonly canAssign = computed(() =>
-        this.permissionService.hasAnyPermission([AcademicPermission.CourseAssignmentCreateAll])
+        this.permissionService.canWrite('academic:course-assignment:create')
     );
 
     readonly canRetract = computed(() =>
-        this.permissionService.hasAnyPermission([AcademicPermission.CourseAssignmentUpdateAll])
+        this.permissionService.canWrite('academic:course-assignment:update')
     );
 
     readonly canShowAssignmentActions = computed(() => this.canRetract());
@@ -117,13 +123,6 @@ export class CourseDetailPage implements OnInit {
 
         return position ? `${name} (${position})` : name;
     });
-
-    readonly unitOptions = computed(() =>
-        this.units().map((unit) => ({
-            label: `${unit.code} — ${this.blocLabel(unit.knowledge_skills_bloc)}`,
-            value: unit.id
-        }))
-    );
 
     readonly actions = computed<SubtopbarAction[]>(() => [
         {
@@ -151,12 +150,11 @@ export class CourseDetailPage implements OnInit {
             label: 'Modifier',
             icon: 'pi pi-pencil',
             command: () => this.openEditCourse(),
-            permissions: [AcademicPermission.CourseUpdateAll]
+            permissions: writeAuthorities('academic:course:update')
         }
     ]);
 
     readonly courseForm = this.fb.nonNullable.group({
-        course_unit_id: [null as string | null, Validators.required],
         code: ['', Validators.required],
         name: ['', Validators.required],
         description: ['', Validators.required],
@@ -307,7 +305,7 @@ export class CourseDetailPage implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.saving.set(false);
-                this.showError(error.error?.detail ?? 'Impossible d’assigner ce professeur.');
+                this.showError(apiErrorMessage(error, 'Impossible d’assigner ce professeur.'));
             }
         });
     }
@@ -343,7 +341,7 @@ export class CourseDetailPage implements OnInit {
     }
 
     blocLabel(bloc: string): string {
-        return UE_BLOC_OPTIONS.find((item) => item.value === bloc)?.label ?? bloc;
+        return blocLabel(bloc);
     }
 
     openEditCourse(): void {
@@ -354,20 +352,12 @@ export class CourseDetailPage implements OnInit {
         }
 
         this.courseForm.reset({
-            course_unit_id: course.course_unit_id,
             code: course.code,
             name: course.name,
             description: course.description,
             credits: course.credits
         });
         this.courseDialogVisible.set(true);
-
-        const programLevelId = this.unit()?.program_level_id;
-        if (programLevelId) {
-            this.courseUnitService.getByProgramLevel(programLevelId).subscribe({
-                next: (units) => this.units.set(units)
-            });
-        }
     }
 
     submitCourse(): void {
@@ -385,8 +375,7 @@ export class CourseDetailPage implements OnInit {
                 code: raw.code.trim(),
                 name: raw.name.trim(),
                 description: raw.description.trim(),
-                credits: raw.credits,
-                course_unit_id: raw.course_unit_id as string
+                credits: raw.credits
             })
             .subscribe({
                 next: (updated) => {
@@ -397,7 +386,7 @@ export class CourseDetailPage implements OnInit {
                 },
                 error: (error: HttpErrorResponse) => {
                     this.savingCourse.set(false);
-                    this.showError(error.error?.detail ?? 'Impossible de modifier le cours.');
+                    this.showError(apiErrorMessage(error, 'Impossible de modifier le cours.'));
                 }
             });
     }
@@ -445,25 +434,48 @@ export class CourseDetailPage implements OnInit {
         this.course.set(course);
         this.loading.set(false);
         this.loadAssignments(course.id);
-        this.courseUnitService.getById(course.course_unit_id).subscribe({
-            next: (unit) => this.unit.set(unit)
-        });
+        this.loadCourseUnits(course.id);
     }
 
-    onStudentsLoadError(detail: string): void {
-        this.showError(detail);
+    /** Les UE de la promotion d'origine qui contiennent ce cours (une requête par UE de la promotion). */
+    private loadCourseUnits(courseId: string): void {
+        const programLevelId = this.contextProgramLevelId();
+        if (!programLevelId) {
+            this.courseUnits.set([]);
+            return;
+        }
+        this.courseUnitService
+            .getByProgramLevel(programLevelId)
+            .pipe(
+                switchMap((units) =>
+                    units.length
+                        ? forkJoin(
+                              units.map((unit) =>
+                                  this.courseUnitService.getCourses(unit.id).pipe(
+                                      map((courses) => courses.find((course) => course.course_id === courseId)),
+                                      map((course) => (course ? { unit, credits: course.credits } : null)),
+                                      catchError(() => of(null))
+                                  )
+                              )
+                          )
+                        : of([])
+                ),
+                map((items) => items.filter((item): item is { unit: CourseUnit; credits: number } => item !== null)),
+                catchError(() => of([]))
+            )
+            .subscribe((items) => this.courseUnits.set(items));
     }
 
     private loadAssignments(courseId: string): void {
         this.assignmentService.getByCourse(courseId).subscribe({
             next: (items) => this.allAssignments.set(items),
             error: (error: HttpErrorResponse) =>
-                this.showError(error.error?.detail ?? 'Impossible de charger les collaborateurs.')
+                this.showError(apiErrorMessage(error, 'Impossible de charger les collaborateurs.'))
         });
     }
 
     private loadProfessors(): void {
-        const facultyId = this.unit()?.faculty_id ?? this.course()?.faculty_id;
+        const facultyId = this.course()?.faculty_id;
         const request$ = facultyId
             ? this.professorService.getByFaculty(facultyId)
             : this.professorService.getAll();
@@ -471,7 +483,7 @@ export class CourseDetailPage implements OnInit {
         request$.subscribe({
             next: (professors) => this.professors.set(professors),
             error: (error: HttpErrorResponse) =>
-                this.showError(error.error?.detail ?? 'Impossible de charger les professeurs.')
+                this.showError(apiErrorMessage(error, 'Impossible de charger les professeurs.'))
         });
     }
 
@@ -490,7 +502,7 @@ export class CourseDetailPage implements OnInit {
                     this.showSuccess('Assignation retirée.');
                 },
                 error: (error: HttpErrorResponse) => {
-                    this.showError(error.error?.detail ?? 'Impossible de retirer cette assignation.');
+                    this.showError(apiErrorMessage(error, 'Impossible de retirer cette assignation.'));
                 }
             });
     }

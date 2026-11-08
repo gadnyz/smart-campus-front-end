@@ -1,7 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import { ChartModule } from 'primeng/chart';
 
 import { PermissionService } from '@/app/core/permissions/permission.service';
@@ -11,7 +9,7 @@ import {
     DashboardStatCard
 } from '@/app/shared/ui/dashboard/dashboard-stat-card/dashboard-stat-card';
 
-import { AdmissionPermission } from '../../permissions/permission.model';
+import { AdmissionResource } from '../../permissions/permission.model';
 import { CandidateService } from '../../services/candidate.service';
 
 @Component({
@@ -73,9 +71,7 @@ export class CandidateStatusStatsWidget implements OnInit {
     readonly chartData = signal<Record<string, unknown> | null>(null);
 
     readonly canReadCandidates = computed(() =>
-        this.permissionService.hasAnyPermission([
-            AdmissionPermission.AdmissionCandidateReadAll
-        ])
+        this.permissionService.canManage(AdmissionResource.Candidate)
     );
 
     readonly chartOptions = {

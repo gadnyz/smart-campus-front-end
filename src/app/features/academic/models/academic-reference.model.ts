@@ -23,6 +23,8 @@ export interface LevelReference extends AcademicReference {
 }
 
 export interface ProgramLevelReference {
+    /** La promotion (`program_level_id`) : programme + niveau. */
+    id: string;
     level: LevelReference;
     is_common: boolean;
 }

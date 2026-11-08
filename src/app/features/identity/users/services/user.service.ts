@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable, expand, reduce } from 'rxjs';
 import { environment } from '@/environments/environment';
 import { AvatarUploadUrlResponse, ChangeOwnPasswordRequest, ConfirmAvatarRequest, ConfirmAvatarResponse, RegisterRequest, RegisterResponse, UpdateOwnProfileRequest, UpdateUserRequest, User, UserProfileResponse } from '../models/user.model';
 
@@ -24,6 +24,18 @@ export class UsersService {
     private readonly baseUrl = `${environment.apiBaseUrl}/api/v1/users`;
     private readonly authBaseUrl = `${environment.apiBaseUrl}/api/v1/auth`;
     private readonly profilesUrl = `${environment.apiBaseUrl}/api/v1/profiles`;
+
+    /**
+     * Tous les utilisateurs, page après page : l'API n'offre pas de recherche, la liste filtre
+     * donc dans le navigateur et doit tout avoir (au-delà de 100, la première page tronquait).
+     */
+    getAllUsers(pageSize = 100): Observable<User[]> {
+        const fetch = (page: number) => this.getUsers({ page, size: pageSize, sort: ['username,asc'] });
+        return fetch(0).pipe(
+            expand((current) => (current.page + 1 < current.total_pages ? fetch(current.page + 1) : EMPTY)),
+            reduce((all, current) => [...all, ...current.content], [] as User[])
+        );
+    }
 
     getUsers(query: PageableQuery = {}): Observable<PagedResponse<User>> {
         let params = new HttpParams();

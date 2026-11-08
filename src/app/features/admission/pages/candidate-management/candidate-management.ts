@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
     Component,
@@ -144,20 +145,23 @@ export class CandidateManagement implements OnInit {
 
 
     private readonly facultyScope = inject(FacultyScopeService);
-    readonly facultyLocked = computed(() => this.facultyScope.isFacultyScoped());
+    readonly facultyLocked = computed(() => this.facultyScope.isScopedFor('admission:candidate:read'));
 
     ngOnInit(): void {
         this.applyQueryFilters();
-        const locked = this.facultyScope.scopedId();
+        const locked = this.facultyScope.scopedIdFor('admission:candidate:read');
         if (locked) {
             this.facultyFilter.set(locked);
+        } else if (!this.facultyFilter() && this.facultyScope.workingFacultyId()) {
+            // Portée all : on reprend la dernière faculté choisie.
+            this.facultyFilter.set(this.facultyScope.workingFacultyId());
         }
         this.loadFaculties();
         this.loadCandidates(0);
     }
     private loadFaculties(): void {
         this.loadingFaculties.set(true);
-        const locked = this.facultyScope.scopedId();
+        const locked = this.facultyScope.scopedIdFor('admission:candidate:read');
 
         if (locked) {
             this.facultyService.getById(locked).subscribe({
@@ -213,7 +217,7 @@ export class CandidateManagement implements OnInit {
                 page,
                 size: this.size(),
                 status: this.statusFilter() ?? undefined,
-                facultyId: this.facultyScope.scopedId() ?? this.facultyFilter() ?? undefined
+                facultyId: this.facultyScope.scopedIdFor('admission:candidate:read') ?? this.facultyFilter() ?? undefined
             })
             .subscribe({
                 next: (response) => {
@@ -259,6 +263,7 @@ export class CandidateManagement implements OnInit {
     }
 
     onFacultyChange(facultyId: string | null): void {
+        this.facultyScope.rememberFaculty(facultyId);
         this.facultyFilter.set(facultyId);
         this.page.set(0);
         void this.router.navigate([], {
@@ -357,7 +362,7 @@ export class CandidateManagement implements OnInit {
         fallback: string
     ): string {
         if (error instanceof HttpErrorResponse) {
-            return error.error?.detail ?? fallback;
+            return apiErrorMessage(error, fallback);
         }
 
         if (error instanceof Error) {

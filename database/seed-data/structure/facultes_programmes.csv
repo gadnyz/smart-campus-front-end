@@ -1,0 +1,25 @@
+faculte_code;faculte_nom;programme_code;programme_nom;niveaux;niveaux_tronc_commun;remarque
+MED;Faculté de Médecine;MED-MG;Médecine générale;L1,L2,L3,M1,M2;;
+SIC;SIC – Multimédia;SIC-MM;Sciences de l'Information et de la Communication / Multimédia;L1,L2,L3,M1,M2;;
+ST;Sciences Technologiques;ST-GC;Génie Civil;PREPA,L1,L2,L3,M1,M2;PREPA,L1;Prépa et L1 en tronc commun (consigne 2026-11-08)
+ST;Sciences Technologiques;ST-GEL;Génie Électrique;PREPA,L1,L2,L3,M1,M2;PREPA,L1;Prépa et L1 en tronc commun (consigne 2026-11-08)
+ST;Sciences Technologiques;ST-GM;Génie Mécanique;PREPA,L1,L2,L3,M1,M2;PREPA,L1;Prépa et L1 en tronc commun (consigne 2026-11-08)
+ST;Sciences Technologiques;ST-GENV;Génie de l'Environnement;PREPA,L1,L2,L3,M1,M2;PREPA,L1;Prépa et L1 en tronc commun (consigne 2026-11-08)
+SAE;Sciences des Aliments et de l'Environnement;SAE-SE;Sciences de l'Environnement;L1,L2,L3,M1,M2;;
+SAE;Sciences des Aliments et de l'Environnement;SAE-SA;Sciences des Aliments;L1,L2,L3,M1,M2;;
+DROIT;Faculté de Droit;DROIT-SJ;Sciences Juridiques (Licence unique);L1,L2,L3;;
+DROIT;Faculté de Droit;DROIT-MDEA;Master Droit Économique et des Affaires;M1,M2;;
+DROIT;Faculté de Droit;DROIT-MDMG;Master Droit Minier et Gouvernance des Ressources Naturelles;M1,M2;;
+DROIT;Faculté de Droit;DROIT-MDPI;Master Droit Public Interne;M1,M2;;
+FSI;Faculté des Sciences Informatiques;FSI-TC;Sciences Informatiques (tronc commun);L1,L2;L1,L2;Existant (import FSI)
+FSI;Faculté des Sciences Informatiques;FSI-GL;Génie Logiciel;L3,L4;;Existant ; la liste du 2026-11-08 indique L2 – L4 (à trancher)
+FSI;Faculté des Sciences Informatiques;FSI-SI;Systèmes Informatiques;L3,L4;;Existant ; la liste du 2026-11-08 indique L2 – L4 (à trancher)
+FSI;Faculté des Sciences Informatiques;FSI-IA;Intelligence Artificielle;L3,L4;;Existant ; la liste du 2026-11-08 indique L2 – L4 (à trancher)
+FSI;Faculté des Sciences Informatiques;FSI-MIL;Master Ingénierie Logicielle;M1,M2;;Existant
+FSI;Faculté des Sciences Informatiques;FSI-MCS;Master Cybersécurité;M1,M2;;Existant
+SG;Sciences de Gestion;SG-GLT;Gestion Logistique et Transport;L1,L2,L3,M1,M2;;
+SG;Sciences de Gestion;SG-GBMA;Gestion Bancaire, Microfinance et Assurance;L1,L2,L3,M1,M2;;
+SG;Sciences de Gestion;SG-GMC;Gestion Marketing et Commerciale;L1,L2,L3,M1,M2;;
+SG;Sciences de Gestion;SG-GE;Gestion des Entreprises;L1,L2,L3,M1,M2;;
+SG;Sciences de Gestion;SG-GRH;Gestion des Ressources Humaines;L1,L2,L3,M1,M2;;
+ESAU;École Supérieure d'Architecture et d'Urbanisme;ESAU-ARCH;Architecture;PREPA,L1,L2,L3,M1,M2;;

@@ -14,7 +14,13 @@
     "seed:api": "node tools/seed-smart-campus.mjs",
     "seed:api:check": "node tools/seed-smart-campus.mjs --check",
     "seed:api:reset": "node tools/seed-smart-campus.mjs --reset --yes",
-    "seed:api:reset-only": "node tools/seed-smart-campus.mjs --reset-only --yes"
+    "seed:api:reset-only": "node tools/seed-smart-campus.mjs --reset-only --yes",
+    "seed:fsi": "node tools/seed-fsi.mjs",
+    "seed:fsi:check": "node tools/seed-fsi.mjs --check",
+    "seed:fsi:horaires": "node tools/seed-fsi-timetables.mjs",
+    "seed:structure": "node tools/seed-structure.mjs",
+    "seed:candidats": "node tools/seed-candidates.mjs",
+    "db:reset": "node tools/reset-db.mjs"
   },
   "private": true,
   "dependencies": {

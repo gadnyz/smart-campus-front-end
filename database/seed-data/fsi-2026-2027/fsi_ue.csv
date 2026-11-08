@@ -1,0 +1,65 @@
+code_ue;intitule;niveau;semestre;credits;cmi_h;td_h;tp_h;volume_total_h;nb_ec;code_provisoire
+IFB1111;Informatique et bureautique;L1;S1;5;30;30;15;75;1;NON
+LPR1111;Langage de Programmation-1;L1;S1;4;30;15;15;60;1;NON
+ALG1111;Algorithmique 1;L1;S1;4;25;20;15;60;1;NON
+LTE1111;Langue et techniques d'expression;L1;S1;6;40;30;20;90;2;NON
+IRM1111;Introduction à la recherche et méthodologie du travail;L1;S1;3;15;15;15;45;1;NON
+VSE1111;Valeurs, principes et symboles de la République et Éthique;L1;S1;3;30;15;0;45;1;NON
+MIF1111;Mathématique pour Ingénieur Informaticien;L1;S1;5;35;25;15;75;1;NON
+CPG1121;Comptabilité Générale;L1;S2;3;25;10;10;45;1;NON
+PRO1121;Programmation Web-1;L1;S2;4;30;15;15;60;1;NON
+DRC1121;Droit civil et législation sociale;L1;S2;3;30;15;0;45;1;NON
+AOR1121;Architecture des ordinateurs et réseaux;L1;S2;4;30;20;10;60;1;NON
+PHY1121;Physique;L1;S2;7;50;30;25;105;2;NON
+INE1121;Introduction à l'Économie;L1;S2;3;25;10;10;45;1;NON
+PSI1121;Projet-1;L1;S2;6;10;0;80;90;1;NON
+AMP1231;Algorithmique et Méthodes de Programmation;L2;S3;4;30;15;15;60;1;NON
+LPO1231;Langages de Programmation Objet;L2;S3;4;30;15;15;60;1;NON
+MBD1231;Modélisation et base de données;L2;S3;7;45;35;25;105;2;NON
+STA1231;Statistique;L2;S3;3;20;15;10;45;1;NON
+GII1231;Géométrie pour Ingénieur Informaticien;L2;S3;3;20;15;10;45;1;NON
+SYE1231;Système d'exploitation;L2;S3;4;30;15;15;60;1;NON
+CLO1231;Circuits Logiques;L2;S3;5;35;30;10;75;1;NON
+PRO1242;Programmation Web-2;L2;S4;4;30;15;15;60;1;NON
+MAN1241;Méthodes et Analyse Numérique;L2;S4;4;30;15;15;60;1;NON
+RIF1241;Réseaux Informatiques-1;L2;S4;5;30;30;15;75;1;NON
+AGT1241;Anglais Technique-2;L2;S4;3;20;15;10;45;1;NON
+GPI1241;Gestion de Projets Informatiques;L2;S4;3;25;15;5;45;1;NON
+INF404;Techniques de Maintenance-1;L2;S4;5;30;30;15;75;1;NON
+PSI1242;Projet-2;L2;S4;6;10;0;80;90;1;NON
+MOB1351;Modélisation Objet;L3;S5;5;30;30;15;75;1;NON
+GRH1351;Gestion des Ressources Humaines;L3;S5;3;20;15;10;45;1;NON
+AGT1352;Anglais Technique-3;L3;S5;3;20;15;10;45;1;NON
+TBD1351;Techniques de base de données;L3;S5;5;30;30;15;75;1;NON
+INA1351;Intelligence Artificielle;L3;S5;4;25;20;15;60;1;NON
+COE1351;Commerce Électronique;L3;S5;5;30;30;15;75;1;NON
+TEL1351;Télématique;L3;S5;5;30;30;15;75;1;NON
+PRB1361;Programmation Objet-2 (Python);L3;S6;4;25;20;15;60;1;NON
+MRI1361;Méthodes de Recherche en Informatique;L3;S6;4;25;20;15;60;1;NON
+ENT1361;Entrepreneuriat;L3;S6;4;25;20;15;60;1;NON
+SEI1361;Sécurité Informatique;L3;S6;4;25;20;15;60;1;NON
+PSI1363;Projet-3;L3;S6;6;10;0;80;90;1;NON
+SIF1361;Stage;L3;S6;8;0;0;120;120;1;NON
+STR1361;Supports de Transmission Réseau;L3;S6;4;25;20;15;60;1;OUI
+PAU1361;Programmation des Automates;L3;S6;4;25;20;15;60;1;OUI
+MAL1471;Machine Learning;L4;S7;4;30;15;15;60;1;NON
+LPM1471;Langage de Programmation Mobile;L4;S7;4;30;15;15;60;1;NON
+GLO1471;Génie Logiciel;L4;S7;4;25;20;15;60;1;NON
+ABD1471;Administration de Base de données;L4;S7;5;30;25;20;75;1;NON
+CSF1471;Conception des Systèmes d'Information;L4;S7;4;25;20;15;60;1;NON
+ICR1471;Introduction à la Cryptologie;L4;S7;5;30;25;20;75;1;NON
+INF707;Programmation Objet-3 (Python);L4;S7;4;25;20;15;60;1;NON
+DIC1481;Droit Informatique et Cybercriminalité;L4;S8;3;20;10;15;45;1;NON
+DIF1481;Déontologie de l'Informaticien;L4;S8;2;25;5;0;30;1;NON
+SEF1481;Séminaire Informatique;L4;S8;2;25;5;0;30;1;NON
+AIF1481;Audit Informatique;L4;S8;3;20;15;10;45;1;NON
+PSI1484;Projet Tutoré;L4;S8;10;0;0;150;150;1;NON
+SIF1482;Stage Académique;L4;S8;10;0;0;150;150;1;NON
+RTE1471;Réseaux de Télécommunication;L4;S7;5;30;25;20;75;1;OUI
+ART1471;Atelier Réseaux et Télécom;L4;S7;4;25;20;15;60;1;OUI
+ASR1471;Administration Système & Réseaux;L4;S7;5;30;25;20;75;1;OUI
+CAR1471;Conception des Architectures Réseaux;L4;S7;4;25;20;15;60;1;OUI
+PJV1471;Programmation de Jeu Vidéo avec Python;L4;S7;5;30;25;20;75;1;OUI
+CSI1471;Conception des Systèmes Intelligents;L4;S7;5;30;25;20;75;1;OUI
+MEC1471;Mécatronique;L4;S7;4;25;20;15;60;1;OUI
+PIA1471;Programmation en Intelligence Artificielle;L4;S7;4;25;20;15;60;1;OUI

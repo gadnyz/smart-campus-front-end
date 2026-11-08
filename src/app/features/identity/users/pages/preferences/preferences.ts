@@ -41,7 +41,7 @@ type PresetName = keyof typeof presets;
     template: `
         <p-toast />
 
-        <app-content-subtopbar kicker="Compte utilisateur" title="Préférences" [actions]="actions()" />
+        <app-content-subtopbar kicker="Mon compte" title="Préférences" [actions]="actions()" />
 
         <div class="flex flex-col gap-6">
             <div class="card p-0 overflow-hidden">

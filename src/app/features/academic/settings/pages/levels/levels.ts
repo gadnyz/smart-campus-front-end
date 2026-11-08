@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -37,6 +38,7 @@ import { AcademicCatalogService } from '../../../services/academic-catalog.servi
         ContentSubtopbar
     ],
     templateUrl: './levels.html',
+    styleUrl: './levels.scss',
     providers: [ConfirmationService, MessageService]
 })
 export class LevelsPage implements OnInit {
@@ -180,7 +182,7 @@ export class LevelsPage implements OnInit {
                 this.showSuccess(`Niveau ${level.code} supprimé.`);
             },
             error: (error: HttpErrorResponse) => {
-                this.showError(error.error?.detail ?? 'Impossible de supprimer ce niveau.');
+                this.showError(apiErrorMessage(error, 'Impossible de supprimer ce niveau.'));
             }
         });
     }
@@ -198,7 +200,7 @@ export class LevelsPage implements OnInit {
             error: (error: HttpErrorResponse) => {
                 this.levels.set([]);
                 this.loading.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de charger les niveaux.');
+                this.showError(apiErrorMessage(error, 'Impossible de charger les niveaux.'));
             }
         });
     }

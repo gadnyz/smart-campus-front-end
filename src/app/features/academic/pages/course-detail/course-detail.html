@@ -1,7 +1,7 @@
 <p-toast />
 <p-confirmdialog [style]="{ width: '450px' }" />
 
-<app-content-subtopbar kicker="Cours" [title]="title()" [actions]="actions()" />
+<app-content-subtopbar kicker="Académique" [title]="title()" [actions]="actions()" />
 
 <div class="card mb-4">
     <div class="font-semibold text-xl mb-3">Informations</div>
@@ -28,13 +28,13 @@
             </div>
         </div>
         <div>
-            <span class="text-color-secondary">UE</span>
+            <span class="text-color-secondary">UE de la promotion</span>
             <div>
                 <strong>
-                    @if (unit(); as unit) {
-                    {{ unit.code }} — {{ blocLabel(unit.knowledge_skills_bloc) }}
-                    } @else {
-                    {{ course()?.course_unit_code || '—' }}
+                    @for (item of courseUnits(); track item.unit.id; let last = $last) {
+                    {{ item.unit.code }} — {{ blocLabel(item.unit.knowledge_skills_bloc) }} · {{ item.credits }} cr.@if (!last) {<br />}
+                    } @empty {
+                    —
                     }
                 </strong>
             </div>
@@ -88,10 +88,6 @@
     </p-table>
 </div>
 
-<div class="mt-4">
-    <app-course-enrolled-students [courseId]="course()?.id" (loadError)="onStudentsLoadError($event)" />
-</div>
-
 <p-dialog header="Assigner un professeur" [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)"
     [modal]="true" [style]="{ width: '32rem' }">
     <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="submitAssign()">
@@ -122,11 +118,6 @@
     [modal]="true" [style]="{ width: '36rem' }">
     <form [formGroup]="courseForm" class="flex flex-col gap-4" (ngSubmit)="submitCourse()">
         <div>
-            <label class="block text-sm text-color-secondary mb-1">Unité d’enseignement</label>
-            <p-select formControlName="course_unit_id" [options]="unitOptions()" optionLabel="label" optionValue="value"
-                appendTo="body" class="w-full" />
-        </div>
-        <div>
             <label class="block text-sm text-color-secondary mb-1">Code</label>
             <input pInputText formControlName="code" class="w-full" />
         </div>
@@ -139,7 +130,7 @@
             <textarea pTextarea formControlName="description" rows="3" class="w-full"></textarea>
         </div>
         <div>
-            <label class="block text-sm text-color-secondary mb-1">Crédits</label>
+            <label class="block text-sm text-color-secondary mb-1">Crédits par défaut</label>
             <p-inputnumber formControlName="credits" [min]="1" [showButtons]="true" class="w-full" />
         </div>
         <div class="flex justify-end gap-2">

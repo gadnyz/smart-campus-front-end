@@ -14,7 +14,9 @@ export const IdentityPermission = {
     RoleDeleteAll : "identity:role:delete:all",
     UserUpdateAll : "identity:user:update:all",
     RoleUpdateAll: "identity:role:update:all",
-    PrivilegeReadAll  : "identity:privilege:read:all"
+    PrivilegeReadAll  : "identity:privilege:read:all",
+    PrivilegeCreateAll: "identity:privilege:create:all",
+    PrivilegeDeleteAll: "identity:privilege:delete:all"
 } as const;
 export type IdentityPermission =
     (typeof IdentityPermission)[keyof typeof IdentityPermission];

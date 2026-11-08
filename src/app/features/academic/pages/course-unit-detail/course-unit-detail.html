@@ -1,82 +1,171 @@
 <p-toast />
 <p-confirmdialog [style]="{ width: '450px' }" />
-<app-content-subtopbar kicker="Academic" [title]="title()" [actions]="actions()" />
+<app-content-subtopbar kicker="Académique" [title]="title()" [actions]="actions()" />
+
 <div class="card mb-4">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div><span class="text-color-secondary">Code</span>
-            <div>
-                <strong>{{ unit()?.code || '—' }}</strong>
-            </div>
+            <div><strong>{{ unit()?.code || '—' }}</strong></div>
         </div>
-        <div><span class="text-color-secondary">Bloc</span>
-            <div>
-                <strong>@if (unit()) { {{ blocLabel(unit()!.knowledge_skills_bloc) }} }</strong>
-                
-            </div>
-        </div>
-        <div><span class="text-color-secondary">Programme / niveau</span>
-            <div>
-                <strong>{{ programLabel() || '—' }} / {{  levelLabel()  || '—' }}</strong>
-            </div>
-        </div>
-        <div><span class="text-color-secondary">Total crédits</span>
-            <div class="font-semibold">
-                <strong>{{ totalCredits() }}</strong>
-            </div>
+        <div><span class="text-color-secondary">Total crédits de l’UE</span>
+            <div><strong>{{ totalCredits() }}</strong></div>
         </div>
     </div>
+
+    <div class="flex items-center justify-between gap-2 mt-4 mb-2">
+        <div class="font-semibold">Promotions</div>
+        @if (canEdit()) {
+        <p-button label="Inscrire dans une promotion" icon="pi pi-plus" [text]="true" [disabled]="!enrollOptions().length"
+            (onClick)="openEnroll()" />
+        }
+    </div>
+    <p-table styleClass="stack-table" [value]="curriculum()" dataKey="programLevelId">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Promotion</th>
+                <th>Bloc</th>
+                @if (canEdit()) {
+                <th style="width: 6rem">Actions</th>
+                }
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-entry>
+            <tr>
+                <td data-label="Promotion">{{ entry.label }}</td>
+                <td data-label="Bloc">
+                    @if (canEdit()) {
+                    <p-select [ngModel]="entry.bloc" (ngModelChange)="changeBloc(entry, $event)" [options]="blocOptions"
+                        optionLabel="label" optionValue="value" appendTo="body" size="small"
+                        [ariaLabel]="'Bloc de l’UE pour ' + entry.label" />
+                    } @else {
+                    <p-tag [value]="blocLabel(entry.bloc)" severity="secondary" />
+                    }
+                </td>
+                @if (canEdit()) {
+                <td class="stack-actions">
+                    <button pButton type="button" icon="pi pi-times" rounded outlined severity="danger"
+                        [disabled]="curriculum().length === 1"
+                        [attr.title]="curriculum().length === 1 ? 'Une UE figure dans au moins une promotion : supprimez-la plutôt.' : null"
+                        [attr.aria-label]="'Retirer de ' + entry.label" (click)="confirmRemoveFromCurriculum(entry)"></button>
+                </td>
+                }
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td [attr.colspan]="canEdit() ? 3 : 2">Cette UE n’est inscrite dans aucune promotion.</td>
+            </tr>
+        </ng-template>
+    </p-table>
 </div>
 
 <div class="card">
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-    <div class="font-semibold text-xl">Cours de l’UE</div>
-</div>
-<p-table [value]="attachedCourses()" dataKey="id" [rowHover]="true" responsiveLayout="scroll">
-    <ng-template pTemplate="header">
-        <tr>
-            <th>Code</th>
-            <th>Nom</th>
-            <th>Crédits</th>
-            @if (canPermute()) {
-            <th style="width: 6rem">Actions</th>
-            }
-        </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-course>
-        <tr>
-            <td>{{ course.code }}</td>
-            <td>{{ course.name }}</td>
-            <td>{{ course.credits }}</td>
-            @if (canPermute()) {
-            <td>
-                <button pButton type="button" icon="pi pi-arrow-right-arrow-left" rounded outlined severity="info"
-                    [attr.aria-label]="'Permuter l’UE de ' + course.code"
-                    (click)="openPermute(course)"></button>
-            </td>
-            }
-        </tr>
-    </ng-template>
-    <ng-template pTemplate="emptymessage">
-        <tr>
-            <td [attr.colspan]="canPermute() ? 4 : 3">Aucun cours dans cette UE.</td>
-        </tr>
-    </ng-template>
-</p-table>
+    <div class="flex items-center justify-between gap-2 mb-3">
+        <div class="font-semibold text-xl">Cours de l’UE</div>
+        @if (canEdit()) {
+        <p-button label="Rattacher un cours" icon="pi pi-plus" [text]="true" (onClick)="openAttach()" />
+        }
+    </div>
+    <p-table styleClass="stack-table" [value]="courses()" dataKey="course_id" [rowHover]="true">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Code</th>
+                <th>Nom</th>
+                <th>Crédits dans l’UE</th>
+                @if (canEdit()) {
+                <th style="width: 8rem">Actions</th>
+                }
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-course>
+            <tr>
+                <td data-label="Code">{{ course.code }}</td>
+                <td data-label="Nom">{{ course.name }}</td>
+                <td data-label="Crédits dans l’UE">{{ course.credits }}</td>
+                @if (canEdit()) {
+                <td class="stack-actions">
+                    <div class="flex gap-2">
+                        <button pButton type="button" icon="pi pi-arrow-right-arrow-left" rounded outlined
+                            [attr.aria-label]="'Déplacer ' + course.code + ' vers une autre UE'" (click)="openMove(course)"></button>
+                        <button pButton type="button" icon="pi pi-times" rounded outlined severity="danger"
+                            [attr.aria-label]="'Détacher ' + course.code" (click)="confirmDetach(course)"></button>
+                    </div>
+                </td>
+                }
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td [attr.colspan]="canEdit() ? 4 : 3">Aucun cours dans cette UE.</td>
+            </tr>
+        </ng-template>
+    </p-table>
 </div>
 
-<p-dialog header="Permuter l’UE" [visible]="permuteDialogVisible()"
-    (visibleChange)="permuteDialogVisible.set($event)" [modal]="true" [style]="{ width: '32rem' }">
+<p-dialog header="Inscrire dans une promotion" [visible]="enrollDialogVisible()" (visibleChange)="enrollDialogVisible.set($event)"
+    [modal]="true" [style]="{ width: '32rem' }" [breakpoints]="{ '640px': '95vw' }">
     <p class="mb-3 text-sm text-color-secondary">
-        Choisissez une autre UE du même programme / niveau.
+        {{ unit()?.code }} figurera aussi au curriculum de cette promotion (tronc commun), avec ses cours et leurs crédits.
     </p>
-    <form [formGroup]="permuteForm" class="flex flex-col gap-4" (ngSubmit)="submitPermute()">
-        <p-select formControlName="course_unit_id" [options]="otherUnitOptions()" optionLabel="label"
-            optionValue="value" appendTo="body" class="w-full" placeholder="UE de destination" />
+    <form [formGroup]="enrollForm" class="flex flex-col gap-4" (ngSubmit)="submitEnroll()">
+        <div>
+            <label for="enroll-promotion" class="block text-sm mb-1">Promotion</label>
+            <p-select inputId="enroll-promotion" formControlName="program_level_id" [options]="enrollOptions()" optionLabel="label"
+                optionValue="value" appendTo="body" class="w-full" placeholder="Promotion de la faculté" [filter]="true" />
+        </div>
+        <div>
+            <label for="enroll-bloc" class="block text-sm mb-1">Bloc dans cette promotion</label>
+            <p-select inputId="enroll-bloc" formControlName="knowledge_skills_bloc" [options]="blocOptions" optionLabel="label"
+                optionValue="value" appendTo="body" class="w-full" />
+        </div>
         <div class="flex justify-end gap-2">
-            <button pButton type="button" label="Annuler" severity="secondary" outlined
-                (click)="permuteDialogVisible.set(false)"></button>
-            <button pButton type="submit" label="Permuter" icon="pi pi-arrow-right-arrow-left"
-                [loading]="saving()" [disabled]="!otherUnitOptions().length"></button>
+            <button pButton type="button" label="Annuler" severity="secondary" outlined (click)="enrollDialogVisible.set(false)"></button>
+            <button pButton type="submit" label="Inscrire" icon="pi pi-check" [loading]="saving()"
+                [disabled]="enrollForm.invalid || saving()"></button>
+        </div>
+    </form>
+</p-dialog>
+
+<p-dialog header="Rattacher un cours" [visible]="attachDialogVisible()" (visibleChange)="attachDialogVisible.set($event)"
+    [modal]="true" [style]="{ width: '32rem' }" [breakpoints]="{ '640px': '95vw' }">
+    <form [formGroup]="attachForm" class="flex flex-col gap-4" (ngSubmit)="submitAttach()">
+        <div>
+            <label for="attach-course" class="block text-sm mb-1">Cours de la faculté</label>
+            <p-select inputId="attach-course" formControlName="course_id" [options]="attachOptions()" optionLabel="label"
+                optionValue="value" appendTo="body" class="w-full" placeholder="Cours à rattacher" [filter]="true" />
+            @if (!attachOptions().length) {
+            <small class="block mt-1 text-color-secondary">Tous les cours de la faculté sont déjà dans cette UE.</small>
+            }
+        </div>
+        <div>
+            <label for="attach-credits" class="block text-sm mb-1">Crédits dans l’UE</label>
+            <p-inputnumber inputId="attach-credits" formControlName="credits" [min]="0" [showButtons]="true" class="w-full"
+                [placeholder]="defaultCredits() !== null ? 'Par défaut : ' + defaultCredits() : 'Crédits du cours'" />
+            <small class="block mt-1 text-color-secondary">Laisser vide pour reprendre les crédits du cours.</small>
+        </div>
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined (click)="attachDialogVisible.set(false)"></button>
+            <button pButton type="submit" label="Rattacher" icon="pi pi-link" [loading]="saving()"
+                [disabled]="attachForm.invalid || saving()"></button>
+        </div>
+    </form>
+</p-dialog>
+
+<p-dialog header="Déplacer le cours" [visible]="moveDialogVisible()" (visibleChange)="moveDialogVisible.set($event)"
+    [modal]="true" [style]="{ width: '32rem' }" [breakpoints]="{ '640px': '95vw' }">
+    <p class="mb-3 text-sm text-color-secondary">
+        {{ movingCourse()?.code }} sera rattaché à l’UE choisie avec ses {{ movingCourse()?.credits }} crédits, puis retiré de {{ unit()?.code }}.
+    </p>
+    <form [formGroup]="moveForm" class="flex flex-col gap-4" (ngSubmit)="submitMove()">
+        <p-select formControlName="target_id" [options]="targetOptions()" optionLabel="label" optionValue="value"
+            appendTo="body" class="w-full" placeholder="UE de destination" [filter]="true" />
+        @if (!targetOptions().length) {
+        <small class="text-color-secondary">Aucune autre UE dans les promotions de celle-ci.</small>
+        }
+        <div class="flex justify-end gap-2">
+            <button pButton type="button" label="Annuler" severity="secondary" outlined (click)="moveDialogVisible.set(false)"></button>
+            <button pButton type="submit" label="Déplacer" icon="pi pi-arrow-right-arrow-left" [loading]="saving()"
+                [disabled]="!targetOptions().length"></button>
         </div>
     </form>
 </p-dialog>

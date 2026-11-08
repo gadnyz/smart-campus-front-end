@@ -90,17 +90,18 @@ describe('CandidateDetail', () => {
                 'prefetchCandidate',
                 'clearDetailCache',
                 'getAll',
-                'resolveDocumentViewUrl'
+                'resolveDocumentViewUrl',
+                'update'
             ]
         );
         academicReferenceService =
             jasmine.createSpyObj<AdmissionAcademicReferenceService>(
                 'AdmissionAcademicReferenceService',
-                ['resolveCandidateLabels']
+                ['resolveCandidateLabels', 'getFacultyOptions', 'getProgramOptionsByFaculty', 'getProgramReferencesByFaculty']
             );
         permissionService = jasmine.createSpyObj<PermissionService>(
             'PermissionService',
-            ['hasPermission', 'hasAnyPermission', 'canAccess']
+            ['hasPermission', 'hasAnyPermission', 'canAccess', 'canWrite']
         );
 
         candidateService.peekCandidate.and.returnValue(null);
@@ -141,6 +142,9 @@ describe('CandidateDetail', () => {
                 levelLabel: 'L1'
             })
         );
+        academicReferenceService.getFacultyOptions.and.returnValue(of([{ label: 'Sciences', value: 'fac-1' }]));
+        academicReferenceService.getProgramOptionsByFaculty.and.returnValue(of([{ label: 'Informatique', value: 'prog-1' }]));
+        academicReferenceService.getProgramReferencesByFaculty.and.returnValue(of([]));
         permissionService.hasPermission.and.callFake(
             (permission) =>
                 permission ===
@@ -148,6 +152,8 @@ describe('CandidateDetail', () => {
         );
         permissionService.hasAnyPermission.and.returnValue(true);
         permissionService.canAccess.and.returnValue(true);
+        // Valider et rejeter : modifier les candidatures au-delà de son propre dossier.
+        permissionService.canWrite.and.callFake((permission) => permission === 'admission:candidate:update');
 
         await TestBed.configureTestingModule({
             imports: [CandidateDetail],
@@ -245,5 +251,64 @@ describe('CandidateDetail', () => {
             'c1',
             'Documents manquants'
         );
+    });
+
+    describe('modification par le personnel', () => {
+        const actionLabels = () => component.actions().map((action) => action.label);
+
+        it('ouvre le formulaire rempli avec le dossier, email en lecture', () => {
+            expect(actionLabels()).toContain('Modifier');
+            component.startEdit();
+            fixture.detectChanges();
+
+            expect(component.editing()).toBeTrue();
+            expect(actionLabels()).toEqual(['Annuler', 'Enregistrer']);
+            expect(component.form.controls.last_name.value).toBe('Lovelace');
+            expect(component.form.controls.level_id.value).toBe('lvl-1');
+            expect(component.form.controls.email.disabled).toBeTrue();
+            expect(component.form.valid).toBeTrue();
+            expect((fixture.nativeElement as HTMLElement).querySelector('app-candidate-dossier-form')).not.toBeNull();
+        });
+
+        it('enregistre par PUT /candidates/{id}, sans l’email', () => {
+            const updated = { ...candidate, last_name: 'Byron' };
+            candidateService.update.and.returnValue(of(updated));
+            component.startEdit();
+            component.form.controls.last_name.setValue('  Byron ');
+            component.saveEdit();
+
+            const [id, payload] = candidateService.update.calls.mostRecent().args;
+            expect(id).toBe('c1');
+            expect(payload.last_name).toBe('Byron');
+            expect(payload.program_id).toBe('prog-1');
+            expect('email' in payload).toBeFalse();
+            expect(component.editing()).toBeFalse();
+            expect(component.candidate()?.last_name).toBe('Byron');
+        });
+
+        it('n’envoie rien tant qu’un champ obligatoire manque', () => {
+            component.startEdit();
+            component.form.controls.phone.setValue('');
+            component.saveEdit();
+
+            expect(candidateService.update).not.toHaveBeenCalled();
+            expect(component.editing()).toBeTrue();
+        });
+
+        it('annule sans toucher au dossier', () => {
+            component.startEdit();
+            component.form.controls.last_name.setValue('Autre');
+            component.cancelEdit();
+
+            expect(component.editing()).toBeFalse();
+            expect(component.candidate()?.last_name).toBe('Lovelace');
+        });
+
+        it('n’est pas proposée pour un dossier validé ni sans le droit', () => {
+            component.candidate.set({ ...candidate, candidature: { ...candidate.candidature, status: 'VALIDATED' } });
+            expect(component.canEdit()).toBeFalse();
+            component.startEdit();
+            expect(component.editing()).toBeFalse();
+        });
     });
 });

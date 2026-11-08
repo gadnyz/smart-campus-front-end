@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, throwError } from 'rxjs';
 import { environment } from '@/environments/environment';
+import { toApiParams } from '@/app/shared/http/api-params';
 import { asList } from '@/app/features/academic/academic.public-api';
 import {
     CreateTimetableEntryRequest,
@@ -33,7 +34,7 @@ export class TimetableEntryService {
     /** Séances de la semaine (lundi → dimanche) contenant `referenceDate`. */
     getForWeek(timetableId: string, referenceDate: string): Observable<TimetableEntry[]> {
         return this.http
-            .get<unknown>(`${this.baseUrl}/timetable/${timetableId}/week`, { params: { referenceDate } })
+            .get<unknown>(`${this.baseUrl}/timetable/${timetableId}/week`, { params: toApiParams({ reference_date: referenceDate }) })
             .pipe(map((body) => asList<unknown>(body).map(asTimetableEntry)));
     }
 

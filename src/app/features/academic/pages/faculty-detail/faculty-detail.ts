@@ -1,4 +1,6 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
+import { writeAuthorities } from '@/app/core/permissions/permission-scope';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -21,6 +23,7 @@ import { AcademicPermission } from '../../permissions/permission.model';
 import { Faculty, FacultyLeadership, FacultyLeadershipRole } from '../../models/faculty.model';
 import { Program, ProgramLevel } from '../../models/program.model';
 import { FacultyService } from '../../services/faculty.service';
+import { SafProfileSync, SafProfileSyncService } from '../../services/saf-profile-sync.service';
 import { ProgramService } from '../../services/program.service';
 import { LevelService } from '../../services/level.service';
 import { AcademicCatalogService } from '../../services/academic-catalog.service';
@@ -56,6 +59,7 @@ export class FacultyDetailPage implements OnInit {
     private readonly programService = inject(ProgramService);
     private readonly levelService = inject(LevelService);
     private readonly usersService = inject(UsersService);
+    private readonly safProfileSync = inject(SafProfileSyncService);
     private readonly authService = inject(AuthService);
     private readonly academicCatalog = inject(AcademicCatalogService);
     private readonly confirmationService = inject(ConfirmationService);
@@ -89,19 +93,19 @@ export class FacultyDetailPage implements OnInit {
     ];
 
     readonly canUpdatePrograms = computed(() =>
-        this.permissionService.hasAnyPermission([AcademicPermission.ProgramUpdateAll])
+        this.permissionService.canWrite('academic:program:update')
     );
 
     readonly canCreatePrograms = computed(() =>
-        this.permissionService.hasAnyPermission([AcademicPermission.ProgramCreateAll])
+        this.permissionService.canWrite('academic:program:create')
     );
 
     readonly canDeletePrograms = computed(() =>
-        this.permissionService.hasAnyPermission([AcademicPermission.ProgramDeleteAll])
+        this.permissionService.canWrite('academic:program:delete')
     );
 
     readonly canManageLeadership = computed(() =>
-        this.permissionService.hasAnyPermission([AcademicPermission.FacultyUpdateAll])
+        this.permissionService.canWrite('academic:faculty:update')
     );
 
     readonly canShowProgramActions = computed(
@@ -172,7 +176,7 @@ export class FacultyDetailPage implements OnInit {
                 label: 'Modifier',
                 icon: 'pi pi-pencil',
                 command: () => this.openEditFaculty(),
-                permissions: [AcademicPermission.FacultyUpdateAll]
+                permissions: writeAuthorities('academic:faculty:update')
             },
             {
                 label: 'Supprimer',
@@ -180,7 +184,7 @@ export class FacultyDetailPage implements OnInit {
                 severity: 'danger',
                 outlined: true,
                 command: () => this.confirmDeleteFaculty(),
-                permissions: [AcademicPermission.FacultyDeleteAll]
+                permissions: writeAuthorities('academic:faculty:delete')
             }
         ];
     });
@@ -309,7 +313,7 @@ export class FacultyDetailPage implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.savingProgram.set(false);
-                this.showError(error.error?.detail ?? 'Impossible d’enregistrer le programme.');
+                this.showError(apiErrorMessage(error, 'Impossible d’enregistrer le programme.'));
             }
         });
     }
@@ -372,11 +376,18 @@ export class FacultyDetailPage implements OnInit {
                     this.savingLeadership.set(false);
                     this.leadershipDialogVisible.set(false);
                     this.loadLeadership(faculty.id);
-                    this.showSuccess('Rôle de direction assigné.');
+                    if (raw.role !== 'SAF') {
+                        this.showSuccess('Rôle de direction assigné.');
+                        return;
+                    }
+                    // La fonction SAF ne donne aucun droit : le profil ACADEMIC_SECRETARY les porte.
+                    this.safProfileSync
+                        .afterAssign(raw.user_id as string, faculty.id)
+                        .subscribe((sync) => this.reportSafSync(sync, 'SAF assigné.', faculty.name));
                 },
                 error: (error: HttpErrorResponse) => {
                     this.savingLeadership.set(false);
-                    this.showError(error.error?.detail ?? 'Impossible d’assigner ce rôle.');
+                    this.showError(apiErrorMessage(error, 'Impossible d’assigner ce rôle.'));
                 }
             });
     }
@@ -419,7 +430,7 @@ export class FacultyDetailPage implements OnInit {
         this.programService.getByFaculty(facultyId).subscribe({
             next: (programs) => this.programs.set(programs),
             error: (error: HttpErrorResponse) =>
-                this.showError(error.error?.detail ?? 'Impossible de charger les programmes.')
+                this.showError(apiErrorMessage(error, 'Impossible de charger les programmes.'))
         });
     }
 
@@ -427,7 +438,7 @@ export class FacultyDetailPage implements OnInit {
         this.facultyService.getLeadership(facultyId).subscribe({
             next: (items) => this.leadership.set(items.filter((item) => item.active !== false)),
             error: (error: HttpErrorResponse) =>
-                this.showError(error.error?.detail ?? 'Impossible de charger la direction.')
+                this.showError(apiErrorMessage(error, 'Impossible de charger la direction.'))
         });
     }
 
@@ -442,7 +453,7 @@ export class FacultyDetailPage implements OnInit {
                 this.showSuccess(`Programme ${program.code} supprimé.`);
             },
             error: (error: HttpErrorResponse) => {
-                this.showError(error.error?.detail ?? 'Impossible de supprimer ce programme.');
+                this.showError(apiErrorMessage(error, 'Impossible de supprimer ce programme.'));
             }
         });
     }
@@ -457,12 +468,34 @@ export class FacultyDetailPage implements OnInit {
         this.facultyService.revokeLeadership(faculty.id, item.id).subscribe({
             next: () => {
                 this.loadLeadership(faculty.id);
-                this.showSuccess('Rôle retiré.');
+                if (item.role !== 'SAF') {
+                    this.showSuccess('Rôle retiré.');
+                    return;
+                }
+                this.safProfileSync.afterRevoke(item.user_id, faculty.id).subscribe((sync) => this.reportSafSync(sync, 'Rôle SAF retiré.', faculty.name));
             },
             error: (error: HttpErrorResponse) => {
-                this.showError(error.error?.detail ?? 'Impossible de retirer ce rôle.');
+                this.showError(apiErrorMessage(error, 'Impossible de retirer ce rôle.'));
             }
         });
+    }
+
+    private reportSafSync(sync: SafProfileSync, done: string, facultyName: string): void {
+        if (sync.failure) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Profil non synchronisé',
+                detail: `${done} Mais le profil ACADEMIC_SECRETARY n’a pas pu être mis à jour (${sync.failure}) : faites-le dans Paramètres › Identité › Utilisateurs.`,
+                life: 8000
+            });
+            return;
+        }
+        const changes = [
+            sync.profileAdded ? 'profil ACADEMIC_SECRETARY attribué' : '',
+            sync.profileRemoved ? 'profil ACADEMIC_SECRETARY retiré' : '',
+            sync.facultyAligned ? `compte rattaché à ${facultyName}` : ''
+        ].filter(Boolean);
+        this.showSuccess(changes.length ? `${done} ${changes.join(', ')}.` : done);
     }
 
     private goToNotFound(): void {
@@ -504,7 +537,7 @@ export class FacultyDetailPage implements OnInit {
                 },
                 error: (error: HttpErrorResponse) => {
                     this.savingFaculty.set(false);
-                    this.showError(error.error?.detail ?? 'Impossible de modifier la faculté.');
+                    this.showError(apiErrorMessage(error, 'Impossible de modifier la faculté.'));
                 }
             });
     }
@@ -536,7 +569,7 @@ export class FacultyDetailPage implements OnInit {
                 void this.router.navigate(['/academic/faculties']);
             },
             error: (error: HttpErrorResponse) => {
-                this.showError(error.error?.detail ?? 'Impossible de supprimer cette faculté.');
+                this.showError(apiErrorMessage(error, 'Impossible de supprimer cette faculté.'));
             }
         });
     }

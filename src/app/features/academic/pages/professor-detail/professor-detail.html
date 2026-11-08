@@ -1,7 +1,7 @@
 <p-toast />
 <p-confirmdialog [style]="{ width: '450px' }" />
 
-<app-content-subtopbar kicker="Academic" [title]="title()" [actions]="actions()" />
+<app-content-subtopbar kicker="Académique" [title]="title()" [actions]="actions()" />
 
 @if (professor(); as professor) {
 <p-card>
@@ -96,7 +96,7 @@
                 <td>{{ courseLabel(item) }}</td>
                 <td><p-tag [value]="typeLabel(item.assignment_type)" /></td>
                 <td>
-                    <button pButton type="button" icon="pi pi-arrow-right" rounded outlined severity="info"
+                    <button pButton type="button" icon="pi pi-arrow-right" rounded outlined
                         [attr.aria-label]="'Détail du cours'" (click)="openCourse(item)"></button>
                 </td>
             </tr>

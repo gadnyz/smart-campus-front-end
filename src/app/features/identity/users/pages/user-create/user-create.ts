@@ -1,4 +1,5 @@
 import { CommonModule, Location } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -113,7 +114,7 @@ export class UserCreate implements OnInit {
                     return;
                 }
 
-                this.showError(error.error?.detail ?? 'Impossible de charger les profils.');
+                this.showError(apiErrorMessage(error, 'Impossible de charger les profils.'));
             }
         });
     }
@@ -159,7 +160,7 @@ export class UserCreate implements OnInit {
     private handleCreateError(error: HttpErrorResponse): void {
         if (error.status === 400 && error.error?.invalid_fields) {
             this.validationErrors.set(error.error.invalid_fields);
-            this.showError(error.error?.detail ?? 'La requête contient des champs non valides.');
+            this.showError(apiErrorMessage(error, 'La requête contient des champs non valides.'));
             return;
         }
 
@@ -185,7 +186,7 @@ export class UserCreate implements OnInit {
         }
 
         this.showError(
-            error.error?.detail ?? 'Une erreur est survenue lors de la création de l’utilisateur.'
+            apiErrorMessage(error, 'Une erreur est survenue lors de la création de l’utilisateur.')
         );
     }
 

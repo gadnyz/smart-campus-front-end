@@ -1,0 +1,65 @@
+code_ue;bloc;justification
+IFB1111;FONDAMENTAL;Socle informatique L1
+LPR1111;FONDAMENTAL;Socle programmation L1
+ALG1111;FONDAMENTAL;Socle algorithmique L1
+LTE1111;CROSS_FUNCTIONAL;Langues (anglais, français)
+IRM1111;CROSS_FUNCTIONAL;Méthodologie du travail et de la recherche
+VSE1111;CROSS_FUNCTIONAL;Citoyenneté et éthique
+MIF1111;FONDAMENTAL;Mathématiques de base
+CPG1121;CROSS_FUNCTIONAL;Gestion (comptabilité)
+PRO1121;FONDAMENTAL;Socle programmation web L1
+DRC1121;CROSS_FUNCTIONAL;Droit
+AOR1121;FONDAMENTAL;Socle architecture et réseaux L1
+PHY1121;FONDAMENTAL;Sciences de base (physique)
+INE1121;CROSS_FUNCTIONAL;Économie
+PSI1121;DEVELOPMENT;Projet (mise en pratique)
+AMP1231;FONDAMENTAL;Socle algorithmique L2
+LPO1231;FONDAMENTAL;Socle programmation objet L2
+MBD1231;FONDAMENTAL;Socle bases de données L2
+STA1231;FONDAMENTAL;Mathématiques (statistique)
+GII1231;FONDAMENTAL;Mathématiques (géométrie)
+SYE1231;FONDAMENTAL;Socle systèmes L2
+CLO1231;FONDAMENTAL;Socle électronique numérique L2
+PRO1242;FONDAMENTAL;Socle programmation web L2
+MAN1241;FONDAMENTAL;Mathématiques (analyse numérique)
+RIF1241;FONDAMENTAL;Socle réseaux L2
+AGT1241;CROSS_FUNCTIONAL;Langues (anglais technique)
+GPI1241;CROSS_FUNCTIONAL;Gestion de projets
+INF404;FONDAMENTAL;Socle maintenance matérielle L2
+PSI1242;DEVELOPMENT;Projet (mise en pratique)
+MOB1351;FONDAMENTAL;Socle L3 commun aux trois parcours (modélisation)
+GRH1351;CROSS_FUNCTIONAL;Gestion (ressources humaines)
+AGT1352;CROSS_FUNCTIONAL;Langues (anglais technique)
+TBD1351;FONDAMENTAL;Socle L3 commun aux trois parcours (bases de données)
+INA1351;FONDAMENTAL;Socle L3 commun aux trois parcours (IA)
+COE1351;DEVELOPMENT;Application métier (commerce électronique)
+TEL1351;FONDAMENTAL;Socle L3 commun aux trois parcours (télématique)
+PRB1361;DEVELOPMENT;Spécialisation Génie Logiciel
+MRI1361;CROSS_FUNCTIONAL;Méthodologie de la recherche
+ENT1361;CROSS_FUNCTIONAL;Entrepreneuriat
+SEI1361;DEVELOPMENT;Approfondissement (sécurité)
+PSI1363;DEVELOPMENT;Projet (mise en pratique)
+SIF1361;DEVELOPMENT;Stage professionnel
+STR1361;DEVELOPMENT;Spécialisation Systèmes Informatiques
+PAU1361;DEVELOPMENT;Spécialisation Intelligence Artificielle
+MAL1471;DEVELOPMENT;Approfondissement L4 (machine learning)
+LPM1471;DEVELOPMENT;Approfondissement L4 (mobile)
+GLO1471;DEVELOPMENT;Approfondissement L4 (génie logiciel)
+ABD1471;DEVELOPMENT;Spécialisation Génie Logiciel
+CSF1471;DEVELOPMENT;Spécialisation Génie Logiciel
+ICR1471;DEVELOPMENT;Spécialisation Génie Logiciel
+INF707;DEVELOPMENT;Spécialisation Génie Logiciel
+DIC1481;CROSS_FUNCTIONAL;Droit
+DIF1481;CROSS_FUNCTIONAL;Déontologie
+SEF1481;CROSS_FUNCTIONAL;Séminaire (ouverture)
+AIF1481;DEVELOPMENT;Approfondissement L4 (audit)
+PSI1484;DEVELOPMENT;Projet tutoré
+SIF1482;DEVELOPMENT;Stage académique
+RTE1471;DEVELOPMENT;Spécialisation Systèmes Informatiques
+ART1471;DEVELOPMENT;Spécialisation Systèmes Informatiques
+ASR1471;DEVELOPMENT;Spécialisation Systèmes Informatiques
+CAR1471;DEVELOPMENT;Spécialisation Systèmes Informatiques
+PJV1471;DEVELOPMENT;Spécialisation Intelligence Artificielle
+CSI1471;DEVELOPMENT;Spécialisation Intelligence Artificielle
+MEC1471;DEVELOPMENT;Spécialisation Intelligence Artificielle
+PIA1471;DEVELOPMENT;Spécialisation Intelligence Artificielle

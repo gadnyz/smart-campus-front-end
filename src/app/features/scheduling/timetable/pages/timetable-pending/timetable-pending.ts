@@ -10,11 +10,10 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
-import { SchedulingPermission } from '../../../permissions/permission.model';
 import { Timetable, TimetableStatus, timetableStatusLabel, timetableStatusSeverity } from '../../models/timetable.model';
 import { TimetableScopeService, scopeQuery } from '../../services/timetable-scope.service';
 import { TimetableService } from '../../services/timetable.service';
-import { TIMETABLE_PATH } from '../../utils/timetable-routes';
+import { CREATE_TIMETABLES, EDIT_TIMETABLES, TIMETABLE_PATH } from '../../utils/timetable-routes';
 import { formatWeekStart } from '../../utils/timetable-time';
 
 const PAGE_SIZE = 10;
@@ -68,7 +67,7 @@ export class TimetablePendingPage implements OnInit {
     readonly loadError = signal<string | null>(null);
 
     readonly canEdit = computed(() =>
-        this.permissionService.hasAnyPermission([SchedulingPermission.TimetableUpdateAll, SchedulingPermission.TimetableEntryUpdateAll])
+        this.permissionService.hasAnyPermission(EDIT_TIMETABLES)
     );
 
     readonly actions: SubtopbarAction[] = [
@@ -77,17 +76,23 @@ export class TimetablePendingPage implements OnInit {
             label: 'Ajouter un horaire',
             icon: 'pi pi-plus',
             routerLink: `${TIMETABLE_PATH}/new`,
-            permissions: [SchedulingPermission.TimetableCreateAll]
+            permissions: CREATE_TIMETABLES
         }
     ];
 
     private lastPage = 0;
 
     ngOnInit(): void {
-        const state = history.state as { saved?: boolean } | null;
+        const state = history.state as { saved?: boolean; warnings?: string[] } | null;
         if (state?.saved) {
             // Après le rendu : le p-toast doit être en place pour afficher le message.
-            queueMicrotask(() => this.messageService.add({ severity: 'success', summary: 'Horaire', detail: 'Horaire enregistré.' }));
+            queueMicrotask(() => {
+                this.messageService.add({ severity: 'success', summary: 'Horaire', detail: 'Horaire enregistré.' });
+                // Avertissements non bloquants (enseignant déjà pris à cette heure…) : la séance est enregistrée.
+                for (const warning of state.warnings ?? []) {
+                    this.messageService.add({ severity: 'warn', summary: 'À vérifier', detail: warning, sticky: true });
+                }
+            });
         }
     }
 

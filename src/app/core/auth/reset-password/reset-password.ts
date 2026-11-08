@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -114,7 +115,7 @@ export class ResetPassword implements OnInit {
                 },
                 error: (error: HttpErrorResponse) => {
                     this.errorMessage.set(
-                        error.error?.detail ?? 'Impossible de réinitialiser le mot de passe.'
+                        apiErrorMessage(error, 'Impossible de réinitialiser le mot de passe.')
                     );
                 }
             });

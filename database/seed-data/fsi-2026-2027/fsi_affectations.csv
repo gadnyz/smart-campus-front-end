@@ -1,0 +1,204 @@
+annee_academique;parcours;semestre;code_ue;code_ec;cours;id_enseignant;enseignant;role
+2026-2027;TC;S1;IFB1111;IFB1111-EC1;Informatique et bureautique;ENS001;Antoine Bagula;Titulaire
+2026-2027;TC;S1;IFB1111;IFB1111-EC1;Informatique et bureautique;ENS002;Jonathan Kabemba;Assistant
+2026-2027;TC;S1;LPR1111;LPR1111-EC1;Langage de Programmation-1;ENS003;Nathanael Kasoro;Titulaire
+2026-2027;TC;S1;LPR1111;LPR1111-EC1;Langage de Programmation-1;ENS004;Ortega Kabwe;Assistant
+2026-2027;TC;S1;LPR1111;LPR1111-EC1;Langage de Programmation-1;ENS005;Audrey Kasongo;Assistant
+2026-2027;TC;S1;ALG1111;ALG1111-EC1;Algorithmique 1;ENS003;Nathanael Kasoro;Titulaire
+2026-2027;TC;S1;ALG1111;ALG1111-EC1;Algorithmique 1;ENS004;Ortega Kabwe;Assistant
+2026-2027;TC;S1;ALG1111;ALG1111-EC1;Algorithmique 1;ENS005;Audrey Kasongo;Assistant
+2026-2027;TC;S1;LTE1111;LTE1111-EC1;Anglais 1;ENS006;Ken Mukendi;Titulaire
+2026-2027;TC;S1;LTE1111;LTE1111-EC2;Français;ENS007;Fabien Kabeya;Titulaire
+2026-2027;TC;S1;IRM1111;IRM1111-EC1;Introduction à la recherche et méthodologie du travail;ENS008;André Lisongomi;Titulaire
+2026-2027;TC;S1;VSE1111;VSE1111-EC1;Valeurs, principes et symboles de la République et Éthique;ENS009;Jean-Octave Kabemba;Titulaire
+2026-2027;TC;S1;VSE1111;VSE1111-EC1;Valeurs, principes et symboles de la République et Éthique;ENS010;Jacques-Octave Kabemba;Assistant
+2026-2027;TC;S1;MIF1111;MIF1111-EC1;Mathématique pour Ingénieur Informaticien;ENS011;Axel Bula;Titulaire
+2026-2027;TC;S1;MIF1111;MIF1111-EC1;Mathématique pour Ingénieur Informaticien;ENS012;Danny Kasongo;Assistant
+2026-2027;TC;S2;CPG1121;CPG1121-EC1;Comptabilité Générale;ENS013;Emmanuel Kabanishi;Titulaire
+2026-2027;TC;S2;PRO1121;PRO1121-EC1;Programmation Web-1;ENS014;Nick Mayumu;Titulaire
+2026-2027;TC;S2;PRO1121;PRO1121-EC1;Programmation Web-1;ENS004;Ortega Kabwe;Assistant
+2026-2027;TC;S2;PRO1121;PRO1121-EC1;Programmation Web-1;ENS005;Audrey Kasongo;Assistant
+2026-2027;TC;S2;DRC1121;DRC1121-EC1;Droit Civil et Législation Sociale;ENS015;Jean Pierre Bakatuamba;Titulaire
+2026-2027;TC;S2;AOR1121;AOR1121-EC1;Architecture des ordinateurs et réseaux;ENS016;Godwill Ilunga;Titulaire
+2026-2027;TC;S2;PHY1121;PHY1121-EC1;Électricité;ENS017;Hyacinthe Diambomba;Titulaire
+2026-2027;TC;S2;PHY1121;PHY1121-EC1;Électricité;ENS018;Yannick Nkulu;Assistant
+2026-2027;TC;S2;PHY1121;PHY1121-EC2;Électronique;ENS019;Papy Mukanda;Titulaire
+2026-2027;TC;S2;PHY1121;PHY1121-EC2;Électronique;ENS020;Nathan Mbayo;Assistant
+2026-2027;TC;S2;PHY1121;PHY1121-EC2;Électronique;ENS021;Landry Mbale;Assistant
+2026-2027;TC;S2;INE1121;INE1121-EC1;Introduction à l'Économie;ENS022;Charles Muzinga;Titulaire
+2026-2027;TC;S2;PSI1121;PSI1121-EC1;Projet-1;ENS001;Antoine Bagula;Titulaire
+2026-2027;TC;S2;PSI1121;PSI1121-EC1;Projet-1;ENS021;Landry Mbale;Assistant
+2026-2027;TC;S2;PSI1121;PSI1121-EC1;Projet-1;ENS005;Audrey Kasongo;Assistant
+2026-2027;TC;S3;AMP1231;AMP1231-EC1;Algorithmique et Méthodes de programmation;ENS003;Nathanael Kasoro;Titulaire
+2026-2027;TC;S3;AMP1231;AMP1231-EC1;Algorithmique et Méthodes de programmation;ENS004;Ortega Kabwe;Assistant
+2026-2027;TC;S3;AMP1231;AMP1231-EC1;Algorithmique et Méthodes de programmation;ENS005;Audrey Kasongo;Assistant
+2026-2027;TC;S3;LPO1231;LPO1231-EC1;Langages de Programmation Objet;ENS003;Nathanael Kasoro;Titulaire
+2026-2027;TC;S3;LPO1231;LPO1231-EC1;Langages de Programmation Objet;ENS004;Ortega Kabwe;Assistant
+2026-2027;TC;S3;LPO1231;LPO1231-EC1;Langages de Programmation Objet;ENS005;Audrey Kasongo;Assistant
+2026-2027;TC;S3;MBD1231;MBD1231-EC1;Méthode Merise;ENS023;Odette Sangupamba;Titulaire
+2026-2027;TC;S3;MBD1231;MBD1231-EC1;Méthode Merise;ENS024;Gad Tambwe;Assistant
+2026-2027;TC;S3;MBD1231;MBD1231-EC1;Méthode Merise;ENS005;Audrey Kasongo;Assistant
+2026-2027;TC;S3;MBD1231;MBD1231-EC2;Base de données;ENS025;Junior Muka;Titulaire
+2026-2027;TC;S3;MBD1231;MBD1231-EC2;Base de données;ENS024;Gad Tambwe;Assistant
+2026-2027;TC;S3;MBD1231;MBD1231-EC2;Base de données;ENS005;Audrey Kasongo;Assistant
+2026-2027;TC;S3;STA1231;STA1231-EC1;Statistique;ENS026;Apolinnaire Ndondo;Titulaire
+2026-2027;TC;S3;STA1231;STA1231-EC1;Statistique;ENS012;Danny Kasongo;Assistant
+2026-2027;TC;S3;GII1231;GII1231-EC1;Géométrie pour Ingénieur Informaticien;ENS026;Apolinnaire Ndondo;Titulaire
+2026-2027;TC;S3;GII1231;GII1231-EC1;Géométrie pour Ingénieur Informaticien;ENS027;Dauphin Kamwanga;Assistant
+2026-2027;TC;S3;SYE1231;SYE1231-EC1;Système d'exploitation;ENS001;Antoine Bagula;Titulaire
+2026-2027;TC;S3;SYE1231;SYE1231-EC1;Système d'exploitation;ENS024;Gad Tambwe;Assistant
+2026-2027;TC;S3;SYE1231;SYE1231-EC1;Système d'exploitation;ENS004;Ortega Kabwe;Assistant
+2026-2027;TC;S3;CLO1231;CLO1231-EC1;Circuits logiques;ENS001;Antoine Bagula;Titulaire
+2026-2027;TC;S3;CLO1231;CLO1231-EC1;Circuits logiques;ENS020;Nathan Mbayo;Assistant
+2026-2027;TC;S3;CLO1231;CLO1231-EC1;Circuits logiques;ENS021;Landry Mbale;Assistant
+2026-2027;TC;S4;PRO1242;PRO1242-EC1;Programmation Web-2;ENS014;Nick Mayumu;Titulaire
+2026-2027;TC;S4;PRO1242;PRO1242-EC1;Programmation Web-2;ENS004;Ortega Kabwe;Assistant
+2026-2027;TC;S4;PRO1242;PRO1242-EC1;Programmation Web-2;ENS005;Audrey Kasongo;Assistant
+2026-2027;TC;S4;MAN1241;MAN1241-EC1;Méthodes et Analyse Numérique;ENS028;Auguste Muhau;Titulaire
+2026-2027;TC;S4;RIF1241;RIF1241-EC1;Réseaux Informatiques-1;ENS029;Ebedon Mufind;Titulaire
+2026-2027;TC;S4;RIF1241;RIF1241-EC1;Réseaux Informatiques-1;ENS021;Landry Mbale;Assistant
+2026-2027;TC;S4;RIF1241;RIF1241-EC1;Réseaux Informatiques-1;ENS004;Ortega Kabwe;Assistant
+2026-2027;TC;S4;AGT1241;AGT1241-EC1;Anglais Technique-2;ENS016;Godwill Ilunga;Titulaire
+2026-2027;TC;S4;GPI1241;GPI1241-EC1;Gestion de Projets Informatiques;ENS025;Junior Muka;Titulaire
+2026-2027;TC;S4;GPI1241;GPI1241-EC1;Gestion de Projets Informatiques;ENS005;Audrey Kasongo;Assistant
+2026-2027;TC;S4;GPI1241;GPI1241-EC1;Gestion de Projets Informatiques;ENS024;Gad Tambwe;Assistant
+2026-2027;TC;S4;INF404;INF404-EC1;Techniques de Maintenance-1;ENS030;Jean-Jacques Kaboko;Titulaire
+2026-2027;TC;S4;INF404;INF404-EC1;Techniques de Maintenance-1;ENS020;Nathan Mbayo;Assistant
+2026-2027;TC;S4;PSI1242;PSI1242-EC1;Projet-2;ENS001;Antoine Bagula;Titulaire
+2026-2027;TC;S4;PSI1242;PSI1242-EC1;Projet-2;ENS016;Godwill Ilunga;Assistant
+2026-2027;TC;S4;PSI1242;PSI1242-EC1;Projet-2;ENS004;Ortega Kabwe;Assistant
+2026-2027;GL;S5;MOB1351;MOB1351-EC1;Modélisation Objet;ENS023;Odette Sangupamba;Titulaire
+2026-2027;GL;S5;MOB1351;MOB1351-EC1;Modélisation Objet;ENS024;Gad Tambwe;Assistant
+2026-2027;GL;S5;MOB1351;MOB1351-EC1;Modélisation Objet;ENS002;Jonathan Kabemba;Assistant
+2026-2027;GL;S5;GRH1351;GRH1351-EC1;Gestion des Ressources Humaines;ENS031;Mamie Mujinga;Titulaire
+2026-2027;GL;S5;AGT1352;AGT1352-EC1;Anglais Technique-3;ENS016;Godwill Ilunga;Titulaire
+2026-2027;GL;S5;TBD1351;TBD1351-EC1;Techniques de Base de données;ENS032;Patrick Mukala;Titulaire
+2026-2027;GL;S5;TBD1351;TBD1351-EC1;Techniques de Base de données;ENS024;Gad Tambwe;Assistant
+2026-2027;GL;S5;TBD1351;TBD1351-EC1;Techniques de Base de données;ENS002;Jonathan Kabemba;Assistant
+2026-2027;GL;S5;INA1351;INA1351-EC1;Intelligence Artificielle;ENS033;Jordan Masakuna;Titulaire
+2026-2027;GL;S5;INA1351;INA1351-EC1;Intelligence Artificielle;ENS005;Audrey Kasongo;Assistant
+2026-2027;GL;S5;INA1351;INA1351-EC1;Intelligence Artificielle;ENS004;Ortega Kabwe;Assistant
+2026-2027;GL;S5;COE1351;COE1351-EC1;Commerce Électronique;ENS025;Junior Muka;Titulaire
+2026-2027;GL;S5;COE1351;COE1351-EC1;Commerce Électronique;ENS024;Gad Tambwe;Assistant
+2026-2027;GL;S5;TEL1351;TEL1351-EC1;Télématique;ENS019;Papy Mukanda;Titulaire
+2026-2027;GL;S5;TEL1351;TEL1351-EC1;Télématique;ENS020;Nathan Mbayo;Assistant
+2026-2027;GL;S6;PRB1361;PRB1361-EC1;Programmation Objet-2 (Python);ENS032;Patrick Mukala;Titulaire
+2026-2027;GL;S6;PRB1361;PRB1361-EC1;Programmation Objet-2 (Python);ENS024;Gad Tambwe;Assistant
+2026-2027;GL;S6;MRI1361;MRI1361-EC1;Méthodes de Recherche en Informatique;ENS001;Antoine Bagula;Titulaire
+2026-2027;GL;S6;ENT1361;ENT1361-EC1;Entrepreneuriat;ENS034;Dony Mudimbi;Titulaire
+2026-2027;GL;S6;SEI1361;SEI1361-EC1;Sécurité Informatique;ENS032;Patrick Mukala;Titulaire
+2026-2027;GL;S6;PSI1363;PSI1363-EC1;Projet-3;ENS001;Antoine Bagula;Titulaire
+2026-2027;GL;S6;PSI1363;PSI1363-EC1;Projet-3;ENS024;Gad Tambwe;Assistant
+2026-2027;GL;S6;PSI1363;PSI1363-EC1;Projet-3;ENS002;Jonathan Kabemba;Assistant
+2026-2027;SI;S5;MOB1351;MOB1351-EC1;Modélisation Objet;ENS023;Odette Sangupamba;Titulaire
+2026-2027;SI;S5;MOB1351;MOB1351-EC1;Modélisation Objet;ENS024;Gad Tambwe;Assistant
+2026-2027;SI;S5;MOB1351;MOB1351-EC1;Modélisation Objet;ENS002;Jonathan Kabemba;Assistant
+2026-2027;SI;S5;GRH1351;GRH1351-EC1;Gestion des Ressources Humaines;ENS031;Mamie Mujinga;Titulaire
+2026-2027;SI;S5;AGT1352;AGT1352-EC1;Anglais Technique-3;ENS016;Godwill Ilunga;Titulaire
+2026-2027;SI;S5;TBD1351;TBD1351-EC1;Techniques de Base de données;ENS032;Patrick Mukala;Titulaire
+2026-2027;SI;S5;TBD1351;TBD1351-EC1;Techniques de Base de données;ENS024;Gad Tambwe;Assistant
+2026-2027;SI;S5;TBD1351;TBD1351-EC1;Techniques de Base de données;ENS002;Jonathan Kabemba;Assistant
+2026-2027;SI;S5;INA1351;INA1351-EC1;Intelligence Artificielle;ENS033;Jordan Masakuna;Titulaire
+2026-2027;SI;S5;INA1351;INA1351-EC1;Intelligence Artificielle;ENS005;Audrey Kasongo;Assistant
+2026-2027;SI;S5;INA1351;INA1351-EC1;Intelligence Artificielle;ENS004;Ortega Kabwe;Assistant
+2026-2027;SI;S5;COE1351;COE1351-EC1;Commerce Électronique;ENS025;Junior Muka;Titulaire
+2026-2027;SI;S5;COE1351;COE1351-EC1;Commerce Électronique;ENS024;Gad Tambwe;Assistant
+2026-2027;SI;S5;TEL1351;TEL1351-EC1;Télématique;ENS019;Papy Mukanda;Titulaire
+2026-2027;SI;S5;TEL1351;TEL1351-EC1;Télématique;ENS020;Nathan Mbayo;Assistant
+2026-2027;SI;S6;STR1361;STR1361-EC1;Supports de Transmission Réseau;ENS001;Antoine Bagula;Titulaire
+2026-2027;SI;S6;STR1361;STR1361-EC1;Supports de Transmission Réseau;ENS020;Nathan Mbayo;Assistant
+2026-2027;SI;S6;STR1361;STR1361-EC1;Supports de Transmission Réseau;ENS021;Landry Mbale;Assistant
+2026-2027;SI;S6;MRI1361;MRI1361-EC1;Méthodes de Recherche en Informatique;ENS001;Antoine Bagula;Titulaire
+2026-2027;SI;S6;ENT1361;ENT1361-EC1;Entrepreneuriat;ENS034;Dony Mudimbi;Titulaire
+2026-2027;SI;S6;SEI1361;SEI1361-EC1;Sécurité Informatique;ENS021;Landry Mbale;Assistant
+2026-2027;SI;S6;PSI1363;PSI1363-EC1;Projet-3;ENS024;Gad Tambwe;Assistant
+2026-2027;SI;S6;PSI1363;PSI1363-EC1;Projet-3;ENS002;Jonathan Kabemba;Assistant
+2026-2027;IA;S5;MOB1351;MOB1351-EC1;Modélisation Objet;ENS023;Odette Sangupamba;Titulaire
+2026-2027;IA;S5;MOB1351;MOB1351-EC1;Modélisation Objet;ENS024;Gad Tambwe;Assistant
+2026-2027;IA;S5;MOB1351;MOB1351-EC1;Modélisation Objet;ENS002;Jonathan Kabemba;Assistant
+2026-2027;IA;S5;GRH1351;GRH1351-EC1;Gestion des Ressources Humaines;ENS031;Mamie Mujinga;Titulaire
+2026-2027;IA;S5;AGT1352;AGT1352-EC1;Anglais Technique-3;ENS016;Godwill Ilunga;Titulaire
+2026-2027;IA;S5;TBD1351;TBD1351-EC1;Techniques de Base de données;ENS032;Patrick Mukala;Titulaire
+2026-2027;IA;S5;TBD1351;TBD1351-EC1;Techniques de Base de données;ENS024;Gad Tambwe;Assistant
+2026-2027;IA;S5;TBD1351;TBD1351-EC1;Techniques de Base de données;ENS002;Jonathan Kabemba;Assistant
+2026-2027;IA;S5;INA1351;INA1351-EC1;Intelligence Artificielle;ENS033;Jordan Masakuna;Titulaire
+2026-2027;IA;S5;INA1351;INA1351-EC1;Intelligence Artificielle;ENS005;Audrey Kasongo;Assistant
+2026-2027;IA;S5;INA1351;INA1351-EC1;Intelligence Artificielle;ENS004;Ortega Kabwe;Assistant
+2026-2027;IA;S5;COE1351;COE1351-EC1;Commerce Électronique;ENS025;Junior Muka;Titulaire
+2026-2027;IA;S5;COE1351;COE1351-EC1;Commerce Électronique;ENS024;Gad Tambwe;Assistant
+2026-2027;IA;S5;TEL1351;TEL1351-EC1;Télématique;ENS019;Papy Mukanda;Titulaire
+2026-2027;IA;S5;TEL1351;TEL1351-EC1;Télématique;ENS020;Nathan Mbayo;Assistant
+2026-2027;IA;S6;PAU1361;PAU1361-EC1;Programmation des Automates;ENS033;Jordan Masakuna;Titulaire
+2026-2027;IA;S6;PAU1361;PAU1361-EC1;Programmation des Automates;ENS020;Nathan Mbayo;Assistant
+2026-2027;IA;S6;MRI1361;MRI1361-EC1;Méthodes de Recherche en Informatique;ENS035;Selain Kasereka;Titulaire
+2026-2027;IA;S6;ENT1361;ENT1361-EC1;Entrepreneuriat;ENS034;Dony Mudimbi;Titulaire
+2026-2027;IA;S6;SEI1361;SEI1361-EC1;Sécurité Informatique;ENS032;Patrick Mukala;Titulaire
+2026-2027;IA;S6;SEI1361;SEI1361-EC1;Sécurité Informatique;ENS021;Landry Mbale;Assistant
+2026-2027;IA;S6;PSI1363;PSI1363-EC1;Projet-3;ENS001;Antoine Bagula;Titulaire
+2026-2027;IA;S6;PSI1363;PSI1363-EC1;Projet-3;ENS024;Gad Tambwe;Assistant
+2026-2027;IA;S6;PSI1363;PSI1363-EC1;Projet-3;ENS002;Jonathan Kabemba;Assistant
+2026-2027;GL;S7;MAL1471;MAL1471-EC1;Machine Learning;ENS036;Emmanuel Kalunga;Titulaire
+2026-2027;GL;S7;MAL1471;MAL1471-EC1;Machine Learning;ENS004;Ortega Kabwe;Assistant
+2026-2027;GL;S7;MAL1471;MAL1471-EC1;Machine Learning;ENS005;Audrey Kasongo;Assistant
+2026-2027;GL;S7;LPM1471;LPM1471-EC1;Langage de Programmation Mobile;ENS033;Jordan Masakuna;Titulaire
+2026-2027;GL;S7;LPM1471;LPM1471-EC1;Langage de Programmation Mobile;ENS004;Ortega Kabwe;Assistant
+2026-2027;GL;S7;GLO1471;GLO1471-EC1;Génie Logiciel;ENS033;Jordan Masakuna;Titulaire
+2026-2027;GL;S7;GLO1471;GLO1471-EC1;Génie Logiciel;ENS004;Ortega Kabwe;Assistant
+2026-2027;GL;S7;GLO1471;GLO1471-EC1;Génie Logiciel;ENS024;Gad Tambwe;Assistant
+2026-2027;GL;S7;ABD1471;ABD1471-EC1;Administration de Base de données;ENS014;Nick Mayumu;Titulaire
+2026-2027;GL;S7;ABD1471;ABD1471-EC1;Administration de Base de données;ENS024;Gad Tambwe;Assistant
+2026-2027;GL;S7;CSF1471;CSF1471-EC1;Conception des Systèmes d'Information;ENS025;Junior Muka;Titulaire
+2026-2027;GL;S7;CSF1471;CSF1471-EC1;Conception des Systèmes d'Information;ENS002;Jonathan Kabemba;Assistant
+2026-2027;GL;S7;ICR1471;ICR1471-EC1;Introduction à la Cryptologie;ENS032;Patrick Mukala;Titulaire
+2026-2027;GL;S7;ICR1471;ICR1471-EC1;Introduction à la Cryptologie;ENS005;Audrey Kasongo;Assistant
+2026-2027;GL;S7;ICR1471;ICR1471-EC1;Introduction à la Cryptologie;ENS002;Jonathan Kabemba;Assistant
+2026-2027;GL;S7;INF707;INF707-EC1;Programmation Objet-3 (Python);ENS032;Patrick Mukala;Titulaire
+2026-2027;GL;S7;INF707;INF707-EC1;Programmation Objet-3 (Python);ENS004;Ortega Kabwe;Assistant
+2026-2027;GL;S8;DIC1481;DIC1481-EC1;Droit Informatique et Cybercriminalité;ENS037;Thierry Kanyinda;Titulaire
+2026-2027;GL;S8;DIF1481;DIF1481-EC1;Déontologie de l'Informaticien;ENS016;Godwill Ilunga;Titulaire
+2026-2027;GL;S8;SEF1481;SEF1481-EC1;Séminaire Informatique;ENS035;Selain Kasereka;Titulaire
+2026-2027;GL;S8;AIF1481;AIF1481-EC1;Audit Informatique;ENS038;Merlec Mpyana;Titulaire
+2026-2027;GL;S8;PSI1484;PSI1484-EC1;Projet Tutoré;ENS001;Antoine Bagula;Titulaire
+2026-2027;SI;S7;MAL1471;MAL1471-EC1;Machine Learning;ENS036;Emmanuel Kalunga;Titulaire
+2026-2027;SI;S7;MAL1471;MAL1471-EC1;Machine Learning;ENS004;Ortega Kabwe;Assistant
+2026-2027;SI;S7;MAL1471;MAL1471-EC1;Machine Learning;ENS005;Audrey Kasongo;Assistant
+2026-2027;SI;S7;LPM1471;LPM1471-EC1;Langage de Programmation Mobile;ENS033;Jordan Masakuna;Titulaire
+2026-2027;SI;S7;LPM1471;LPM1471-EC1;Langage de Programmation Mobile;ENS004;Ortega Kabwe;Assistant
+2026-2027;SI;S7;GLO1471;GLO1471-EC1;Génie Logiciel;ENS033;Jordan Masakuna;Titulaire
+2026-2027;SI;S7;GLO1471;GLO1471-EC1;Génie Logiciel;ENS004;Ortega Kabwe;Assistant
+2026-2027;SI;S7;GLO1471;GLO1471-EC1;Génie Logiciel;ENS024;Gad Tambwe;Assistant
+2026-2027;SI;S7;RTE1471;RTE1471-EC1;Réseaux de Télécommunication;ENS029;Ebedon Mufind;Titulaire
+2026-2027;SI;S7;RTE1471;RTE1471-EC1;Réseaux de Télécommunication;ENS021;Landry Mbale;Assistant
+2026-2027;SI;S7;ART1471;ART1471-EC1;Atelier Réseaux et Télécom;ENS029;Ebedon Mufind;Titulaire
+2026-2027;SI;S7;ART1471;ART1471-EC1;Atelier Réseaux et Télécom;ENS021;Landry Mbale;Assistant
+2026-2027;SI;S7;ASR1471;ASR1471-EC1;Administration Système & Réseaux;ENS029;Ebedon Mufind;Titulaire
+2026-2027;SI;S7;ASR1471;ASR1471-EC1;Administration Système & Réseaux;ENS021;Landry Mbale;Assistant
+2026-2027;SI;S7;CAR1471;CAR1471-EC1;Conception des Architectures Réseaux;ENS038;Merlec Mpyana;Titulaire
+2026-2027;SI;S7;CAR1471;CAR1471-EC1;Conception des Architectures Réseaux;ENS021;Landry Mbale;Assistant
+2026-2027;SI;S8;DIC1481;DIC1481-EC1;Droit Informatique et Cybercriminalité;ENS037;Thierry Kanyinda;Titulaire
+2026-2027;SI;S8;DIF1481;DIF1481-EC1;Déontologie de l'Informaticien;ENS016;Godwill Ilunga;Titulaire
+2026-2027;SI;S8;SEF1481;SEF1481-EC1;Séminaire Informatique;ENS035;Selain Kasereka;Titulaire
+2026-2027;SI;S8;AIF1481;AIF1481-EC1;Audit Informatique;ENS038;Merlec Mpyana;Titulaire
+2026-2027;SI;S8;PSI1484;PSI1484-EC1;Projet Tutoré;ENS001;Antoine Bagula;Titulaire
+2026-2027;IA;S7;MAL1471;MAL1471-EC1;Machine Learning;ENS036;Emmanuel Kalunga;Titulaire
+2026-2027;IA;S7;MAL1471;MAL1471-EC1;Machine Learning;ENS004;Ortega Kabwe;Assistant
+2026-2027;IA;S7;MAL1471;MAL1471-EC1;Machine Learning;ENS005;Audrey Kasongo;Assistant
+2026-2027;IA;S7;LPM1471;LPM1471-EC1;Langage de Programmation Mobile;ENS033;Jordan Masakuna;Titulaire
+2026-2027;IA;S7;LPM1471;LPM1471-EC1;Langage de Programmation Mobile;ENS004;Ortega Kabwe;Assistant
+2026-2027;IA;S7;LPM1471;LPM1471-EC1;Langage de Programmation Mobile;ENS020;Nathan Mbayo;Assistant
+2026-2027;IA;S7;GLO1471;GLO1471-EC1;Génie Logiciel;ENS033;Jordan Masakuna;Titulaire
+2026-2027;IA;S7;GLO1471;GLO1471-EC1;Génie Logiciel;ENS004;Ortega Kabwe;Assistant
+2026-2027;IA;S7;GLO1471;GLO1471-EC1;Génie Logiciel;ENS024;Gad Tambwe;Assistant
+2026-2027;IA;S7;PJV1471;PJV1471-EC1;Programmation de Jeu Vidéo avec Python;ENS039;Daniel Katual;Titulaire
+2026-2027;IA;S7;PJV1471;PJV1471-EC1;Programmation de Jeu Vidéo avec Python;ENS005;Audrey Kasongo;Assistant
+2026-2027;IA;S7;CSI1471;CSI1471-EC1;Conception des Systèmes Intelligents;ENS038;Merlec Mpyana;Titulaire
+2026-2027;IA;S7;CSI1471;CSI1471-EC1;Conception des Systèmes Intelligents;ENS004;Ortega Kabwe;Assistant
+2026-2027;IA;S7;MEC1471;MEC1471-EC1;Mécatronique;ENS030;Jean-Jacques Kaboko;Titulaire
+2026-2027;IA;S7;MEC1471;MEC1471-EC1;Mécatronique;ENS020;Nathan Mbayo;Assistant
+2026-2027;IA;S7;PIA1471;PIA1471-EC1;Programmation en Intelligence Artificielle;ENS036;Emmanuel Kalunga;Titulaire
+2026-2027;IA;S7;PIA1471;PIA1471-EC1;Programmation en Intelligence Artificielle;ENS004;Ortega Kabwe;Assistant
+2026-2027;IA;S8;DIC1481;DIC1481-EC1;Droit Informatique et Cybercriminalité;ENS037;Thierry Kanyinda;Titulaire
+2026-2027;IA;S8;DIF1481;DIF1481-EC1;Déontologie de l'Informaticien;ENS016;Godwill Ilunga;Titulaire
+2026-2027;IA;S8;SEF1481;SEF1481-EC1;Séminaire Informatique;ENS035;Selain Kasereka;Titulaire
+2026-2027;IA;S8;AIF1481;AIF1481-EC1;Audit Informatique;ENS038;Merlec Mpyana;Titulaire
+2026-2027;IA;S8;PSI1484;PSI1484-EC1;Projet Tutoré;ENS001;Antoine Bagula;Titulaire

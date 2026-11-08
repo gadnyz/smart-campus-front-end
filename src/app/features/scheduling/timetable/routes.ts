@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { permissionGuard } from '@/app/core/permissions/permission.guard';
 import { SchedulingPermission } from '../permissions/permission.model';
 import { timetableFormLeaveGuard } from './pages/timetable-form/timetable-form-leave.guard';
-import { MANAGE_TIMETABLES } from './utils/timetable-routes';
+import { CREATE_TIMETABLES, EDIT_TIMETABLES, MANAGE_TIMETABLES } from './utils/timetable-routes';
 
 export default [
     {
@@ -29,7 +29,7 @@ export default [
         canActivate: [permissionGuard],
         canDeactivate: [timetableFormLeaveGuard],
         data: {
-            permissions: [SchedulingPermission.TimetableCreateAll]
+            permissions: CREATE_TIMETABLES
         }
     },
     {
@@ -38,7 +38,7 @@ export default [
         canActivate: [permissionGuard],
         canDeactivate: [timetableFormLeaveGuard],
         data: {
-            permissions: [SchedulingPermission.TimetableUpdateAll, SchedulingPermission.TimetableEntryUpdateAll],
+            permissions: EDIT_TIMETABLES,
             mode: 'any'
         }
     },

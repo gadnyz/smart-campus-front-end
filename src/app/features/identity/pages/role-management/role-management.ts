@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -45,6 +46,7 @@ type RoleTableRow = RoleResponse & {
         PrivilegeGroups
     ],
     templateUrl: './role-management.html',
+    styleUrl: './role-management.scss',
     providers: [ConfirmationService, MessageService]
 })
 export class RoleManagement implements OnInit {
@@ -208,7 +210,7 @@ export class RoleManagement implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.creating.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de créer le rôle.');
+                this.showError(apiErrorMessage(error, 'Impossible de créer le rôle.'));
             }
         });
     }
@@ -269,7 +271,7 @@ export class RoleManagement implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.attaching.set(false);
-                this.showError(error.error?.detail ?? 'Impossible d\'ajouter les privilèges.');
+                this.showError(apiErrorMessage(error, 'Impossible d\'ajouter les privilèges.'));
             }
         });
     }
@@ -292,7 +294,7 @@ export class RoleManagement implements OnInit {
             return 'Accès refusé : permission identity:privilege:read:all requise pour charger les privilèges.';
         }
 
-        return error.error?.detail ?? 'Impossible de charger les privilèges.';
+        return apiErrorMessage(error, 'Impossible de charger les privilèges.');
     }
 
     private showSuccess(detail: string): void {

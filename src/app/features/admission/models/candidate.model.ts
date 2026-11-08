@@ -134,5 +134,8 @@ export interface CandidateListItem {
     created_at: string;
 }
 
+/** `PUT /candidates/{id}` (personnel) : le corps du dépôt sans l'email, tant que le dossier n'est ni validé, ni rejeté, ni annulé. */
+export type UpdateCandidatureRequest = Omit<SubmitCandidatureRequest, 'email'>;
+
 /** Same body as submit; used by PUT /candidates/me */
 export type UpdateOwnCandidatureRequest = SubmitCandidatureRequest;

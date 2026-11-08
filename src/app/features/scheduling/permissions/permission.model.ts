@@ -1,3 +1,5 @@
+import { manageAuthorities } from '@/app/core/permissions/permission-scope';
+
 /**
  * Autorités exposées par le backend « Scheduling Rest API ».
  * Lecture et écriture sont des clés distinctes : une route de consultation
@@ -31,3 +33,12 @@ export const SchedulingPermission = {
 } as const;
 
 export type SchedulingPermission = (typeof SchedulingPermission)[keyof typeof SchedulingPermission];
+export const SchedulingResource = {
+    Timetable: 'scheduling:timetable',
+    TimetableEntry: 'scheduling:timetable-entry'
+} as const;
+
+/** Gestion des horaires : créer, modifier ou supprimer un horaire (faculté ou tout), ou tout lire. */
+export const SchedulingManage = {
+    Timetable: manageAuthorities(SchedulingResource.Timetable)
+} as const;

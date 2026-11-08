@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
+import { FormBuilder, FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
     Component,
@@ -51,21 +52,28 @@ import {
     CandidatureStatus,
     PagedResponse
 } from '../../models/candidate.model';
-import { AdmissionPermission } from '../../permissions/permission.model';
+import { AdmissionResource } from '../../permissions/permission.model';
 import {
     AdmissionAcademicReferenceService,
     CandidateAcademicLabels
 } from '../../services/admission-academic-reference.service';
 import { CandidateService } from '../../services/candidate.service';
 import {
+    CandidateAcademicChoices,
     CandidateDocumentPreview,
     CandidateDossierDocuments,
+    CandidateDossierForm,
     CandidateDossierHero,
     CandidateDossierSections,
     DossierDocumentUrls,
     DossierSection,
     buildDossierSections,
     candidateFullName,
+    candidateUpdatePayload,
+    createCandidateForm,
+    enableCandidateForm,
+    invalidCandidateFields,
+    patchCandidateForm,
     photoDocument,
     requiredDocuments
 } from '../../components/candidate-dossier';
@@ -93,7 +101,8 @@ type CandidateName = Pick<
         CandidateDossierHero,
         CandidateDossierSections,
         CandidateDossierDocuments,
-        CandidateDocumentPreview
+        CandidateDocumentPreview,
+        CandidateDossierForm
     ],
     templateUrl: './candidate-detail.html',
     styleUrl: './candidate-detail.scss',
@@ -127,6 +136,8 @@ export class CandidateDetail implements OnInit {
     private readonly messageService =
         inject(MessageService);
 
+    private readonly fb = inject(FormBuilder);
+
     private readonly navigationScope =
         'admission.candidates';
 
@@ -147,6 +158,12 @@ export class CandidateDetail implements OnInit {
     readonly previewDocument = signal<CandidateDocument | null>(null);
     readonly previewVisible = signal(false);
 
+    /** Modification du dossier par le personnel (`PUT /candidates/{id}`). */
+    readonly editing = signal(false);
+    readonly saving = signal(false);
+    readonly form = createCandidateForm(this.fb);
+    readonly choices = new CandidateAcademicChoices(this.academicReferenceService, this.form, () => this.editing(), this.destroyRef);
+
     readonly rejectDialogVisible = signal(false);
     readonly rejectReason = signal('');
 
@@ -160,13 +177,12 @@ export class CandidateDetail implements OnInit {
         () =>
             this.refreshing() ||
             this.navigationLoading() ||
+            this.saving() ||
             this.processingAction() !== null
     );
 
-    readonly canManageCandidate =
-        this.permissionService.hasPermission(
-            AdmissionPermission.AdmissionCandidateUpdateAll
-        );
+    /** Valider ou rejeter : modifier les candidatures de sa faculté ou de toutes. */
+    readonly canManageCandidate = this.permissionService.canWrite(`${AdmissionResource.Candidate}:update`);
 
     readonly navigationState = computed(() => {
         const id = this.requestedCandidateId();
@@ -236,6 +252,12 @@ export class CandidateDetail implements OnInit {
         );
     });
 
+    /** Modifiable tant que le dossier n'est ni validé, ni rejeté, ni annulé. */
+    readonly canEdit = computed(() => {
+        const status = this.candidate()?.candidature.status;
+        return this.canManageCandidate && (status === 'DRAFT' || status === 'PENDING');
+    });
+
     readonly currentStatus = computed(
         () => this.candidate()?.candidature.status ?? null
     );
@@ -252,7 +274,30 @@ export class CandidateDetail implements OnInit {
             : 'secondary';
     });
 
-    readonly actions = computed<SubtopbarAction[]>(() => [
+    readonly actions = computed<SubtopbarAction[]>(() => (this.editing() ? this.editActions() : this.readActions()));
+
+    private editActions(): SubtopbarAction[] {
+        return [
+            {
+                label: 'Annuler',
+                icon: 'pi pi-times',
+                severity: 'secondary',
+                outlined: true,
+                disabled: this.saving(),
+                command: () => this.cancelEdit()
+            },
+            {
+                label: 'Enregistrer',
+                icon: 'pi pi-save',
+                loading: this.saving(),
+                disabled: this.saving(),
+                command: () => this.saveEdit()
+            }
+        ];
+    }
+
+    private readActions(): SubtopbarAction[] {
+        return [
         {
             label: 'Liste',
             icon: 'pi pi-list',
@@ -301,8 +346,21 @@ export class CandidateDetail implements OnInit {
                 !this.canReject() ||
                 this.busy(),
             command: () => this.confirmReject()
-        }
-    ]);
+        },
+        ...(this.canManageCandidate
+            ? [
+                {
+                    label: 'Modifier',
+                    icon: 'pi pi-pencil',
+                    severity: 'secondary' as const,
+                    outlined: true,
+                    disabled: !this.canEdit() || this.busy(),
+                    command: () => this.startEdit()
+                }
+            ]
+            : [])
+        ];
+    }
 
     ngOnInit(): void {
         this.route.paramMap
@@ -431,6 +489,66 @@ export class CandidateDetail implements OnInit {
         this.rejectCandidate(candidate.id, reason);
     }
 
+    startEdit(): void {
+        const candidate = this.candidate();
+        if (!candidate || !this.canEdit()) return;
+        patchCandidateForm(this.form, candidate);
+        this.choices.load(candidate.faculty_id, candidate.program_id);
+        enableCandidateForm(this.form);
+        this.editing.set(true);
+    }
+
+    cancelEdit(): void {
+        this.editing.set(false);
+        this.form.disable({ emitEvent: false });
+    }
+
+    saveEdit(): void {
+        const candidate = this.candidate();
+        if (!candidate || !this.canEdit() || this.saving()) return;
+
+        if (this.form.invalid) {
+            this.form.markAllAsTouched();
+            this.messageService.add({ severity: 'warn', summary: 'Formulaire incomplet', detail: invalidCandidateFields(this.form), life: 5000 });
+            return;
+        }
+
+        this.saving.set(true);
+        this.candidateService
+            .update(candidate.id, candidateUpdatePayload(this.form))
+            .pipe(
+                switchMap((updated) =>
+                    forkJoin({
+                        updated: of(updated),
+                        labels: this.academicReferenceService.resolveCandidateLabels(updated).pipe(catchError(() => of(null)))
+                    })
+                )
+            )
+            .subscribe({
+                next: ({ updated, labels }) => {
+                    this.saving.set(false);
+                    this.candidate.set(updated);
+                    this.academicLabels.set(labels);
+                    this.cancelEdit();
+                    this.renameInNavigation(updated);
+                    this.showSuccess('Dossier du candidat mis à jour.');
+                },
+                error: (error: unknown) => {
+                    this.saving.set(false);
+                    this.showError(this.errorDetail(error, 'Impossible d’enregistrer le dossier.'));
+                }
+            });
+    }
+
+    private renameInNavigation(candidate: CandidateResponse): void {
+        const state = this.navigationState();
+        if (!state) return;
+        this.detailNavigation.setContext({
+            ...state.context,
+            items: state.context.items.map((item) => (item.id === candidate.id ? { ...item, label: this.fullName(candidate) } : item))
+        });
+    }
+
     fullName(candidate: CandidateName): string {
         return candidateFullName(candidate);
     }
@@ -509,6 +627,7 @@ export class CandidateDetail implements OnInit {
     }
 
     private prepareCandidateLoad(id: string): void {
+        this.cancelEdit();
         this.requestedCandidateId.set(id);
         this.photoLoadFailed.set(false);
         this.academicLabels.set(null);
@@ -856,7 +975,7 @@ export class CandidateDetail implements OnInit {
         fallback: string
     ): string {
         if (error instanceof HttpErrorResponse) {
-            return error.error?.detail ?? fallback;
+            return apiErrorMessage(error, fallback);
         }
 
         if (error instanceof Error) {

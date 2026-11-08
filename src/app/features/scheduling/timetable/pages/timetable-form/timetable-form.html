@@ -91,7 +91,12 @@
             <ng-template pTemplate="body" let-row let-i="rowIndex">
                 <tr>
                     <td class="stack-hidden">{{ i + 1 }}</td>
-                    <td data-label="Cours">{{ courseLabel(row) }}</td>
+                    <td data-label="Cours">
+                        <div>{{ courseLabel(row) }}</div>
+                        @if (sharedLabel(row); as shared) {
+                            <div class="text-sm text-muted-color"><i class="pi pi-share-alt text-xs mr-1"></i>{{ shared }}</div>
+                        }
+                    </td>
                     <td data-label="Horaire" class="tabular-nums">{{ hoursLabel(row) }}</td>
                     <td data-label="Jours">{{ daysLabel(row) }}</td>
                     <td data-label="Salle">{{ roomLabel(row) }}</td>
@@ -101,7 +106,6 @@
                             <div class="flex gap-1">
                                 <p-button
                                     icon="pi pi-pencil"
-                                    severity="info"
                                     [rounded]="true"
                                     [text]="true"
                                     (onClick)="openSessionDialog(i)"
@@ -147,6 +151,33 @@
             </div>
         }
     </div>
+
+    @if (sharedInRows().length) {
+        <div class="flex flex-col gap-3">
+            <h2 class="m-0 text-sm font-semibold uppercase tracking-wide text-muted-color">Sessions partagées par d’autres promotions</h2>
+            <p class="m-0 text-sm text-muted-color">Cette promotion y assiste ; elles se modifient dans l’horaire de la promotion qui les héberge.</p>
+            <p-table [value]="sharedInRows()" dataKey="id" styleClass="timetable-stack">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Jour</th>
+                        <th>Horaire</th>
+                        <th>Cours</th>
+                        <th>Salle</th>
+                        <th>Hébergée par</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-row>
+                    <tr>
+                        <td data-label="Jour">{{ row.day }}</td>
+                        <td data-label="Horaire" class="tabular-nums">{{ row.hours }}</td>
+                        <td data-label="Cours">{{ row.course }}</td>
+                        <td data-label="Salle">{{ row.room }}</td>
+                        <td data-label="Hébergée par">{{ row.host }}</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    }
 
     <div class="timetable-form-footer">
         @if (saveError()) {
@@ -279,6 +310,23 @@
             ></textarea>
         </div>
 
+        <div>
+            <label for="session-shared" class="block text-sm mb-1">Partagée avec (tronc commun)</label>
+            <p-multiselect
+                inputId="session-shared"
+                formControlName="shared_with"
+                [options]="audienceOptions()"
+                optionLabel="label"
+                optionValue="value"
+                display="chip"
+                [filter]="true"
+                appendTo="body"
+                placeholder="Séance de cette promotion seulement"
+                class="w-full"
+            />
+            <small class="block mt-1 text-muted-color">Les autres promotions de la faculté qui assistent à la même séance. Leur horaire de la semaine doit exister et ne pas être validé.</small>
+        </div>
+
         @let sessionErrors = sessionIssues();
         @if (sessionErrors.length > 0) {
             <ul class="m-0 pl-4" role="alert">
@@ -292,5 +340,41 @@
 
     <ng-template pTemplate="footer">
         <p-button label="Valider" icon="pi pi-check" (onClick)="submitSession()" ariaLabel="Valider la session" />
+    </ng-template>
+</p-dialog>
+
+<p-dialog header="Dupliquer la semaine" [focusOnShow]="false" [visible]="duplicateVisible()" (visibleChange)="duplicateVisible.set($event)" [modal]="true" [style]="{ width: '30rem' }" [breakpoints]="{ '640px': '95vw' }">
+    <div class="flex flex-col gap-3">
+        <p class="m-0 text-sm text-muted-color">
+            Toutes les séances de cette semaine sont copiées aux mêmes jours de la semaine choisie, dans un nouvel horaire en brouillon. La copie est entière ou n’a pas lieu.
+        </p>
+        <div>
+            <label for="duplicate-week" class="block text-sm mb-1">Semaine cible (lundi)</label>
+            <p-datepicker
+                inputId="duplicate-week"
+                [ngModel]="duplicateWeek()"
+                (ngModelChange)="onDuplicateWeekChange($event)"
+                [disabledDays]="nonMondays"
+                [minDate]="minWeekDate"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                appendTo="body"
+                class="w-full"
+            />
+        </div>
+        @if (duplicateErrors().length) {
+            <div role="alert">
+                <p class="m-0 mb-1 text-red-500 text-sm">Aucune séance n’a été copiée :</p>
+                <ul class="m-0 pl-4">
+                    @for (message of duplicateErrors(); track $index) {
+                        <li class="text-red-500 text-sm">{{ message }}</li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+    <ng-template pTemplate="footer">
+        <p-button label="Annuler" severity="secondary" [outlined]="true" (onClick)="duplicateVisible.set(false)" />
+        <p-button label="Dupliquer" icon="pi pi-copy" [loading]="duplicating()" [disabled]="!duplicateWeek() || duplicating()" (onClick)="submitDuplicate()" />
     </ng-template>
 </p-dialog>

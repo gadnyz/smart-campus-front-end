@@ -4,6 +4,11 @@ import { addDays, formatEntryTime, parseApiDate, rangesOverlap } from './timetab
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/** Promotions invitées, dans un ordre stable : deux listes égales à l'ordre près sont la même. */
+export function audienceKey(ids: readonly string[] | undefined): string {
+    return [...(ids ?? [])].sort().join(',');
+}
+
 export function dateOfDay(weekStart: string, day: WeekDay): string {
     return addDays(weekStart, day - 1);
 }
@@ -34,7 +39,8 @@ export function groupEntriesIntoLines(entries: readonly TimetableEntry[], weekSt
             formatEntryTime(entry.end_hour),
             entry.room_id,
             entry.session_type,
-            entry.note
+            entry.note,
+            audienceKey(entry.audience_program_level_ids)
         ].join('|');
 
         const existing = lineByKey.get(key);
@@ -53,6 +59,7 @@ export function groupEntriesIntoLines(entries: readonly TimetableEntry[], weekSt
             room_id: entry.room_id,
             session_type: entry.session_type,
             note: entry.note,
+            shared_with: [...(entry.audience_program_level_ids ?? [])],
             entry_ids: { [day]: entry.id }
         };
         lineByKey.set(key, line);
@@ -119,7 +126,9 @@ export function planSave(lines: readonly SessionLine[], weekStart: string, persi
                 room_id: line.room_id,
                 course_assignment_id: line.course_assignment_id,
                 session_type: line.session_type,
-                note: line.note || undefined
+                note: line.note || undefined,
+                // Toujours envoyé : une liste vide fait de la séance une séance de l'hôte seul.
+                shared_with_program_level_ids: [...(line.shared_with ?? [])]
             };
             const id = line.entry_ids[day];
             const current = id ? persistedById.get(id) : undefined;
@@ -147,6 +156,7 @@ function hasChanged(entry: TimetableEntry, payload: TimetableEntryItemRequest): 
         entry.room_id !== payload.room_id ||
         entry.course_assignment_id !== payload.course_assignment_id ||
         entry.session_type !== payload.session_type ||
-        (entry.note || '') !== (payload.note || '')
+        (entry.note || '') !== (payload.note || '') ||
+        audienceKey(entry.audience_program_level_ids) !== audienceKey(payload.shared_with_program_level_ids)
     );
 }

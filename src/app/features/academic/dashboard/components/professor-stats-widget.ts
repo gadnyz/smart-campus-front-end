@@ -30,9 +30,10 @@ export class ProfessorStatsWidget implements OnInit {
     }));
 
     ngOnInit(): void {
-        this.professorService.getAll().subscribe({
-            next: (professors) => {
-                this.totalProfessors.set(professors.length);
+        // Le total de la première page suffit : inutile de charger tous les professeurs.
+        this.professorService.list({ page: 0, size: 1 }).subscribe({
+            next: (page) => {
+                this.totalProfessors.set(page.total_elements);
                 this.loading.set(false);
             },
             error: () => {

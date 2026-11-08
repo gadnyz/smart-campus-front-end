@@ -1,10 +1,10 @@
 <p-toast />
 <p-confirmdialog [style]="{ width: '450px' }" />
 
-<app-content-subtopbar kicker="Paramètres Planification" title="Salles" [actions]="actions()" />
+<app-content-subtopbar kicker="" title="Salles" [actions]="actions()" />
 
 <div class="card">
-    <p-table
+    <p-table styleClass="stack-table"
         #dt
         [value]="filteredRooms()"
         [loading]="loading()"
@@ -56,18 +56,18 @@
 
         <ng-template pTemplate="body" let-room>
             <tr>
-                <td>{{ room.name }}</td>
-                <td>{{ room.location }}</td>
-                <td>{{ room.capacity }}</td>
-                <td>{{ roomTypeLabel(room.type) }}</td>
-                <td>
+                <td data-label="Nom">{{ room.name }}</td>
+                <td data-label="Localisation">{{ room.location }}</td>
+                <td data-label="Capacité">{{ room.capacity }}</td>
+                <td data-label="Type">{{ roomTypeLabel(room.type) }}</td>
+                <td data-label="Lien">
                     @if (room.link) {
                     <a [href]="room.link" target="_blank" rel="noopener noreferrer">Ouvrir</a>
                     } @else {
                     —
                     }
                 </td>
-                <td>
+                <td class="stack-actions">
                     <div class="flex gap-2">
                         @if (canUpdate()) {
                         <button
@@ -76,7 +76,6 @@
                             icon="pi pi-pencil"
                             rounded
                             outlined
-                            severity="info"
                             [attr.aria-label]="'Modifier ' + room.name"
                             (click)="openEditDialog(room)"
                         ></button>

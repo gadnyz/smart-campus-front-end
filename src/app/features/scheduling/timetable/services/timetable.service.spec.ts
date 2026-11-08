@@ -43,7 +43,7 @@ describe('TimetableService', () => {
         });
 
         const request = httpTesting.expectOne((req) => req.url === baseUrl);
-        expect(request.request.params.keys().sort()).toEqual(['page', 'programLevelId', 'size', 'sort', 'status', 'week']);
+        expect(request.request.params.keys().sort()).toEqual(['page', 'program_level_id', 'size', 'sort', 'status', 'week']);
         expect(request.request.params.get('week')).toBe('2026-10-07');
         request.flush({ content: [raw], page: 0, size: 1, total_elements: 3, total_pages: 3 });
 
@@ -77,7 +77,7 @@ describe('TimetableService', () => {
         service.getOwnWeek('2026-10-07').subscribe((items) => (entries = items));
 
         const request = httpTesting.expectOne((req) => req.url === `${baseUrl}/me/week`);
-        expect(request.request.params.get('referenceDate')).toBe('2026-10-07');
+        expect(request.request.params.get('reference_date')).toBe('2026-10-07');
         request.flush([{ id: 'e-1', room_location: 'Bâtiment A', session_type: 'EXAM' }]);
 
         expect(entries[0].room_location).toBe('Bâtiment A');

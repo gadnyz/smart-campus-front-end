@@ -13,6 +13,11 @@ export class CourseAssignmentService {
     private readonly http = inject(HttpClient);
     private readonly baseUrl = `${environment.apiBaseUrl}/api/v1/course-assignments`;
 
+    /** Affectations du professeur connecté : le serveur le déduit du jeton. */
+    getMine(): Observable<CourseAssignment[]> {
+        return this.http.get<CourseAssignment[]>(`${this.baseUrl}/me`);
+    }
+
     getByCourse(courseId: string): Observable<CourseAssignment[]> {
         return this.http.get<CourseAssignment[]>(`${this.baseUrl}/course/${courseId}`);
     }

@@ -1,17 +1,22 @@
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { Error } from './error';
+import { AppFloatingConfigurator } from '../../layout/component/app.floatingconfigurator';
+import { ErrorPage } from './error';
 
-describe('Error page', () => {
-    let fixture: ComponentFixture<Error>;
+describe('ErrorPage', () => {
+    let fixture: ComponentFixture<ErrorPage>;
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-            imports: [Error],
+            imports: [ErrorPage],
             providers: [provideRouter([])]
-        }).compileComponents();
+        })
+            // Monté dans ce test, le sélecteur de thème déconnecte le navigateur de Karma : il est hors sujet ici.
+            .overrideComponent(ErrorPage, { remove: { imports: [AppFloatingConfigurator] }, add: { schemas: [NO_ERRORS_SCHEMA] } })
+            .compileComponents();
 
-        fixture = TestBed.createComponent(Error);
+        fixture = TestBed.createComponent(ErrorPage);
         fixture.detectChanges();
     });
 
@@ -19,14 +24,13 @@ describe('Error page', () => {
         expect(fixture.componentInstance).toBeTruthy();
     });
 
-    it('should display the corrected headline "Error Occurred" (not "Error Occured")', () => {
+    it('should display the headline in French', () => {
         const headline = fixture.nativeElement.querySelector('h1') as HTMLHeadingElement;
-
-        expect(headline.textContent?.trim()).toBe('Error Occurred');
-        expect(fixture.nativeElement.textContent).not.toContain('Error Occured');
+        expect(headline.textContent?.trim()).toBe('Une erreur est survenue');
     });
 
-    it('should offer a navigation action back to the dashboard', () => {
-        expect(fixture.nativeElement.textContent).toContain('Go to Dashboard');
+    it('should offer a way back to the dashboard, without any external image', () => {
+        expect(fixture.nativeElement.textContent).toContain('Retour au tableau de bord');
+        expect(fixture.nativeElement.querySelector('img')).toBeNull();
     });
 });

@@ -8,6 +8,7 @@ function entry(overrides: Partial<TimetableEntry>): TimetableEntry {
     return {
         id: 'entry',
         timetable_id: 'tt-1',
+        host_program_level_id: 'pl-1',
         date: WEEK,
         start_hour: '08:00:00',
         end_hour: '10:00:00',
@@ -23,6 +24,8 @@ function entry(overrides: Partial<TimetableEntry>): TimetableEntry {
         note: '',
         created_at: '',
         updated_at: '',
+        audience_program_level_ids: [],
+        warnings: [],
         ...overrides
     };
 }
@@ -37,6 +40,7 @@ function line(overrides: Partial<SessionLine>): SessionLine {
         room_id: 'room-1',
         session_type: 'LECTURE',
         note: '',
+        shared_with: [],
         entry_ids: {},
         ...overrides
     };
@@ -151,6 +155,37 @@ describe('timetable-session', () => {
         it('should recreate a session whose id is no longer persisted', () => {
             const plan = planSave([line({ days: [1], entry_ids: { 1: 'stale' } })], WEEK, []);
             expect(plan.toCreate.length).toBe(1);
+        });
+    });
+
+    describe('sessions partagées (tronc commun)', () => {
+        it('should keep sessions shared with different promotions on separate lines', () => {
+            const lines = groupEntriesIntoLines(
+                [
+                    entry({ id: 'a', date: '2026-10-05', audience_program_level_ids: ['pl-2', 'pl-3'] }),
+                    entry({ id: 'b', date: '2026-10-06', audience_program_level_ids: ['pl-3', 'pl-2'] }),
+                    entry({ id: 'c', date: '2026-10-07' })
+                ],
+                WEEK
+            );
+
+            expect(lines.length).toBe(2);
+            expect(lines[0].days).toEqual([1, 2]);
+            expect(lines[0].shared_with).toEqual(['pl-2', 'pl-3']);
+            expect(lines[1].shared_with).toEqual([]);
+        });
+
+        it('should always send the guests, an empty list making a session of the host only', () => {
+            const plan = planSave([line({ days: [1], shared_with: ['pl-2'] }), line({ days: [2] })], WEEK, []);
+
+            expect(plan.toCreate.map((item) => item.payload.shared_with_program_level_ids)).toEqual([['pl-2'], []]);
+        });
+
+        it('should update a session whose guests changed, whatever their order', () => {
+            const persisted = [entry({ id: 'e-mon', audience_program_level_ids: ['pl-2', 'pl-3'] })];
+
+            expect(planSave([line({ entry_ids: { 1: 'e-mon' }, shared_with: ['pl-3', 'pl-2'] })], WEEK, persisted).toUpdate).toEqual([]);
+            expect(planSave([line({ entry_ids: { 1: 'e-mon' }, shared_with: ['pl-2'] })], WEEK, persisted).toUpdate.map((item) => item.id)).toEqual(['e-mon']);
         });
     });
 });

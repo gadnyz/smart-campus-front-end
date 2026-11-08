@@ -1,4 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { toApiParams } from '@/app/shared/http/api-params';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '@/environments/environment';
@@ -27,7 +28,7 @@ export class TimetableService {
      */
     getOwnWeek(referenceDate: string): Observable<StudentTimetableEntry[]> {
         return this.http
-            .get<unknown>(`${this.baseUrl}/me/week`, { params: { referenceDate } })
+            .get<unknown>(`${this.baseUrl}/me/week`, { params: toApiParams({ reference_date: referenceDate }) })
             .pipe(map((body) => asList<unknown>(body).map(asStudentTimetableEntry)));
     }
 
@@ -39,6 +40,15 @@ export class TimetableService {
         return this.http.post<unknown>(this.baseUrl, payload).pipe(map(asTimetable));
     }
 
+    /**
+     * Copie une semaine vers une autre, tout ou rien : un horaire DRAFT est créé pour la semaine
+     * cible avec toutes les séances décalées. Sur 422, rien n'est créé et les séances refusées sont
+     * listées par leur position dans la semaine source (triée par date puis heure de début).
+     */
+    duplicate(id: string, targetWeekStart: string): Observable<Timetable> {
+        return this.http.post<unknown>(`${this.baseUrl}/${id}/duplicate`, { target_week_start: targetWeekStart }).pipe(map(asTimetable));
+    }
+
     changeStatus(id: string, payload: UpdateTimetableStatusRequest): Observable<Timetable> {
         return this.http.patch<unknown>(`${this.baseUrl}/${id}/status`, payload).pipe(map(asTimetable));
     }
@@ -48,25 +58,16 @@ export class TimetableService {
     }
 
     private toParams(query: TimetableListQuery): HttpParams {
-        let params = new HttpParams();
-        const entries: [string, string | number | undefined][] = [
-            ['academicYearId', query.academicYearId],
-            ['facultyId', query.facultyId],
-            ['programId', query.programId],
-            ['programLevelId', query.programLevelId],
-            ['week', query.week],
-            ['status', query.status],
-            ['page', query.page],
-            ['size', query.size]
-        ];
-        for (const [key, value] of entries) {
-            if (value !== undefined && value !== '') {
-                params = params.set(key, String(value));
-            }
-        }
-        for (const sort of query.sort ?? []) {
-            params = params.append('sort', sort);
-        }
-        return params;
+        return toApiParams({
+            academic_year_id: query.academicYearId,
+            faculty_id: query.facultyId,
+            program_id: query.programId,
+            program_level_id: query.programLevelId,
+            week: query.week,
+            status: query.status,
+            page: query.page,
+            size: query.size,
+            sort: query.sort ?? []
+        });
     }
 }

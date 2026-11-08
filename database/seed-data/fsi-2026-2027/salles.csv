@@ -1,0 +1,9 @@
+nom;lieu;capacite;type;remarque
+SALLE JUSTINE;Bâtiment UNH 1;60;NORMAL;Capacité provisoire
+432;Bâtiment UNH 1;60;NORMAL;Capacité provisoire
+442;Bâtiment UNH 1;60;NORMAL;Capacité provisoire
+402 A;Bâtiment UNH 1;60;NORMAL;Capacité provisoire
+ATELIER GENIE ELECT.;Bâtiment UNH 2;60;LABORATORY;Capacité provisoire
+LOCAL 7;Bâtiment UNH 2;60;NORMAL;Capacité provisoire
+A POURVOIR;Campus UNH;60;NORMAL;Salle provisoire : séance sans salle attribuée
+A MODIFIER;Campus UNH;60;NORMAL;Salle provisoire : salle à changer

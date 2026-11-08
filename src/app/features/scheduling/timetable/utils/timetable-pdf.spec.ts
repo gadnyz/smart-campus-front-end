@@ -34,9 +34,12 @@ describe('buildPdfDefinition', () => {
     it('should head each page with the logo, « Horaire », the title and the period, then the level and program', () => {
         const header = content[0] as ContentColumns;
         expect((header.columns[0] as unknown as { image?: string }).image).toBe(branding.logo);
-        const center: string[] = (header.columns[1] as unknown as { stack: unknown[] }).stack.map(textOf);
-        expect(center).toEqual(['Horaire', 'Faculté des Sciences Informatiques', 'Du 19 au 25 octobre 2026']);
+        const titles = header.columns[1] as unknown as { alignment: string; stack: { fontSize: number }[] };
+        expect(titles.alignment).toBe('left');
+        expect(titles.stack.map(textOf)).toEqual(['Horaire', 'FACULTÉ DES SCIENCES INFORMATIQUES', 'Du 19 au 25 octobre 2026']);
         expect(textOf(content[1])).toBe('L1 — Science Informatique');
+        // La promotion n'est pas plus grande que la faculté.
+        expect((content[1] as { fontSize: number }).fontSize).toBeLessThan(titles.stack[1].fontSize);
     });
 
     it('should draw the grid of the « Horaire Faculté » model', () => {

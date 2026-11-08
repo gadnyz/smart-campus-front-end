@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
+import { writeAuthorities } from '@/app/core/permissions/permission-scope';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -16,7 +18,6 @@ import { ToastModule } from 'primeng/toast';
 import { forkJoin, map } from 'rxjs';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { DetailNavigationService } from '@/app/shared/navigation/detail-navigation.service';
-import { AcademicPermission } from '../../permissions/permission.model';
 import { Faculty } from '../../models/faculty.model';
 import {
     PROFESSOR_GENDER_OPTIONS,
@@ -43,6 +44,7 @@ export interface ProfessorRow extends Professor {
     standalone: true,
     imports: [
         CommonModule,
+        FormsModule,
         ReactiveFormsModule,
         TableModule,
         ButtonModule,
@@ -56,6 +58,7 @@ export interface ProfessorRow extends Professor {
         ContentSubtopbar
     ],
     templateUrl: './professor-list.html',
+    styleUrl: './professor-list.scss',
     providers: [MessageService]
 })
 export class ProfessorListPage implements OnInit {
@@ -74,6 +77,8 @@ export class ProfessorListPage implements OnInit {
     readonly loading = signal(false);
     readonly saving = signal(false);
     readonly dialogVisible = signal(false);
+    /** Faculté choisie (portée all) : vide, tous les professeurs. */
+    readonly selectedFacultyId = signal<string | null>(null);
 
     readonly genderOptions = PROFESSOR_GENDER_OPTIONS;
     readonly maritalStatusOptions = PROFESSOR_MARITAL_STATUS_OPTIONS;
@@ -96,7 +101,9 @@ export class ProfessorListPage implements OnInit {
         const gradeById = new Map(this.grades().map((grade) => [grade.id, grade]));
         const facultyById = new Map(this.faculties().map((faculty) => [faculty.id, faculty]));
 
+        const facultyId = this.selectedFacultyId();
         return this.professors()
+            .filter((professor) => !facultyId || professor.faculty_id === facultyId)
             .map((professor) => ({
                 ...professor,
                 faculty_name: professor.faculty_name || facultyById.get(professor.faculty_id)?.name,
@@ -136,17 +143,20 @@ export class ProfessorListPage implements OnInit {
             severity: 'info',
             outlined: false,
             command: () => this.openCreateDialog(),
-            permissions: [AcademicPermission.ProfessorCreateAll]
+            permissions: writeAuthorities('academic:professor:create')
         }
     ]);
 
     private readonly facultyScope = inject(FacultyScopeService);
 
-    readonly facultyLocked = computed(() => this.facultyScope.isFacultyScoped());
+    readonly facultyLocked = computed(() => this.facultyScope.isScopedFor('academic:professor:read'));
 
     private load(): void {
         this.loading.set(true);
-        const locked = this.facultyScope.scopedId();
+        const locked = this.facultyScope.scopedIdFor('academic:professor:read');
+        if (!locked) {
+            this.selectedFacultyId.set(this.facultyScope.workingFacultyId());
+        }
 
         forkJoin({
             professors: locked
@@ -162,32 +172,43 @@ export class ProfessorListPage implements OnInit {
                 this.grades.set(sortedGrades);
                 this.faculties.set([...faculties].sort((a, b) => a.name.localeCompare(b.name)));
                 this.professors.set(professors);
-                const rows = this.rows();
-                this.detailNavigation.setContext({
-                    scope: this.navigationScope,
-                    listRoute: ['/academic/professors'],
-                    page: 0,
-                    size: rows.length,
-                    totalElements: rows.length,
-                    totalPages: 1,
-                    items: rows.map((row) => ({
-                        id: row.id,
-                        label: row.display_name
-                    }))
-                });
+                this.setNavigation();
                 this.loading.set(false);
             },
             error: (error: HttpErrorResponse) => {
                 this.professors.set([]);
                 this.loading.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de charger les professeurs.');
+                this.showError(apiErrorMessage(error, 'Impossible de charger les professeurs.'));
             }
+        });
+    }
+
+    onFacultyFilterChange(facultyId: string | null): void {
+        this.facultyScope.rememberFaculty(facultyId);
+        this.selectedFacultyId.set(facultyId);
+        this.setNavigation();
+    }
+
+    /** Précédent / suivant de la fiche suivent la liste affichée. */
+    private setNavigation(): void {
+        const rows = this.rows();
+        this.detailNavigation.setContext({
+            scope: this.navigationScope,
+            listRoute: ['/academic/professors'],
+            page: 0,
+            size: rows.length,
+            totalElements: rows.length,
+            totalPages: 1,
+            items: rows.map((row) => ({
+                id: row.id,
+                label: row.display_name
+            }))
         });
     }
 
     openCreateDialog(): void {
         this.form.reset({
-            faculty_id: this.facultyScope.scopedId(),
+            faculty_id: this.facultyScope.scopedIdFor('academic:professor:read') ?? this.selectedFacultyId(),
             professor_grade_id: null,
             first_name: '',
             last_name: '',

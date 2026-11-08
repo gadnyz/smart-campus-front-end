@@ -41,6 +41,32 @@ export function scopedAuthority(permission: string, scope: PermissionScope): str
     return `${permission}:${scope}`;
 }
 
+/**
+ * Portées d'un droit de gestion. `own` en est exclu : modifier son propre dossier (un candidat,
+ * un étudiant) ne fait pas de quelqu'un un gestionnaire de la ressource.
+ */
+export const MANAGEMENT_SCOPES: readonly PermissionScope[] = ['promotion', 'program', 'faculty', 'all'];
+
+/** Les clés qui autorisent `permission` (`academic:student:update`) au-delà de soi-même. */
+export function writeAuthorities(permission: string): string[] {
+    return MANAGEMENT_SCOPES.map((scope) => scopedAuthority(permission, scope));
+}
+
+/** Portées de lecture qui ouvrent un écran de gestion : celle de sa faculté, ou de tout. */
+export const MANAGEMENT_READ_SCOPES: readonly PermissionScope[] = ['faculty', 'all'];
+
+/**
+ * Les clés qui ouvrent l'écran de gestion d'une ressource (`academic:student`) : une écriture
+ * (création, modification, suppression) à une portée de gestion, ou la lecture de sa faculté
+ * ou de tout. Les actions de l'écran restent soumises à l'écriture (`canWrite`).
+ */
+export function manageAuthorities(resource: string): string[] {
+    return [
+        ...['create', 'update', 'delete'].flatMap((action) => writeAuthorities(`${resource}:${action}`)),
+        ...MANAGEMENT_READ_SCOPES.map((scope) => scopedAuthority(`${resource}:read`, scope))
+    ];
+}
+
 /** Rang d'une portée, de la plus étroite (`own`) à la plus large (`all`). */
 export function scopeRank(scope: PermissionScope): number {
     return PERMISSION_SCOPES.indexOf(scope);

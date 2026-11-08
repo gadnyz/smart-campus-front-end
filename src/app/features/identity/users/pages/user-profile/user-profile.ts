@@ -1,4 +1,5 @@
 import { CommonModule, Location } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -144,7 +145,7 @@ export class UserProfile implements OnInit, OnDestroy {
                 this.loading.set(false);
             },
             error: (error: HttpErrorResponse) => {
-                this.showError(error.error?.detail ?? 'Impossible de charger ton profil.');
+                this.showError(apiErrorMessage(error, 'Impossible de charger ton profil.'));
                 this.loading.set(false);
             }
         });
@@ -194,7 +195,7 @@ export class UserProfile implements OnInit, OnDestroy {
                     this.showSuccess('Mot de passe modifié avec succès.');
                 },
                 error: (error: HttpErrorResponse) => {
-                    this.showError(error.error?.detail ?? 'Impossible de modifier le mot de passe.');
+                    this.showError(apiErrorMessage(error, 'Impossible de modifier le mot de passe.'));
                 }
             });
     }
@@ -329,13 +330,13 @@ export class UserProfile implements OnInit, OnDestroy {
                     this.saving.set(false);
 
                     if (error.status === 400 && error.error?.invalid_fields) {
-                        this.showError(error.error?.detail ?? 'La requête contient des champs non valides.');
+                        this.showError(apiErrorMessage(error, 'La requête contient des champs non valides.'));
                         this.validationErrors.set(error.error.invalid_fields);
                         return;
                     }
 
                     if (error.status === 409) {
-                        this.showError(error.error?.detail ?? 'Ces informations existent déjà.');
+                        this.showError(apiErrorMessage(error, 'Ces informations existent déjà.'));
                         return;
                     }
 
@@ -344,7 +345,7 @@ export class UserProfile implements OnInit, OnDestroy {
                         return;
                     }
 
-                    this.showError(error.error?.detail ?? 'Une erreur est survenue lors de la modification du profil.');
+                    this.showError(apiErrorMessage(error, 'Une erreur est survenue lors de la modification du profil.'));
                 }
             });
     }

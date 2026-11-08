@@ -1,4 +1,6 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
+import { writeAuthorities } from '@/app/core/permissions/permission-scope';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -25,7 +27,6 @@ import {
     DetailNavigationService,
     DetailNavigationState
 } from '@/app/shared/navigation/detail-navigation.service';
-import { AcademicPermission } from '../../permissions/permission.model';
 import { AcademicYear } from '../../models/academic-year.model';
 import { Course } from '../../models/course.model';
 import { CourseAssignment, CourseAssignmentType } from '../../models/course-assignment.model';
@@ -117,7 +118,7 @@ export class ProfessorDetailPage implements OnInit {
     readonly canGoNext = computed(() => this.navigationState()?.hasNext ?? false);
 
     readonly canAssign = computed(() =>
-        this.permissionService.hasAnyPermission([AcademicPermission.CourseAssignmentCreateAll])
+        this.permissionService.canWrite('academic:course-assignment:create')
     );
 
     readonly title = computed(() => {
@@ -275,7 +276,7 @@ export class ProfessorDetailPage implements OnInit {
             label: 'Modifier',
             icon: 'pi pi-pencil',
             command: () => this.openEdit(),
-            permissions: [AcademicPermission.ProfessorUpdateAll]
+            permissions: writeAuthorities('academic:professor:update')
         },
         {
             label: 'Supprimer',
@@ -283,7 +284,7 @@ export class ProfessorDetailPage implements OnInit {
             severity: 'danger',
             outlined: true,
             command: () => this.confirmDelete(),
-            permissions: [AcademicPermission.ProfessorDeleteAll]
+            permissions: writeAuthorities('academic:professor:delete')
         }
     ]);
 
@@ -413,7 +414,7 @@ export class ProfessorDetailPage implements OnInit {
                 },
                 error: (error: HttpErrorResponse) => {
                     this.saving.set(false);
-                    this.showError(error.error?.detail ?? 'Impossible de modifier le professeur.');
+                    this.showError(apiErrorMessage(error, 'Impossible de modifier le professeur.'));
                 }
             });
     }
@@ -503,7 +504,7 @@ export class ProfessorDetailPage implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.savingAssignment.set(false);
-                this.showError(error.error?.detail ?? 'Impossible d’affecter ce cours.');
+                this.showError(apiErrorMessage(error, 'Impossible d’affecter ce cours.'));
             }
         });
     }
@@ -546,7 +547,7 @@ export class ProfessorDetailPage implements OnInit {
                 this.ensureCourses();
             },
             error: (error: HttpErrorResponse) =>
-                this.showError(error.error?.detail ?? 'Impossible de charger les cours.')
+                this.showError(apiErrorMessage(error, 'Impossible de charger les cours.'))
         });
     }
 
@@ -568,7 +569,7 @@ export class ProfessorDetailPage implements OnInit {
                 void this.router.navigate(['/academic/professors']);
             },
             error: (error: HttpErrorResponse) => {
-                this.showError(error.error?.detail ?? 'Impossible de supprimer ce professeur.');
+                this.showError(apiErrorMessage(error, 'Impossible de supprimer ce professeur.'));
             }
         });
     }

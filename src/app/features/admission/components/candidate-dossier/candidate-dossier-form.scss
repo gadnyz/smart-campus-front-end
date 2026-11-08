@@ -1,0 +1,28 @@
+// Rubriques du dossier en saisie : mêmes cartes que la lecture.
+@use 'dossier';
+
+:host {
+    @include dossier.tokens;
+    display: block;
+}
+
+@include dossier.card;
+
+.portal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    min-width: 0;
+}
+
+.field-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.field-error {
+    color: var(--red-500);
+    font-size: 0.8rem;
+}

@@ -15,3 +15,7 @@ export interface CreateAcademicYearRequest {
     start_date: string;
     end_date: string;
 }
+/** Libellé d'une année à partir de ses dates : « 2026-2027 » du 15/10/2026 au 14/10/2027. */
+export function academicYearLabel(start: Date | null | undefined, end: Date | null | undefined): string {
+    return start && end ? `${start.getFullYear()}-${end.getFullYear()}` : '';
+}

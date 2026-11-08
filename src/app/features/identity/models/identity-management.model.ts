@@ -28,6 +28,11 @@ export interface AddPrivilegesRequest {
     privilege_ids: string[];
 }
 
+/** `POST /privileges` : une autorité `module:ressource:action[:portée]`. */
+export interface CreatePrivilegeRequest {
+    name: string;
+}
+
 export interface PrivilegeResponse {
     id: string;
     name: string;

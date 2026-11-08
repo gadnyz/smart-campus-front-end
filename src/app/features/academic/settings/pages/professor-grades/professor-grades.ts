@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -34,6 +35,7 @@ import { ProfessorGradeService } from '../../../services/professor-grade.service
         ContentSubtopbar
     ],
     templateUrl: './professor-grades.html',
+    styleUrl: './professor-grades.scss',
     providers: [ConfirmationService, MessageService]
 })
 export class ProfessorGradesPage implements OnInit {
@@ -165,7 +167,7 @@ export class ProfessorGradesPage implements OnInit {
                 this.showSuccess(`Grade ${grade.code} supprimé.`);
             },
             error: (error: HttpErrorResponse) => {
-                this.showError(error.error?.detail ?? 'Impossible de supprimer ce grade.');
+                this.showError(apiErrorMessage(error, 'Impossible de supprimer ce grade.'));
             }
         });
     }
@@ -181,7 +183,7 @@ export class ProfessorGradesPage implements OnInit {
             error: (error: HttpErrorResponse) => {
                 this.grades.set([]);
                 this.loading.set(false);
-                this.showError(error.error?.detail ?? 'Impossible de charger les grades.');
+                this.showError(apiErrorMessage(error, 'Impossible de charger les grades.'));
             }
         });
     }

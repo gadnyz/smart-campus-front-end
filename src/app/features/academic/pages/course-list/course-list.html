@@ -1,9 +1,9 @@
 <p-toast />
 
-<app-content-subtopbar kicker="Academic" title="Cours" [actions]="actions()" />
+<app-content-subtopbar kicker="Académique" title="Cours" [actions]="actions()" />
 
 <div class="card">
-    <p-table #dt [value]="courses()" [loading]="loading()" [paginator]="true" [rows]="10"
+    <p-table styleClass="stack-table" #dt [value]="courses()" [loading]="loading()" [paginator]="true" [rows]="10"
         [rowsPerPageOptions]="[10, 20, 50]" [globalFilterFields]="['code', 'name']" [rowHover]="true" dataKey="id"
         responsiveLayout="scroll" currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} cours"
         [showCurrentPageReport]="true" [tableStyle]="{ 'min-width': '40rem' }">
@@ -12,10 +12,14 @@
                 <div class="font-semibold text-xl">Liste des cours</div>
                 <div class="flex flex-col gap-3 md:flex-row md:items-center">
 
+                    @if (!facultyLocked()) {
                     <p-select [options]="facultyOptions()" optionLabel="label" optionValue="value"
                         [ngModel]="selectedFacultyId()" (ngModelChange)="onFacultyFilterChange($event)"
-                        [showClear]="!facultyLocked()" [disabled]="facultyLocked()" placeholder="Faculté"
+                        [showClear]="true" placeholder="Choisir une faculté" [filter]="true"
                         appendTo="body" class="w-full md:w-14rem" />
+                    } @else {
+                    <span class="text-sm text-color-secondary whitespace-nowrap"><i class="pi pi-building-columns mr-1"></i>{{ facultyOptions()[0]?.label }}</span>
+                    }
                     <p-select [options]="programOptions()" optionLabel="label" optionValue="value"
                         [ngModel]="selectedProgramId()" (ngModelChange)="onProgramFilterChange($event)"
                         placeholder="Programme" appendTo="body" class="w-full md:w-14rem"
@@ -44,11 +48,11 @@
 
         <ng-template pTemplate="body" let-course>
             <tr>
-                <td>{{ course.code }}</td>
-                <td>{{ course.name }}</td>
-                <td>{{ course.credits }}</td>
-                <td>
-                    <button pButton type="button" icon="pi pi-arrow-right" rounded outlined severity="info"
+                <td data-label="Code">{{ course.code }}</td>
+                <td data-label="Nom">{{ course.name }}</td>
+                <td data-label="Crédits">{{ course.credits }}</td>
+                <td class="stack-actions">
+                    <button pButton type="button" icon="pi pi-arrow-right" rounded outlined
                         [attr.aria-label]="'Détail ' + course.code" (click)="openDetail(course)"></button>
                 </td>
             </tr>
@@ -66,11 +70,13 @@
 <p-dialog header="Nouveau cours" [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)" [modal]="true"
     [style]="{ width: '36rem' }" [breakpoints]="{ '640px': '95vw' }">
     <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="submit()">
+        @if (!facultyLocked()) {
         <div>
             <label class="block text-sm text-color-secondary mb-1">Faculté</label>
             <p-select formControlName="faculty_id" [options]="facultyOptions()" optionLabel="label" optionValue="value"
                 appendTo="body" class="w-full" />
         </div>
+        }
         <div>
             <label class="block text-sm text-color-secondary mb-1">Programme</label>
             <p-select formControlName="program_id" [options]="programOptions()" optionLabel="label" optionValue="value"

@@ -1,7 +1,7 @@
 <p-toast />
 <p-confirmdialog [style]="{ width: '450px' }" />
 
-<app-content-subtopbar kicker="Academic" [title]="title()" [actions]="actions()" />
+<app-content-subtopbar kicker="Académique" [title]="title()" [actions]="actions()" />
 
 <div class="card mb-4">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -36,7 +36,7 @@
                 <td>
                     <div class="flex gap-2">
                         @if (canUpdatePrograms()) {
-                        <button pButton type="button" icon="pi pi-pencil" rounded outlined severity="info"
+                        <button pButton type="button" icon="pi pi-pencil" rounded outlined
                             (click)="openEditProgram(program)"></button>
                         }
                         @if (canDeletePrograms()) {

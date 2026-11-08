@@ -63,7 +63,7 @@ describe('ProfessorDetailPage', () => {
         name: 'Bases de données',
         description: 'SQL',
         credits: 4,
-        course_unit_id: 'u-1'
+        faculty_id: 'fac-1'
     };
 
     beforeEach(async () => {

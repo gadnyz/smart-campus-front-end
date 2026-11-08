@@ -69,23 +69,24 @@ function gridTable(grid: PrintGrid): Content {
 function weekPage(timetable: PrintableTimetable, grid: PrintGrid, branding: PdfBranding, first: boolean): Content[] {
     return [
         {
-            // En-tête « Horaire Faculté » : logo à gauche, titre et période au centre.
+            // En-tête « Horaire Faculté » : logo, puis titre, faculté et période alignés à gauche.
             columns: [
                 branding.logo ? { image: branding.logo, width: LOGO_WIDTH } : { text: '', width: LOGO_WIDTH },
                 {
                     width: '*',
-                    alignment: 'center',
+                    alignment: 'left',
                     stack: [
-                        { text: 'Horaire', fontSize: 22, bold: true },
-                        { text: timetable.title, fontSize: 12, margin: [0, 2, 0, 0] },
+                        { text: 'Horaire', fontSize: 22, bold: true, color: PRINT_COLORS.header },
+                        { text: timetable.title.toLocaleUpperCase('fr-FR'), fontSize: 13, bold: true, margin: [0, 2, 0, 0] },
                         { text: grid.period, fontSize: 11, color: PRINT_COLORS.muted, margin: [0, 2, 0, 0] }
                     ]
-                },
-                { text: '', width: LOGO_WIDTH }
+                }
             ],
+            columnGap: 12,
             pageBreak: first ? undefined : 'before'
         },
-        { text: timetable.heading, fontSize: 15, bold: true, margin: [0, 12, 0, 10] },
+        // Promotion et programme : sous la faculté, donc plus petits qu'elle.
+        { text: timetable.heading, fontSize: 11, bold: true, margin: [0, 12, 0, 8] },
         gridTable(grid)
     ];
 }

@@ -2,7 +2,7 @@ import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { AbstractControl, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
     EMPTY,
@@ -46,9 +46,9 @@ import {
 } from '@/app/features/academic/academic.public-api';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { Room } from '../../../models/room.model';
-import { SchedulingPermission } from '../../../permissions/permission.model';
+import { SchedulingResource } from '../../../permissions/permission.model';
 import { RoomService } from '../../../services/room.service';
-import { SESSION_TYPE_OPTIONS, SessionType, TimetableEntry, sessionTypeLabel } from '../../models/timetable-entry.model';
+import { SESSION_TYPE_OPTIONS, SessionType, TimetableEntry, isHostedBy, sessionTypeLabel } from '../../models/timetable-entry.model';
 import {
     CreateTimetableRequest,
     Timetable,
@@ -61,7 +61,7 @@ import { SessionLine, WEEK_DAY_OPTIONS, WeekDay, weekDayLabel } from '../../mode
 import { TimetableEntryService } from '../../services/timetable-entry.service';
 import { TimetableScopeService } from '../../services/timetable-scope.service';
 import { TimetableService } from '../../services/timetable.service';
-import { programLevelOptions } from '../../utils/program-level';
+import { programLevelLabel, programLevelOptions } from '../../utils/program-level';
 import { readBatchErrors, timetableErrorMessage } from '../../utils/timetable-error';
 import { goBack } from '@/app/shared/navigation/go-back';
 import { TIMETABLE_PATH } from '../../utils/timetable-routes';
@@ -70,8 +70,8 @@ import { printableFromTimetable } from '../../utils/timetable-print-grid';
 import { PrintableTimetable } from '../../models/timetable-print.model';
 import { ProfessorLabelService } from '../../services/professor-label.service';
 import { TimetableExportMenu } from '../../components/timetable-export-menu/timetable-export-menu';
-import { PlannedEntry, SavePlan, findOverlappingLines, groupEntriesIntoLines, planSave } from '../../utils/timetable-session';
-import { formatEntryTime, isEndAfterStart, mondayOf, parseApiDate, parseApiTime, toApiDate, toApiTime } from '../../utils/timetable-time';
+import { PlannedEntry, SavePlan, dayOfWeek, findOverlappingLines, groupEntriesIntoLines, planSave } from '../../utils/timetable-session';
+import { addDays, formatEntryTime, isEndAfterStart, mondayOf, parseApiDate, parseApiTime, toApiDate, toApiTime } from '../../utils/timetable-time';
 import { LeaveConfirmable } from './timetable-form-leave.guard';
 
 type LineForm = FormGroup<{
@@ -83,6 +83,7 @@ type LineForm = FormGroup<{
     room_id: FormControl<string | null>;
     session_type: FormControl<SessionType>;
     note: FormControl<string>;
+    shared_with: FormControl<string[]>;
     entry_ids: FormControl<Partial<Record<WeekDay, string>>>;
 }>;
 
@@ -128,7 +129,7 @@ function endAfterStart(group: AbstractControl): ValidationErrors | null {
     selector: 'app-timetable-form-page',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [ReactiveFormsModule, ButtonModule, ConfirmDialogModule, DatePicker, DialogModule, MultiSelectModule, SelectModule, TableModule, TagModule, Textarea, ToastModule, ContentSubtopbar, TimetableExportMenu],
+    imports: [FormsModule, ReactiveFormsModule, ButtonModule, ConfirmDialogModule, DatePicker, DialogModule, MultiSelectModule, SelectModule, TableModule, TagModule, Textarea, ToastModule, ContentSubtopbar, TimetableExportMenu],
     templateUrl: './timetable-form.html',
     styleUrl: './timetable-form.scss',
     providers: [ConfirmationService, MessageService]
@@ -168,6 +169,37 @@ export class TimetableFormPage implements LeaveConfirmable {
     readonly timetable = signal<Timetable | null>(null);
     /** Séances telles qu'enregistrées sur le serveur, tenues à jour après chaque écriture. */
     readonly persisted = signal<TimetableEntry[]>([]);
+    /** Séances hébergées par cette promotion : les seules qui se modifient ici. */
+    readonly hostedEntries = computed(() => {
+        const programLevelId = this.timetable()?.program_level_id ?? '';
+        return this.persisted().filter((entry) => isHostedBy(entry, programLevelId));
+    });
+    /** Séances d'une autre promotion auxquelles celle-ci assiste (tronc commun) : en lecture seule. */
+    readonly sharedInEntries = computed(() => {
+        const programLevelId = this.timetable()?.program_level_id ?? '';
+        return this.persisted()
+            .filter((entry) => !isHostedBy(entry, programLevelId))
+            .sort((a, b) => a.date.localeCompare(b.date) || a.start_hour.localeCompare(b.start_hour));
+    });
+    /** « Programme — niveau » de chaque promotion de la faculté. */
+    readonly promotionLabels = computed(
+        () => new Map(this.programs().flatMap((program) => (program.levels ?? []).map((level) => [level.id, `${program.name} — ${programLevelLabel(level)}`] as const)))
+    );
+    /** Promotions qui peuvent assister aux séances de celle-ci : les autres de la faculté. */
+    readonly audienceOptions = computed(() => {
+        const own = this.timetable()?.program_level_id;
+        return [...this.promotionLabels()].filter(([id]) => id !== own).map(([value, label]) => ({ label, value }));
+    });
+    /** Avertissements non bloquants des écritures en cours (enseignant déjà pris…). */
+    private saveWarnings: string[] = [];
+
+    readonly duplicateVisible = signal(false);
+    readonly duplicateWeek = signal<Date | null>(null);
+    readonly duplicating = signal(false);
+    readonly duplicateErrors = signal<string[]>([]);
+    readonly canDuplicate = computed(
+        () => !!this.editId() && this.hostedEntries().length > 0 && this.permissionService.canWrite(`${SchedulingResource.Timetable}:create`)
+    );
     /** Enseignants avec leur grade, pour les exports (« C.C Ortega KABWE »). */
     private readonly professorNames = toSignal(inject(ProfessorLabelService).labels(), { initialValue: new Map<string, string>() });
     /** Séances enregistrées, au format « Horaire Faculté » : l'export reflète le serveur. */
@@ -227,17 +259,17 @@ export class TimetableFormPage implements LeaveConfirmable {
             disabled: this.statusChanging() || this.saving(),
             command: () => this.changeStatus(action)
         })),
+        ...(this.canDuplicate()
+            ? [{ label: 'Dupliquer', icon: 'pi pi-copy', severity: 'secondary' as const, outlined: true, disabled: this.saving(), command: () => this.openDuplicate() }]
+            : [])
     ]);
+    /** Modifier les séances, à la portée de sa faculté ou partout. */
     readonly canEditEntries = computed(() =>
-        this.permissionService.hasAnyPermission([
-            SchedulingPermission.TimetableEntryCreateAll,
-            SchedulingPermission.TimetableEntryUpdateAll,
-            SchedulingPermission.TimetableEntryDeleteAll
-        ])
+        ['create', 'update', 'delete'].some((action) => this.permissionService.canWrite(`${SchedulingResource.TimetableEntry}:${action}`))
     );
     readonly validated = computed(() => this.timetable()?.status === 'VALIDATED');
     readonly readOnly = computed(() => this.validated() || !this.canEditEntries());
-    readonly canChangeStatus = computed(() => this.permissionService.hasAnyPermission([SchedulingPermission.TimetableUpdateAll]));
+    readonly canChangeStatus = computed(() => this.permissionService.canWrite(`${SchedulingResource.Timetable}:update`));
     readonly statusActions = computed<TimetableStatusAction[]>(() => {
         const timetable = this.timetable();
         return timetable && this.canChangeStatus() ? timetableStatusActions(timetable.status) : [];
@@ -464,6 +496,28 @@ export class TimetableFormPage implements LeaveConfirmable {
         return [...line.controls.days.value].sort((a, b) => a - b).map(weekDayLabel).join(', ') || '—';
     }
 
+    /** « Partagée avec L1 Gestion, L1 Économie » pour une ligne de tronc commun, vide sinon. */
+    sharedLabel(line: LineForm): string {
+        const labels = line.controls.shared_with.value.map((id) => this.promotionLabels().get(id) ?? '—');
+        return labels.length ? `Partagée avec ${labels.join(', ')}` : '';
+    }
+
+    /** Séances partagées par une autre promotion, prêtes à afficher. */
+    readonly sharedInRows = computed(() => {
+        const weekStart = this.timetable()?.week_start ?? '';
+        return this.sharedInEntries().map((entry) => {
+            const day = weekStart ? dayOfWeek(weekStart, entry.date) : null;
+            return {
+                id: entry.id,
+                day: day ? weekDayLabel(day) : entry.date,
+                hours: `${formatEntryTime(entry.start_hour)} – ${formatEntryTime(entry.end_hour)}`,
+                course: entry.course_name || entry.course_code,
+                room: entry.room_name,
+                host: this.promotionLabels().get(entry.host_program_level_id) ?? 'Autre promotion'
+            };
+        });
+    });
+
     typeLabel(line: LineForm): string {
         return sessionTypeLabel(line.controls.session_type.value);
     }
@@ -506,7 +560,8 @@ export class TimetableFormPage implements LeaveConfirmable {
             return;
         }
 
-        const plan = planSave(values, timetable.week_start, this.persisted());
+        const plan = planSave(values, timetable.week_start, this.hostedEntries());
+        this.saveWarnings = [];
         this.saving.set(true);
         this.executePlan(timetable.id, plan)
             .pipe(takeUntilDestroyed(this.destroyRef))
@@ -657,6 +712,7 @@ export class TimetableFormPage implements LeaveConfirmable {
                 next: ({ timetable, entries }) => {
                     this.timetable.set(timetable);
                     this.persisted.set(entries);
+                    this.leaveAllowed = false;
                     this.createdHere = false;
                     this.selectedProgramId.set(timetable.program_id);
                     this.lastLevelId = timetable.program_level_id;
@@ -669,7 +725,7 @@ export class TimetableFormPage implements LeaveConfirmable {
                         { emitEvent: false }
                     );
                     this.levelChanges.next(timetable.program_level_id);
-                    this.setLines(groupEntriesIntoLines(entries, timetable.week_start));
+                    this.setLines(groupEntriesIntoLines(entries.filter((entry) => isHostedBy(entry, timetable.program_level_id)), timetable.week_start));
                     this.loading.set(false);
                     this.applyFormState();
                 },
@@ -861,7 +917,10 @@ export class TimetableFormPage implements LeaveConfirmable {
         const updates$ = from(plan.toUpdate).pipe(
             concatMap((item) =>
                 this.entryService.update(item.id, item.payload).pipe(
-                    tap((updated) => this.persisted.update((entries) => entries.map((entry) => (entry.id === item.id ? updated : entry)))),
+                    tap((updated) => {
+                        this.collectWarnings([updated]);
+                        this.persisted.update((entries) => entries.map((entry) => (entry.id === item.id ? updated : entry)));
+                    }),
                     catchError((error: unknown) => {
                         failures.push({ line: item.line, day: item.day, message: this.describe(error) });
                         return EMPTY;
@@ -897,7 +956,20 @@ export class TimetableFormPage implements LeaveConfirmable {
             }
             line.controls.entry_ids.setValue({ ...line.controls.entry_ids.value, [item.day]: entry.id });
         });
+        this.collectWarnings(created);
         this.persisted.update((entries) => [...entries, ...created]);
+    }
+
+    /** Avertissement par séance : « Lundi 08:00 · Réseaux : l'enseignant enseigne déjà à cette heure ». */
+    private collectWarnings(entries: readonly TimetableEntry[]): void {
+        const weekStart = this.timetable()?.week_start ?? '';
+        for (const entry of entries) {
+            for (const warning of entry.warnings ?? []) {
+                const day = weekStart ? dayOfWeek(weekStart, entry.date) : null;
+                const when = `${day ? weekDayLabel(day) : entry.date} ${formatEntryTime(entry.start_hour)}`;
+                this.saveWarnings.push(`${when} · ${entry.course_name || entry.course_code} : ${warning.message}`);
+            }
+        }
     }
 
     private batchFailures(planned: readonly PlannedEntry[], error: unknown): SaveFailure[] {
@@ -920,7 +992,7 @@ export class TimetableFormPage implements LeaveConfirmable {
         if (failures.length === 0) {
             this.lines.markAsPristine();
             this.leaveAllowed = true;
-            void this.router.navigate([TIMETABLE_PATH, 'pending'], { state: { saved: true } });
+            void this.router.navigate([TIMETABLE_PATH, 'pending'], { state: { saved: true, warnings: [...new Set(this.saveWarnings)] } });
             return;
         }
 
@@ -938,6 +1010,69 @@ export class TimetableFormPage implements LeaveConfirmable {
         this.saveError.set(
             general.length > 0 ? general.join(' ') : 'Certaines sessions n’ont pas été enregistrées : corrigez les lignes signalées puis réessayez.'
         );
+    }
+
+    // ----- Duplication -----
+
+    openDuplicate(): void {
+        const timetable = this.timetable();
+        if (!timetable) {
+            return;
+        }
+        this.duplicateErrors.set([]);
+        // Par défaut, la semaine qui suit celle de l'horaire.
+        this.duplicateWeek.set(parseApiDate(addDays(timetable.week_start, 7)));
+        this.duplicateVisible.set(true);
+    }
+
+    onDuplicateWeekChange(week: Date | null): void {
+        this.duplicateWeek.set(week ? mondayOf(week) : null);
+    }
+
+    /** Copie tout ou rien : sur 422, les séances refusées sont nommées, rien n'est créé. */
+    submitDuplicate(): void {
+        const timetable = this.timetable();
+        const week = this.duplicateWeek();
+        if (!timetable || !week || this.duplicating()) {
+            return;
+        }
+        this.duplicating.set(true);
+        this.duplicateErrors.set([]);
+        this.timetableService
+            .duplicate(timetable.id, toApiDate(week))
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (copy) => {
+                    this.duplicating.set(false);
+                    this.duplicateVisible.set(false);
+                    this.messageService.add({ severity: 'success', summary: 'Horaire', detail: 'Semaine dupliquée : le nouvel horaire est en brouillon.' });
+                    this.leaveAllowed = true;
+                    void this.router.navigate([TIMETABLE_PATH, copy.id, 'edit']);
+                },
+                error: (error: unknown) => {
+                    this.duplicating.set(false);
+                    this.duplicateErrors.set(this.duplicateFailures(error));
+                }
+            });
+    }
+
+    /** Les positions du 422 renvoient aux séances de la semaine source, triées par date puis heure. */
+    private duplicateFailures(error: unknown): string[] {
+        if (!(error instanceof HttpErrorResponse)) {
+            return ['La semaine n’a pas pu être dupliquée.'];
+        }
+        const rejected = error.status === 422 ? readBatchErrors(error) : [];
+        if (rejected.length === 0) {
+            return [timetableErrorMessage(error)];
+        }
+        const weekStart = this.timetable()?.week_start ?? '';
+        const source = [...this.hostedEntries()].sort((a, b) => a.date.localeCompare(b.date) || a.start_hour.localeCompare(b.start_hour));
+        return rejected.map((item) => {
+            const entry = source[item.index];
+            const day = entry && weekStart ? dayOfWeek(weekStart, entry.date) : null;
+            const where = entry ? `${day ? weekDayLabel(day) : entry.date} ${formatEntryTime(entry.start_hour)} · ${entry.course_name || entry.course_code}` : `Séance ${item.index + 1}`;
+            return `${where} : ${item.message || item.code}`;
+        });
     }
 
     private discardTimetable(timetable: Timetable): Observable<boolean> {
@@ -960,6 +1095,7 @@ export class TimetableFormPage implements LeaveConfirmable {
                 room_id: this.fb.control<string | null>(line?.room_id ?? null, Validators.required),
                 session_type: this.fb.nonNullable.control<SessionType>(line?.session_type ?? 'LECTURE', Validators.required),
                 note: this.fb.nonNullable.control(line?.note ?? ''),
+                shared_with: this.fb.nonNullable.control<string[]>(line?.shared_with ?? []),
                 entry_ids: this.fb.nonNullable.control<Partial<Record<WeekDay, string>>>(line?.entry_ids ?? {})
             },
             { validators: endAfterStart }
@@ -993,6 +1129,7 @@ export class TimetableFormPage implements LeaveConfirmable {
             room_id: value.room_id ?? '',
             session_type: value.session_type,
             note: value.note,
+            shared_with: value.shared_with,
             entry_ids: value.entry_ids
         }));
     }

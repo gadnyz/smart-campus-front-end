@@ -1,9 +1,9 @@
 <p-toast />
 
-<app-content-subtopbar kicker="Academic" title="Mes cours" />
+<app-content-subtopbar kicker="Académique" title="Mes cours" />
 
 <div class="card">
-    <p-table
+    <p-table styleClass="stack-table"
         [value]="rows()"
         [loading]="loading()"
         [rowHover]="true"
@@ -24,17 +24,16 @@
         </ng-template>
         <ng-template pTemplate="body" let-row>
             <tr>
-                <td>{{ row.code }}</td>
-                <td>{{ row.name }}</td>
-                <td><p-tag [value]="typeLabel(row.role)" /></td>
-                <td>
+                <td data-label="Code">{{ row.code }}</td>
+                <td data-label="Nom">{{ row.name }}</td>
+                <td data-label="Rôle"><p-tag [value]="typeLabel(row.role)" /></td>
+                <td class="stack-actions">
                     <button
                         pButton
                         type="button"
                         icon="pi pi-arrow-right"
                         rounded
                         outlined
-                        severity="info"
                         [attr.aria-label]="'Détail ' + row.code"
                         (click)="openDetail(row)"
                     ></button>

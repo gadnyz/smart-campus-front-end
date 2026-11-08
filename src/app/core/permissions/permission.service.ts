@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { AuthService } from '@/app/core/auth/services/auth.service';
 import { PermissionCheck, PermissionMode, PermissionValue } from './permission.model';
-import { PermissionScope, scopeRank, widestScope } from './permission-scope';
+import { PermissionScope, manageAuthorities, scopeRank, widestScope, writeAuthorities } from './permission-scope';
 
 @Injectable({
     providedIn: 'root'
@@ -45,6 +45,16 @@ export class PermissionService {
     hasScope(permission: PermissionValue, minimum: PermissionScope = 'own'): boolean {
         const scope = this.scopeOf(permission);
         return scope !== null && scopeRank(scope) >= scopeRank(minimum);
+    }
+
+    /** Vrai si l'utilisateur peut exercer `permission` (`academic:student:update`) au-delà de soi-même. */
+    canWrite(permission: PermissionValue): boolean {
+        return this.hasAnyPermission(writeAuthorities(permission));
+    }
+
+    /** Vrai si l'écran de gestion de `resource` (`academic:student`) doit lui être ouvert. */
+    canManage(resource: string): boolean {
+        return this.hasAnyPermission(manageAuthorities(resource));
     }
 
     canAccess(check?: PermissionCheck): boolean {

@@ -35,9 +35,18 @@ export type SubtopbarAction = {
 export class ContentSubtopbar {
     private readonly permissionService = inject(PermissionService);
 
-    kicker = input('Module');
+    /** Le module (« Académique »…), identique au menu ; vide dans les Paramètres, dont les onglets le disent déjà. */
+    kicker = input('');
     title = input('Vue');
     actions = input<SubtopbarAction[]>([]);
+
+    /**
+     * Couleur d'une action. « info » (bleu ciel) désignait l'action principale : elle prend la
+     * couleur du thème, pour qu'une seule teinte signale l'action principale dans toute l'application.
+     */
+    severity(action: SubtopbarAction): SubtopbarAction['severity'] {
+        return action.severity === 'info' ? 'primary' : action.severity || 'secondary';
+    }
 
     visibleActions = computed(() =>
         this.actions().filter((action) =>

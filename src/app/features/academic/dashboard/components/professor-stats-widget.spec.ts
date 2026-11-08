@@ -25,8 +25,8 @@ describe('ProfessorStatsWidget', () => {
     ];
 
     beforeEach(async () => {
-        professorService = jasmine.createSpyObj<ProfessorService>('ProfessorService', ['getAll']);
-        professorService.getAll.and.returnValue(of(professors));
+        professorService = jasmine.createSpyObj<ProfessorService>('ProfessorService', ['list']);
+        professorService.list.and.returnValue(of({ content: professors.slice(0, 1), page: 0, size: 1, total_elements: professors.length, total_pages: 2 }));
 
         await TestBed.configureTestingModule({
             imports: [ProfessorStatsWidget],
@@ -40,14 +40,15 @@ describe('ProfessorStatsWidget', () => {
     });
 
     it('should display the academic professors count', () => {
-        expect(professorService.getAll).toHaveBeenCalled();
+        // Le total vient de la première page, sans charger tous les professeurs.
+        expect(professorService.list).toHaveBeenCalledWith({ page: 0, size: 1 });
         expect(component.stat().value).toBe(2);
         expect(component.stat().loading).toBeFalse();
         expect(component.stat().listRoute).toBe('/academic/professors');
     });
 
     it('should fall back to "-" on API error', async () => {
-        professorService.getAll.and.returnValue(throwError(() => new Error('offline')));
+        professorService.list.and.returnValue(throwError(() => new Error('offline')));
         fixture = TestBed.createComponent(ProfessorStatsWidget);
         component = fixture.componentInstance;
         fixture.detectChanges();

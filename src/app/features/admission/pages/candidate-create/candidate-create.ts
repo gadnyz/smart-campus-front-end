@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -273,7 +274,7 @@ export class CandidateCreate implements OnInit {
                     }
 
                     if (error.status === 404) {
-                        this.showError(error.error?.detail ?? 'Une référence académique est introuvable.');
+                        this.showError(apiErrorMessage(error, 'Une référence académique est introuvable.'));
                         return;
                     }
 
