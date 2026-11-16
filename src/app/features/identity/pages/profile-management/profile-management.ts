@@ -18,9 +18,11 @@ import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subto
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { IdentityPermission } from '../../permissions/permission.model';
 import { RoleResponse, UserProfileResponse } from '../../models/identity-management.model';
+import { ProfileLabelPipe, profileLabel } from '../../models/profile-label';
 import { IdentityManagementService } from '../../services/identity-management.service';
 
 type ProfileTableRow = UserProfileResponse & {
+    label: string;
     rolesLabel: string;
 };
 
@@ -28,6 +30,7 @@ type ProfileTableRow = UserProfileResponse & {
     selector: 'app-profile-management',
     standalone: true,
     imports: [
+        ProfileLabelPipe,
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
@@ -82,6 +85,7 @@ export class ProfileManagement implements OnInit {
     readonly rows = computed<ProfileTableRow[]>(() =>
         this.profiles().map((profile) => ({
             ...profile,
+            label: profileLabel(profile.name),
             rolesLabel: profile.roles?.length ? profile.roles.join(', ') : 'Aucun'
         }))
     );
@@ -205,7 +209,7 @@ export class ProfileManagement implements OnInit {
                 );
                 this.creating.set(false);
                 this.createDialogVisible.set(false);
-                this.showSuccess(`Profil ${profile.name} créé avec succès.`);
+                this.showSuccess(`Profil ${profileLabel(profile.name)} créé avec succès.`);
             },
             error: (error: HttpErrorResponse) => {
                 this.creating.set(false);
@@ -216,7 +220,7 @@ export class ProfileManagement implements OnInit {
 
     confirmDelete(profile: ProfileTableRow | UserProfileResponse): void {
         this.confirmationService.confirm({
-            message: `Voulez-vous vraiment supprimer le profil ${profile.name} ?`,
+            message: `Voulez-vous vraiment supprimer le profil ${profileLabel(profile.name)} ?`,
             header: 'Confirmation',
             icon: 'pi pi-exclamation-triangle',
             acceptLabel: 'Supprimer',

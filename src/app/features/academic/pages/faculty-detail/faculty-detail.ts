@@ -485,14 +485,14 @@ export class FacultyDetailPage implements OnInit {
             this.messageService.add({
                 severity: 'warn',
                 summary: 'Profil non synchronisé',
-                detail: `${done} Mais le profil ACADEMIC_SECRETARY n’a pas pu être mis à jour (${sync.failure}) : faites-le dans Paramètres › Identité › Utilisateurs.`,
+                detail: `${done} Mais le profil Secrétaire académique n’a pas pu être mis à jour (${sync.failure}) : faites-le dans Paramètres › Identité › Utilisateurs.`,
                 life: 8000
             });
             return;
         }
         const changes = [
-            sync.profileAdded ? 'profil ACADEMIC_SECRETARY attribué' : '',
-            sync.profileRemoved ? 'profil ACADEMIC_SECRETARY retiré' : '',
+            sync.profileAdded ? 'profil Secrétaire académique attribué' : '',
+            sync.profileRemoved ? 'profil Secrétaire académique retiré' : '',
             sync.facultyAligned ? `compte rattaché à ${facultyName}` : ''
         ].filter(Boolean);
         this.showSuccess(changes.length ? `${done} ${changes.join(', ')}.` : done);

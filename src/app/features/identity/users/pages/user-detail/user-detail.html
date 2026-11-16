@@ -126,7 +126,7 @@
             <div class="flex flex-wrap gap-2 mb-4">
                 @for (profile of currentUser.profiles; track profile) {
                 <div class="flex items-center gap-1">
-                    <p-tag [value]="profile" severity="info" />
+                    <p-tag [value]="profile | profileLabel" severity="info" />
                     @if (canUpdate()) {
                     <button
                         pButton
@@ -135,7 +135,7 @@
                         rounded
                         text
                         severity="danger"
-                        [attr.aria-label]="'Retirer ' + profile"
+                        [attr.aria-label]="'Retirer ' + (profile | profileLabel)"
                         [loading]="removingProfileName() === profile"
                         [disabled]="removingProfileName() === profile"
                         (click)="removeProfile(profile)"

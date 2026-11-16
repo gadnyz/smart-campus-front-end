@@ -23,6 +23,7 @@ import { IdentityPermission } from '../../../permissions/permission.model';
 import { PrivilegeResponse } from '../../../models/identity-management.model';
 import { IdentityManagementService } from '../../../services/identity-management.service';
 import { UpdateUserRequest, User, UserProfileResponse } from '../../models/user.model';
+import { ProfileLabelPipe, profileLabel } from '../../../models/profile-label';
 import { UsersService } from '../../services/user.service';
 
 type ProfileOption = {
@@ -35,6 +36,7 @@ type ProfileOption = {
     standalone: true,
     imports: [
         CommonModule,
+        ProfileLabelPipe,
         FormsModule,
         ReactiveFormsModule,
         ButtonModule,
@@ -129,7 +131,7 @@ export class UserDetail implements OnInit {
         return this.allProfiles()
             .filter((profile) => !assigned.has(profile.name))
             .map((profile) => ({
-                label: profile.name,
+                label: profileLabel(profile.name),
                 value: profile.id
             }));
     });

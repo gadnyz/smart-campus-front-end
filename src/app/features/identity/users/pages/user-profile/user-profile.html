@@ -78,7 +78,7 @@
                     @if (currentUser.profiles.length) {
                     <div class="flex flex-wrap gap-1 mb-4">
                         @for (profile of currentUser.profiles; track profile) {
-                        <p-tag [value]="profile" severity="info" />
+                        <p-tag [value]="profile | profileLabel" severity="info" />
                         }
                     </div>
                     } @else {

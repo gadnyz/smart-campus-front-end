@@ -21,11 +21,12 @@ import { PasswordModule } from 'primeng/password';
 import { getUserInitial, resolveAvatarUrl } from '@/app/shared/utils/avatar-url';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { IdentityPermission } from '../../../permissions/permission.model';
+import { ProfileLabelPipe } from '../../../models/profile-label';
 
 @Component({
     selector: 'app-user-profile',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, ButtonModule, FileUploadModule, InputTextModule, PasswordModule, ToastModule, TagModule, ContentSubtopbar],
+    imports: [CommonModule, ProfileLabelPipe, ReactiveFormsModule, ButtonModule, FileUploadModule, InputTextModule, PasswordModule, ToastModule, TagModule, ContentSubtopbar],
     providers: [MessageService],
     templateUrl: './user-profile.html',
     styleUrl: './user-profile.scss'

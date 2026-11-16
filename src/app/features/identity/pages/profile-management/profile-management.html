@@ -5,7 +5,7 @@
 
 <div class="card">
     <p-table styleClass="stack-table" #dt [value]="rows()" [loading]="loading()" [paginator]="true" [rows]="10"
-        [rowsPerPageOptions]="[10, 20, 50]" [globalFilterFields]="['name', 'rolesLabel']" [rowHover]="true" dataKey="id"
+        [rowsPerPageOptions]="[10, 20, 50]" [globalFilterFields]="['name', 'label', 'rolesLabel']" [rowHover]="true" dataKey="id"
         responsiveLayout="scroll" currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} profils"
         [showCurrentPageReport]="true" [tableStyle]="{ 'min-width': '50rem' }">
         <ng-template pTemplate="caption">
@@ -32,7 +32,10 @@
 
         <ng-template pTemplate="body" let-profile>
             <tr>
-                <td data-label="Nom">{{ profile.name }}</td>
+                <td data-label="Nom">
+                    <div>{{ profile.name | profileLabel }}</div>
+                    <div class="text-xs text-color-secondary">{{ profile.name }}</div>
+                </td>
                 <td data-label="Rôles">
                     @if (profile.roles.length) {
                     <div class="flex flex-wrap gap-1">
@@ -47,7 +50,7 @@
                 <td class="stack-actions">
                     <div class="flex items-center gap-2">
                         <button pButton type="button" icon="pi pi-arrow-right" rounded outlined
-                            [attr.aria-label]="'Voir ' + profile.name" (click)="openDetail(profile)"></button>
+                            [attr.aria-label]="'Voir ' + (profile.name | profileLabel)" (click)="openDetail(profile)"></button>
                     </div>
                 </td>
             </tr>
@@ -83,7 +86,7 @@
     </form>
 </p-dialog>
 
-<p-dialog [header]="selectedProfile()?.name ?? 'Détail du profil'" [visible]="detailDialogVisible()"
+<p-dialog [header]="selectedProfile() ? (selectedProfile()!.name | profileLabel) : 'Détail du profil'" [visible]="detailDialogVisible()"
     (visibleChange)="detailDialogVisible.set($event)" [modal]="true" [style]="{ width: '48rem' }"
     [contentStyle]="{ 'max-height': '70vh', 'overflow-y': 'auto' }" [breakpoints]="{ '640px': '95vw' }"
     (onHide)="closeDetail()">

@@ -15,6 +15,7 @@ import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subto
 import { AcademicCatalogService } from '@/app/features/academic/academic.public-api';
 import { RegisterRequest } from '../../models/user.model';
 import { UsersService } from '../../services/user.service';
+import { profileLabel } from '../../../models/profile-label';
 
 @Component({
     selector: 'app-user-create',
@@ -95,7 +96,7 @@ export class UserCreate implements OnInit {
             next: (response) => {
                 this.profiles.set(
                     response.content.map((profile) => ({
-                        label: profile.name,
+                        label: profileLabel(profile.name),
                         value: profile.id
                     }))
                 );

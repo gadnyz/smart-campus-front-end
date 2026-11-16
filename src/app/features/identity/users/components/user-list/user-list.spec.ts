@@ -79,7 +79,7 @@ describe('UserList', () => {
             fixture.detectChanges();
 
             expect(component.users()).toEqual([sampleUser]);
-            expect(component.rows()[0].profilesLabel).toBe('ADMIN');
+            expect(component.rows()[0].profilesLabel).toBe('Administrateur');
             expect(fixture.nativeElement.textContent).toContain('campus.admin');
             expect(fixture.nativeElement.textContent).not.toContain('Aucun utilisateur trouvé');
         });

@@ -9,6 +9,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
+import { profileLabel } from '../../../models/profile-label';
 
 import { User } from '../../models/user.model';
 import { UsersService } from '../../services/user.service';
@@ -81,7 +82,7 @@ export class UserList implements OnInit {
     }
 
     formatProfiles(user: User): string {
-        return user.profiles?.length ? user.profiles.join(', ') : 'Sans profil';
+        return user.profiles?.length ? user.profiles.map(profileLabel).join(', ') : 'Sans profil';
     }
 
     onGlobalFilter(table: Table, event: Event): void {

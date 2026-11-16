@@ -6,6 +6,7 @@ import { User } from '@/app/features/identity/users/models/user.model';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { IdentityPermission } from '@/app/features/identity/permissions/permission.model';
 import { DashboardCard } from '@/app/shared/ui/dashboard/dashboard-card/dashboard-card';
+import { profileLabel } from '@/app/features/identity/models/profile-label';
 
 @Component({
     standalone: true,
@@ -108,7 +109,7 @@ export class RepartitionUsers implements OnInit {
         );
 
         this.chartData.set({
-            labels: profiles,
+            labels: profiles.map((profile) => (profile === this.emptyProfileLabel ? profile : profileLabel(profile))),
             datasets: [
                 {
                     type: 'bar',
