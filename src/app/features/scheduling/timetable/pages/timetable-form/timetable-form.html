@@ -4,10 +4,10 @@
 <app-content-subtopbar kicker="Planification" [title]="title()" [actions]="actions()" />
 
 <div class="card flex flex-col gap-5" [attr.aria-busy]="loading()">
-    @if (statusLabel() || statusError() || loadError()) {
+    @if (statusLabel() || loadError()) {
         <div class="timetable-form-top">
-            @if (statusError() || loadError()) {
-                <p class="m-0 text-red-500" role="alert">{{ statusError() ?? loadError() }}</p>
+            @if (loadError()) {
+                <p class="m-0 text-red-500" role="alert">{{ loadError() }}</p>
             }
             @if (statusLabel()) {
                 <app-timetable-export-menu [documents]="exportDocuments()" [disabledReason]="exportBlockedReason()" />
@@ -63,12 +63,10 @@
         </div>
     </form>
 
-    @if (headerError()) {
-        <div class="flex flex-wrap items-center gap-3" role="alert">
-            <span class="text-red-500">{{ headerError() }}</span>
-            @if (existingTimetableId()) {
-                <p-button label="Ouvrir l’horaire existant" icon="pi pi-external-link" severity="secondary" [outlined]="true" size="small" (onClick)="openExisting()" />
-            }
+    @if (existingTimetableId()) {
+        <div class="flex flex-wrap items-center gap-3">
+            <span class="text-muted-color">Cette promotion a déjà un horaire pour cette semaine.</span>
+            <p-button label="Ouvrir l’horaire existant" icon="pi pi-external-link" severity="secondary" [outlined]="true" size="small" (onClick)="openExisting()" />
         </div>
     }
 
@@ -180,9 +178,6 @@
     }
 
     <div class="timetable-form-footer">
-        @if (saveError()) {
-            <p class="m-0 mr-auto text-red-500" role="alert">{{ saveError() }}</p>
-        }
         <p-button label="Annuler" severity="secondary" [outlined]="true" (onClick)="cancel()" />
         @if (!readOnly()) {
             <p-button
@@ -207,49 +202,50 @@
     [breakpoints]="{ '640px': '95vw' }"
     appendTo="body"
 >
+    @let errors = sessionErrors();
     <form class="session-form" [formGroup]="sessionForm" (ngSubmit)="submitSession()">
         <div>
             <label for="session-course" class="block text-sm mb-1">Cours</label>
             <p-select
                 inputId="session-course"
                 formControlName="course_id"
-                [options]="courses()"
+                [options]="sessionCourseOptions()"
                 optionLabel="name"
                 optionValue="id"
                 [filter]="true"
+                [loading]="coursesLoading()"
+                [invalid]="!!errors.course"
                 placeholder="Cours"
-                emptyMessage="Aucun cours pour ce niveau"
+                emptyMessage="Aucun cours avec un enseignant pour ce niveau"
                 appendTo="body"
                 class="w-full"
                 (onChange)="onSessionCourseChange()"
             />
+            @if (errors.course) {
+                <small class="field-error" role="alert">{{ errors.course }}</small>
+            }
         </div>
-        @if (sessionForm.controls.course_id.value) {
-            <div>
-                <label for="session-professor" class="block text-sm mb-1">Professeur</label>
-                <p-select
-                    inputId="session-professor"
-                    formControlName="course_assignment_id"
-                    [options]="assignmentOptions(sessionForm)"
-                    optionLabel="label"
-                    optionValue="value"
-                    [loading]="!assignmentsLoaded(sessionForm)"
-                    placeholder="Professeur"
-                    emptyMessage="Aucun professeur affecté cette année"
-                    appendTo="body"
-                    class="w-full"
-                />
+        <div>
+            <div class="session-form-time">
+                <div>
+                    <label for="session-start" class="block text-sm mb-1">Heure de début</label>
+                    <app-time-slot-input inputId="session-start" formControlName="start" placeholder="08:00" [invalid]="!!errors.time" />
+                </div>
+                <span class="session-form-time-separator" aria-hidden="true">→</span>
+                <div>
+                    <label for="session-end" class="block text-sm mb-1">Heure de fin</label>
+                    <app-time-slot-input
+                        inputId="session-end"
+                        formControlName="end"
+                        placeholder="10:00"
+                        [after]="sessionForm.controls.start.value"
+                        [invalid]="!!errors.time"
+                    />
+                </div>
             </div>
-        }
-        <div class="session-form-pair">
-            <div>
-                <label for="session-start" class="block text-sm mb-1">Début</label>
-                <p-datepicker inputId="session-start" formControlName="start" [timeOnly]="true" hourFormat="24" [stepMinute]="5" appendTo="body" class="w-full" />
-            </div>
-            <div>
-                <label for="session-end" class="block text-sm mb-1">Fin</label>
-                <p-datepicker inputId="session-end" formControlName="end" [timeOnly]="true" hourFormat="24" [stepMinute]="5" appendTo="body" class="w-full" />
-            </div>
+            @if (errors.time) {
+                <small class="field-error" role="alert">{{ errors.time }}</small>
+            }
         </div>
         <div>
             <label for="session-days" class="block text-sm mb-1">Jours</label>
@@ -261,10 +257,14 @@
                 optionValue="value"
                 display="chip"
                 [showToggleAll]="true"
+                [invalid]="!!errors.days"
                 placeholder="Jours"
                 appendTo="body"
                 class="w-full"
             />
+            @if (errors.days) {
+                <small class="field-error" role="alert">{{ errors.days }}</small>
+            }
         </div>
         <div class="session-form-pair">
             <div>
@@ -277,10 +277,14 @@
                     optionValue="id"
                     [filter]="true"
                     [loading]="roomsLoading()"
+                    [invalid]="!!errors.room"
                     placeholder="Salle"
                     appendTo="body"
                     class="w-full"
                 />
+                @if (errors.room) {
+                    <small class="field-error" role="alert">{{ errors.room }}</small>
+                }
             </div>
             <div>
                 <label for="session-type" class="block text-sm mb-1">Type</label>
@@ -311,30 +315,22 @@
         </div>
 
         <div>
-            <label for="session-shared" class="block text-sm mb-1">Partagée avec (tronc commun)</label>
+            <label for="session-shared" class="block text-sm mb-1">Partagée avec</label>
             <p-multiselect
                 inputId="session-shared"
                 formControlName="shared_with"
-                [options]="audienceOptions()"
+                [options]="sessionAudienceOptions()"
                 optionLabel="label"
                 optionValue="value"
                 display="chip"
                 [filter]="true"
                 appendTo="body"
                 placeholder="Séance de cette promotion seulement"
+                [emptyMessage]="sessionForm.controls.course_id.value ? 'Ce cours n’est donné dans aucune autre promotion' : 'Choisissez d’abord un cours'"
                 class="w-full"
             />
-            <small class="block mt-1 text-muted-color">Les autres promotions de la faculté qui assistent à la même séance. Leur horaire de la semaine doit exister et ne pas être validé.</small>
         </div>
 
-        @let sessionErrors = sessionIssues();
-        @if (sessionErrors.length > 0) {
-            <ul class="m-0 pl-4" role="alert">
-                @for (issue of sessionErrors; track $index) {
-                    <li class="text-red-500 text-sm">{{ issue }}</li>
-                }
-            </ul>
-        }
         <button type="submit" hidden></button>
     </form>
 
@@ -346,7 +342,7 @@
 <p-dialog header="Dupliquer la semaine" [focusOnShow]="false" [visible]="duplicateVisible()" (visibleChange)="duplicateVisible.set($event)" [modal]="true" [style]="{ width: '30rem' }" [breakpoints]="{ '640px': '95vw' }">
     <div class="flex flex-col gap-3">
         <p class="m-0 text-sm text-muted-color">
-            Toutes les séances de cette semaine sont copiées aux mêmes jours de la semaine choisie, dans un nouvel horaire en brouillon. La copie est entière ou n’a pas lieu.
+            Toutes les séances de cette semaine sont copiées aux mêmes jours de la semaine choisie.
         </p>
         <div>
             <label for="duplicate-week" class="block text-sm mb-1">Semaine cible (lundi)</label>
@@ -362,16 +358,6 @@
                 class="w-full"
             />
         </div>
-        @if (duplicateErrors().length) {
-            <div role="alert">
-                <p class="m-0 mb-1 text-red-500 text-sm">Aucune séance n’a été copiée :</p>
-                <ul class="m-0 pl-4">
-                    @for (message of duplicateErrors(); track $index) {
-                        <li class="text-red-500 text-sm">{{ message }}</li>
-                    }
-                </ul>
-            </div>
-        }
     </div>
     <ng-template pTemplate="footer">
         <p-button label="Annuler" severity="secondary" [outlined]="true" (onClick)="duplicateVisible.set(false)" />

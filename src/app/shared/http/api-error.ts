@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { readableApiText } from './readable-api-text';
 
 /** Message affiché quand le serveur n'a pas répondu (réseau coupé, backend arrêté, CORS). */
 export const UNREACHABLE_MESSAGE = 'Le serveur est injoignable. Vérifiez votre connexion puis réessayez.';
@@ -20,7 +21,8 @@ function problem(error: unknown): Record<string, unknown> | null {
 export function apiErrorMessage(error: unknown, fallback: string): string {
     const detail = problem(error)?.['detail'];
     if (typeof detail === 'string' && detail.trim()) {
-        return detail;
+        // Jamais d'identifiant technique ni de date ISO à l'écran.
+        return readableApiText(detail) || fallback;
     }
     if (error instanceof HttpErrorResponse && error.status === 0) {
         return UNREACHABLE_MESSAGE;

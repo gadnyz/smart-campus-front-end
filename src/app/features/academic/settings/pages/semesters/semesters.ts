@@ -23,6 +23,7 @@ import { Semester } from '../../../models/semester.model';
 import { AcademicYearService } from '../../../services/academic-year.service';
 import { SemesterService } from '../../../services/semester.service';
 import { FormsModule } from '@angular/forms';
+import { readableApiText } from '@/app/shared/http/readable-api-text';
 
 type YearOption = { label: string; value: string | null };
 
@@ -211,7 +212,7 @@ export class SemestersPage implements OnInit {
             error: (error: HttpErrorResponse) => {
                 this.saving.set(false);
                 this.showError(
-                    error.error?.detail ??
+                    (readableApiText(error.error?.detail ?? '') || null) ??
                     (error.status === 409
                         ? 'Ce code de semestre existe déjà.'
                         : 'Impossible d’enregistrer le semestre.')

@@ -19,6 +19,7 @@ import { AcademicPermission } from '../../../permissions/permission.model';
 import { Level } from '../../../models/level.model';
 import { LevelService } from '../../../services/level.service';
 import { AcademicCatalogService } from '../../../services/academic-catalog.service';
+import { readableApiText } from '@/app/shared/http/readable-api-text';
 
 @Component({
     selector: 'app-levels',
@@ -152,7 +153,7 @@ export class LevelsPage implements OnInit {
             error: (error: HttpErrorResponse) => {
                 this.saving.set(false);
                 this.showError(
-                    error.error?.detail ??
+                    (readableApiText(error.error?.detail ?? '') || null) ??
                         (error.status === 409
                             ? 'Ce code de niveau existe déjà.'
                             : 'Impossible d’enregistrer le niveau.')

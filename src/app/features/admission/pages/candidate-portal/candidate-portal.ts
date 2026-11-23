@@ -18,6 +18,7 @@ import { AcademicPermission } from '@/app/features/academic/permissions/permissi
 
 import { AdmissionAcademicReferenceService } from '../../services/admission-academic-reference.service';
 import { CandidateService } from '../../services/candidate.service';
+import { readableApiText } from '@/app/shared/http/readable-api-text';
 import {
     CandidateAcademicChoices,
     CandidateDossierDocuments,
@@ -237,7 +238,7 @@ export class CandidatePortal implements OnInit {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Erreur',
-                    detail: httpError?.error?.detail ?? 'Impossible de charger votre dossier.'
+                    detail: readableApiText(httpError?.error?.detail ?? '') || 'Impossible de charger votre dossier.'
                 });
             }
         });

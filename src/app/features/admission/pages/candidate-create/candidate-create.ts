@@ -21,6 +21,7 @@ import { DatePicker } from 'primeng/datepicker';
 import { InputNumber } from 'primeng/inputnumber';
 import { Divider } from 'primeng/divider';
 import { StepperModule } from 'primeng/stepper';
+import { readableApiText } from '@/app/shared/http/readable-api-text';
 
 import {
     type CountryCode,
@@ -516,7 +517,7 @@ export class CandidateCreate implements OnInit {
 
     private extractApiDetail(error: HttpErrorResponse): string | null {
         const detail = error.error?.detail;
-        return typeof detail === 'string' && detail.trim() ? detail.trim() : null;
+        return typeof detail === 'string' && detail.trim() ? readableApiText(detail) || null : null;
     }
 
     private readonly stepFields: Record<number, string[]> = {

@@ -2,7 +2,7 @@ import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MessageService, ToastMessageOptions } from 'primeng/api';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { AuthService } from '@/app/core/auth/services/auth.service';
 import {
@@ -115,6 +115,16 @@ function assignment(overrides: Partial<CourseAssignment>): CourseAssignment {
 
 const at = (hours: number, minutes = 0) => new Date(2026, 0, 1, hours, minutes);
 
+/** Un autre programme de la faculté, au même niveau L1 que « Informatique ». */
+const network: Program = {
+    id: 'prog-2',
+    name: 'Réseaux',
+    code: 'RES',
+    faculty_id: 'fac-1',
+    faculty_name: 'Sciences',
+    levels: [{ id: 'pl-9', is_common: false, level: { id: 'lvl-1', code: 'L1', name: 'Licence 1', level_order: 1 } }]
+};
+
 describe('TimetableFormPage', () => {
     let fixture: ComponentFixture<TimetableFormPage>;
     let component: TimetableFormPage;
@@ -122,6 +132,8 @@ describe('TimetableFormPage', () => {
     let entryService: jasmine.SpyObj<TimetableEntryService>;
     let assignmentService: jasmine.SpyObj<CourseAssignmentService>;
     let confirmationService: ConfirmationService;
+    let courseService: jasmine.SpyObj<CourseService>;
+    let toasts: jasmine.Spy<(message: ToastMessageOptions) => void>;
     let router: Router;
     let location: Location;
 
@@ -136,6 +148,16 @@ describe('TimetableFormPage', () => {
         editError?: HttpErrorResponse;
         authorities?: string[];
         assignments?: Observable<CourseAssignment[]>;
+        programs?: Program[];
+    }
+
+    /** Messages des toasts d'erreur, dans l'ordre. */
+    function errorToasts(): string[] {
+        return toasts.calls
+            .allArgs()
+            .map(([message]) => message)
+            .filter((message) => message.severity === 'error')
+            .map((message) => message.detail ?? '');
     }
 
     /** Synchrone (templates déjà inlinés par le builder), pour garder la main sur l'horloge. */
@@ -145,10 +167,10 @@ describe('TimetableFormPage', () => {
         assignmentService = jasmine.createSpyObj<CourseAssignmentService>('CourseAssignmentService', ['getByCourse']);
         const programService = jasmine.createSpyObj<ProgramService>('ProgramService', ['getAll']);
         const catalog = jasmine.createSpyObj<AcademicCatalogService>('AcademicCatalogService', ['getCurrentAcademicYear']);
-        const courseService = jasmine.createSpyObj<CourseService>('CourseService', ['getByProgramLevel']);
+        courseService = jasmine.createSpyObj<CourseService>('CourseService', ['getByProgramLevel']);
         const roomService = jasmine.createSpyObj<RoomService>('RoomService', ['getAll']);
 
-        programService.getAll.and.returnValue(of([program]));
+        programService.getAll.and.returnValue(of(options.programs ?? [program]));
         catalog.getCurrentAcademicYear.and.returnValue(of({ id: 'year-1', label: '2026-2027' }));
         courseService.getByProgramLevel.and.returnValue(
             of([{ id: 'course-1', code: 'ALG', name: 'Algèbre', description: '', credits: 3, course_unit_id: 'cu-1' }])
@@ -201,6 +223,7 @@ describe('TimetableFormPage', () => {
         fixture = TestBed.createComponent(TimetableFormPage);
         component = fixture.componentInstance;
         confirmationService = fixture.debugElement.injector.get(ConfirmationService);
+        toasts = spyOn(fixture.debugElement.injector.get(MessageService), 'add').and.callThrough();
         fixture.detectChanges();
     }
 
@@ -294,7 +317,7 @@ describe('TimetableFormPage', () => {
             fillHeader();
             jasmine.clock().tick(400);
 
-            expect(component.headerError()).toBe('Existe déjà');
+            expect(errorToasts()).toEqual(['Cette promotion a déjà un horaire pour cette semaine.']);
             expect(timetableService.list).toHaveBeenCalledWith({ programLevelId: 'pl-1', page: 0, size: 100 });
             expect(component.existingTimetableId()).toBe('tt-existing');
 
@@ -309,7 +332,7 @@ describe('TimetableFormPage', () => {
             jasmine.clock().tick(400);
 
             expect(timetableService.create).not.toHaveBeenCalled();
-            expect(component.headerError()).toContain('Aucune année académique');
+            expect(errorToasts()[0]).toContain('Aucune année académique');
         });
 
         it('should reset the course of every line when the level changes', () => {
@@ -332,7 +355,7 @@ describe('TimetableFormPage', () => {
     });
 
     describe('affectations', () => {
-        it('should pick the only professor of the course for the timetable year, ignoring other years', () => {
+        it('should take the teacher of the course for the timetable year, ignoring other years', () => {
             createComponent({
                 assignments: of([assignment({ id: 'ca-old', academic_year_id: 'year-0' }), assignment({ id: 'ca-1' }), assignment({ id: 'ca-off', status: 'INACTIVE' })])
             });
@@ -342,7 +365,7 @@ describe('TimetableFormPage', () => {
 
             const line = component.lines.at(0);
             expect(line.controls.course_assignment_id.value).toBe('ca-1');
-            expect(component.assignmentOptions(line).map((option) => option.value)).toEqual(['ca-1']);
+            expect(component.schedulableCourses().map((course) => course.id)).toEqual(['course-1']);
         });
 
         it('should not apply a late answer to a session whose course has changed', () => {
@@ -351,22 +374,35 @@ describe('TimetableFormPage', () => {
             fillHeader();
             jasmine.clock().tick(400);
             fillSession();
-            expect(component.assignmentsLoaded(component.sessionForm)).toBeFalse();
 
             component.sessionForm.controls.course_id.setValue('course-2');
             answer.next([assignment({})]);
+            answer.complete();
 
             expect(component.sessionForm.controls.course_assignment_id.value).toBeNull();
         });
 
-        it('should explain that no professor is assigned for the year', () => {
+        it('should only offer the courses that have a teacher for the year', () => {
             createComponent({ assignments: of([assignment({ academic_year_id: 'year-0' })]) });
             fillHeader();
             jasmine.clock().tick(400);
-            fillSession();
-            component.submitSession();
 
-            expect(component.sessionIssues()).toEqual(['Aucun professeur n’est affecté à ce cours pour l’année de l’horaire.']);
+            expect(component.courses().length).toBe(1);
+            expect(component.schedulableCourses()).toEqual([]);
+        });
+
+        it('should take the first assistant added when the course has no lead instructor', () => {
+            createComponent({
+                assignments: of([
+                    assignment({ id: 'ca-late', assignment_type: 'CO_INSTRUCTOR', created_at: '2026-09-10T08:00:00Z' }),
+                    assignment({ id: 'ca-first', assignment_type: 'CO_INSTRUCTOR', created_at: '2026-09-01T08:00:00Z' })
+                ])
+            });
+            fillHeader();
+            jasmine.clock().tick(400);
+            addFilledLine();
+
+            expect(component.lines.at(0).controls.course_assignment_id.value).toBe('ca-first');
         });
     });
 
@@ -374,12 +410,12 @@ describe('TimetableFormPage', () => {
         it('should require the timetable and at least one line', () => {
             createComponent();
             component.save();
-            expect(component.saveError()).toContain('programme, le niveau et la semaine');
+            expect(errorToasts()[0]).toContain('programme, le niveau et la semaine');
 
             fillHeader();
             jasmine.clock().tick(400);
             component.save();
-            expect(component.saveError()).toBe('Ajoutez au moins une session.');
+            expect(errorToasts()[1]).toBe('Ajoutez au moins une session.');
         });
 
         it('should validate a session only when the dialog is submitted', () => {
@@ -392,6 +428,8 @@ describe('TimetableFormPage', () => {
             component.submitSession();
 
             expect(component.sessionIssues()).toEqual(['L’heure de fin doit être après l’heure de début.', 'Sélectionnez au moins un jour.']);
+            // Chaque erreur s'affiche sous son champ.
+            expect(component.sessionErrors()).toEqual({ time: 'L’heure de fin doit être après l’heure de début.', days: 'Sélectionnez au moins un jour.' });
             expect(component.lines.length).toBe(0);
             expect(component.dialogVisible()).toBeTrue();
 
@@ -483,7 +521,7 @@ describe('TimetableFormPage', () => {
                     jasmine.objectContaining({ date: '2026-10-07' })
                 ]
             });
-            expect(router.navigate).toHaveBeenCalledWith(['/scheduling/timetable', 'pending'], { state: { saved: true, warnings: [] } });
+            expect(router.navigate).toHaveBeenCalledWith(['/scheduling/timetable', 'pending'], { state: { saved: true, warnings: [], notes: [] } });
             expect(component.confirmLeave()).toBeTrue();
         });
 
@@ -506,9 +544,9 @@ describe('TimetableFormPage', () => {
             component.save();
 
             expect(router.navigate).not.toHaveBeenCalled();
-            expect(component.lineIssues(component.lines.at(1), 1)).toEqual(['Mardi : Salle occupée']);
+            expect(component.lineIssues(component.lines.at(1), 1)).toEqual(['Séance refusée : voir le message affiché.']);
             expect(component.lineIssues(component.lines.at(0), 0)).toEqual([]);
-            expect(component.saveError()).toContain('corrigez les lignes signalées');
+            expect(errorToasts()).toEqual(['Ligne 2 · Algèbre — mardi : Salle occupée']);
         });
     });
 
@@ -589,20 +627,22 @@ describe('TimetableFormPage', () => {
             component.save();
 
             expect(router.navigate).not.toHaveBeenCalled();
-            expect(component.saveError()).toBe('Une séance n’a pas pu être supprimée : Panne');
-            expect(component.lineIssues(component.lines.at(1), 1)).toEqual(['Vendredi : Salle occupée']);
+            expect(errorToasts()).toEqual(['Une séance n’a pas pu être supprimée : Panne', 'Ligne 2 · Algèbre — vendredi : Salle occupée']);
+            expect(component.lineIssues(component.lines.at(1), 1)).toEqual(['Séance refusée : voir le message affiché.']);
             // Le mardi créé est rattaché à sa ligne : un nouvel essai ne le recréera pas.
             expect(component.lines.at(0).controls.entry_ids.value[2]).toBe('new-0');
             expect(component.persisted().map((item) => item.id)).toContain('e-wed');
         });
 
-        it('should keep the inactive assignment of a saved session selectable', () => {
+        it('should keep the teacher of a saved session even if the assignment is no longer active', () => {
             createComponent({
                 assignments: of([]),
                 edit: { timetable: timetable(), entries: [entry({ id: 'e-mon', date: '2026-10-05' })] }
             });
 
-            expect(component.assignmentOptions(component.lines.at(0))).toEqual([{ label: 'Ada Lovelace (affectation inactive)', value: 'ca-1' }]);
+            expect(component.lines.at(0).controls.course_assignment_id.value).toBe('ca-1');
+            component.openSessionDialog(0);
+            expect(component.sessionCourseOptions().map((course) => course.id)).toEqual(['course-1']);
         });
 
         it('should report a timetable that cannot be loaded', () => {
@@ -698,7 +738,7 @@ describe('TimetableFormPage', () => {
             component.changeStatus(component.statusActions()[0]);
 
             expect(confirmationService.confirm).not.toHaveBeenCalled();
-            expect(component.statusError()).toBe('Enregistrez d’abord les sessions modifiées.');
+            expect(errorToasts()).toEqual(['Enregistrez d’abord les sessions modifiées.']);
         });
 
         it('should refuse to submit a timetable without any saved session', () => {
@@ -706,7 +746,7 @@ describe('TimetableFormPage', () => {
             component.changeStatus(component.statusActions()[0]);
 
             expect(timetableService.changeStatus).not.toHaveBeenCalled();
-            expect(component.statusError()).toBe('Enregistrez au moins une session avant de soumettre l’horaire.');
+            expect(errorToasts()).toEqual(['Enregistrez au moins une session avant de soumettre l’horaire.']);
         });
 
         it('should report a refused transition', () => {
@@ -714,7 +754,7 @@ describe('TimetableFormPage', () => {
             timetableService.changeStatus.and.returnValue(throwError(() => new HttpErrorResponse({ status: 400, error: { detail: 'Transition interdite' } })));
             component.changeStatus(component.statusActions()[0]);
 
-            expect(component.statusError()).toBe('Transition interdite');
+            expect(errorToasts()).toEqual(['Transition interdite']);
             expect(component.statusLabel()).toBe('Brouillon');
             expect(component.statusChanging()).toBeFalse();
         });
@@ -824,7 +864,7 @@ describe('TimetableFormPage', () => {
             component.save();
 
             expect(router.navigate).toHaveBeenCalledWith(['/scheduling/timetable', 'pending'], {
-                state: { saved: true, warnings: ['Lundi 08:00 · Algèbre : L’enseignant enseigne déjà à cette heure.'] }
+                state: { saved: true, warnings: ['Lundi 08:00 · Algèbre : L’enseignant enseigne déjà à cette heure.'], notes: [] }
             });
         });
 
@@ -849,8 +889,82 @@ describe('TimetableFormPage', () => {
             component.submitDuplicate();
 
             // Position 1 de la semaine source triée par date : le mardi.
-            expect(component.duplicateErrors()).toEqual(['Mardi 08:00 · Algèbre : Salle déjà réservée']);
+            expect(errorToasts()).toEqual(['Mardi 08:00 · Algèbre : Salle déjà réservée']);
             expect(component.duplicateVisible()).toBeTrue();
+        });
+    });
+
+    describe('séances partagées', () => {
+        function openWithTwoPrograms(): void {
+            createComponent({ programs: [program, network] });
+            fillHeader();
+            jasmine.clock().tick(400);
+        }
+
+        it('should share by default with the other programs of the same level that give the course', () => {
+            openWithTwoPrograms();
+            fillSession();
+
+            expect(component.sessionForm.controls.shared_with.value).toEqual(['pl-9']);
+            expect(component.sessionAudienceOptions().map((option) => option.label)).toEqual(['Informatique L2', 'Réseaux L1']);
+        });
+
+        it('should only offer the promotions where the course is given', () => {
+            openWithTwoPrograms();
+            courseService.getByProgramLevel.and.callFake((id: string) =>
+                of(id === 'pl-2' ? [] : [{ id: 'course-1', code: 'ALG', name: 'Algèbre', description: '', credits: 3, course_unit_id: 'cu-1' }])
+            );
+            fillSession();
+
+            expect(component.sessionAudienceOptions().map((option) => option.value)).toEqual(['pl-9']);
+        });
+
+        it('should create the missing timetable of an invited promotion as a draft before saving', () => {
+            openWithTwoPrograms();
+            timetableService.list.and.returnValue(of({ content: [], page: 0, size: 100, total_elements: 0, total_pages: 0 }));
+            addFilledLine();
+
+            component.save();
+
+            expect(timetableService.create).toHaveBeenCalledWith(jasmine.objectContaining({ program_level_id: 'pl-9', program_id: 'prog-2', week_start: '2026-10-05' }));
+            expect(entryService.create).toHaveBeenCalledWith({
+                timetable_id: 'tt-1',
+                entries: [jasmine.objectContaining({ shared_with_program_level_ids: ['pl-9'] })]
+            });
+            const state = (router.navigate as jasmine.Spy).calls.mostRecent().args[1].state;
+            expect(state.notes).toEqual(['Horaire créé en brouillon pour Réseaux L1, semaine du 5 octobre 2026, pour y partager les séances.']);
+        });
+
+        it('should stop with a clear message when an invited promotion has a validated timetable', () => {
+            openWithTwoPrograms();
+            timetableService.list.and.returnValue(
+                of({ content: [timetable({ id: 'tt-9', program_level_id: 'pl-9', status: 'VALIDATED' })], page: 0, size: 100, total_elements: 1, total_pages: 1 })
+            );
+            addFilledLine();
+
+            component.save();
+
+            expect(entryService.create).not.toHaveBeenCalled();
+            expect(errorToasts()[0]).toContain('Réseaux L1 a déjà un horaire validé pour la semaine du 5 octobre 2026');
+            expect(component.saving()).toBeFalse();
+        });
+    });
+
+    describe('heures', () => {
+        it('should move the end with the start, keeping the duration, and propose 2 hours without an end', () => {
+            createComponent();
+            fillHeader();
+            jasmine.clock().tick(400);
+            component.openSessionDialog();
+            const { start, end } = component.sessionForm.controls;
+
+            start.markAsDirty();
+            start.setValue(at(8));
+            expect(end.value).toEqual(new Date(1970, 0, 1, 10, 0));
+
+            end.setValue(at(11));
+            start.setValue(at(9));
+            expect(end.value).toEqual(new Date(1970, 0, 1, 12, 0));
         });
     });
 });

@@ -83,11 +83,15 @@ export class TimetablePendingPage implements OnInit {
     private lastPage = 0;
 
     ngOnInit(): void {
-        const state = history.state as { saved?: boolean; warnings?: string[] } | null;
+        const state = history.state as { saved?: boolean; warnings?: string[]; notes?: string[] } | null;
         if (state?.saved) {
             // Après le rendu : le p-toast doit être en place pour afficher le message.
             queueMicrotask(() => {
                 this.messageService.add({ severity: 'success', summary: 'Horaire', detail: 'Horaire enregistré.' });
+                // Horaires créés en brouillon pour les promotions invitées d'une séance partagée.
+                for (const note of state.notes ?? []) {
+                    this.messageService.add({ severity: 'info', summary: 'Séance partagée', detail: note, life: 10000 });
+                }
                 // Avertissements non bloquants (enseignant déjà pris à cette heure…) : la séance est enregistrée.
                 for (const warning of state.warnings ?? []) {
                     this.messageService.add({ severity: 'warn', summary: 'À vérifier', detail: warning, sticky: true });

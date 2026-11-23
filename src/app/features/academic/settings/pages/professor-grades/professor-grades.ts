@@ -17,6 +17,7 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
 import { AcademicPermission } from '../../../permissions/permission.model';
 import { ProfessorGrade } from '../../../models/professor-grade.model';
 import { ProfessorGradeService } from '../../../services/professor-grade.service';
+import { readableApiText } from '@/app/shared/http/readable-api-text';
 
 @Component({
     selector: 'app-professor-grades',
@@ -138,7 +139,7 @@ export class ProfessorGradesPage implements OnInit {
             error: (error: HttpErrorResponse) => {
                 this.saving.set(false);
                 this.showError(
-                    error.error?.detail ??
+                    (readableApiText(error.error?.detail ?? '') || null) ??
                         (error.status === 409
                             ? 'Ce code de grade existe déjà.'
                             : 'Impossible d’enregistrer le grade.')

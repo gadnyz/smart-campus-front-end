@@ -14,6 +14,7 @@ export interface CourseAssignment {
     academic_year_label?: string;
     course_code?: string;
     course_name?: string;
+    created_at?: string;
 }
 
 export interface CreateCourseAssignmentRequest {

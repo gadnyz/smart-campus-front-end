@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { readableApiText } from '@/app/shared/http/readable-api-text';
 
 /** Erreur d'une séance d'un lot refusé (422) : `index` est sa position dans la requête. */
 export interface TimetableEntryBatchError {
@@ -60,8 +61,8 @@ export function readBatchErrors(error: HttpErrorResponse): TimetableEntryBatchEr
  * Le `detail` du backend est déjà localisé et précis (semaine close, hors année, horaire
  * verrouillé…) : il passe avant les messages génériques, qui ne servent qu'à défaut.
  */
-export function timetableErrorMessage(error: HttpErrorResponse): string {
-    const detail = readDetail(error);
+export function timetableErrorMessage(error: HttpErrorResponse, labels?: ReadonlyMap<string, string>): string {
+    const detail = readableApiText(readDetail(error), labels);
     if (detail) {
         return detail;
     }

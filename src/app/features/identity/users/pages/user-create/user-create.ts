@@ -16,6 +16,7 @@ import { AcademicCatalogService } from '@/app/features/academic/academic.public-
 import { RegisterRequest } from '../../models/user.model';
 import { UsersService } from '../../services/user.service';
 import { profileLabel } from '../../../models/profile-label';
+import { readableApiText } from '@/app/shared/http/readable-api-text';
 
 @Component({
     selector: 'app-user-create',
@@ -167,7 +168,7 @@ export class UserCreate implements OnInit {
 
         if (error.status === 403) {
             this.showError(
-                error.error?.detail ??
+                (readableApiText(error.error?.detail ?? '') || null) ??
                     'Tu n’as pas les privilèges nécessaires pour créer un utilisateur.'
             );
             return;
@@ -180,7 +181,7 @@ export class UserCreate implements OnInit {
             }
             this.showError(
                 conflict?.toastMessage ??
-                    error.error?.detail ??
+                    (readableApiText(error.error?.detail ?? '') || null) ??
                     'Un utilisateur avec ces informations existe déjà.'
             );
             return;
@@ -198,7 +199,7 @@ export class UserCreate implements OnInit {
     private resolveUniqueConstraintConflict(
         error: HttpErrorResponse
     ): { field?: 'email' | 'username'; fieldMessage: string; toastMessage: string } | null {
-        const detail = String(error.error?.detail ?? error.message ?? '').toLowerCase();
+        const detail = String((readableApiText(error.error?.detail ?? '') || null) ?? error.message ?? '').toLowerCase();
 
         const isDuplicate =
             detail.includes('duplicate key') ||

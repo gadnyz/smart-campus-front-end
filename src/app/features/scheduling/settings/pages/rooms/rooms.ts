@@ -19,6 +19,7 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
 import { SchedulingPermission } from '../../../permissions/permission.model';
 import { ROOM_TYPE_OPTIONS, Room, RoomType, roomTypeLabel } from '../../../models/room.model';
 import { RoomService } from '../../../services/room.service';
+import { readableApiText } from '@/app/shared/http/readable-api-text';
 
 /**
  * Gestion des salles — onglet « Planification » des Paramètres, sur le modèle de
@@ -186,7 +187,7 @@ export class RoomsPage implements OnInit {
             error: (error: HttpErrorResponse) => {
                 this.saving.set(false);
                 this.showError(
-                    error.error?.detail ??
+                    (readableApiText(error.error?.detail ?? '') || null) ??
                         (error.status === 409
                             ? 'Une salle porte déjà ce nom.'
                             : 'Impossible d’enregistrer la salle.')
@@ -216,7 +217,7 @@ export class RoomsPage implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.showError(
-                    error.error?.detail ??
+                    (readableApiText(error.error?.detail ?? '') || null) ??
                         (error.status === 409
                             ? 'Cette salle est utilisée par des séances et ne peut pas être supprimée.'
                             : 'Impossible de supprimer cette salle.')

@@ -109,7 +109,7 @@ describe('TimetablePage (calendrier)', () => {
         component.onProgramChange('prog-1');
 
         expect(programService.getAll).toHaveBeenCalledTimes(1);
-        expect(component.programLevelOptions()).toEqual([{ label: 'L1 (commun)', value: 'pl-1' }]);
+        expect(component.programLevelOptions()).toEqual([{ label: 'L1', value: 'pl-1' }]);
     });
 
     it('should count drafts and submitted timetables and link to the pending list and the creation page', () => {

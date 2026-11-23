@@ -41,6 +41,27 @@
     gap: 1rem;
 }
 
+/* Début → Fin sur une ligne, comme dans Teams. */
+.session-form-time {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: end;
+    gap: 0.75rem;
+}
+
+.session-form-time-separator {
+    padding-bottom: 0.6rem;
+    color: var(--p-text-muted-color);
+}
+
+/* Erreur d'un champ, juste en dessous. */
+.field-error {
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--p-red-500);
+    font-size: 0.875rem;
+}
+
 .tabular-nums {
     font-variant-numeric: tabular-nums;
 }

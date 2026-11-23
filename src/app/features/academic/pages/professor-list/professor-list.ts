@@ -33,6 +33,7 @@ import { ProfessorGradeService } from '../../services/professor-grade.service';
 import { ProfessorService } from '../../services/professor.service';
 import { blankToNull, toApiDate } from '../../utils/academic-date';
 import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
+import { readableApiText } from '@/app/shared/http/readable-api-text';
 
 export interface ProfessorRow extends Professor {
     display_name: string;
@@ -279,7 +280,7 @@ export class ProfessorListPage implements OnInit {
                 error: (error: HttpErrorResponse) => {
                     this.saving.set(false);
                     this.showError(
-                        error.error?.detail ??
+                        (readableApiText(error.error?.detail ?? '') || null) ??
                         (error.status === 409
                             ? 'Un professeur existe déjà avec cet e-mail.'
                             : 'Impossible d’enregistrer le professeur.')

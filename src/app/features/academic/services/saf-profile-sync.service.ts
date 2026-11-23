@@ -3,6 +3,7 @@ import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { UsersService } from '@/app/features/identity/users/services/user.service';
 import { FacultyService } from './faculty.service';
+import { readableApiText } from '@/app/shared/http/readable-api-text';
 
 /** Profil métier qui porte les droits du secrétaire académique de faculté. */
 export const SAF_PROFILE_NAME = 'ACADEMIC_SECRETARY';
@@ -46,7 +47,7 @@ export class SafProfileSyncService {
                 }
                 return steps.length ? forkJoin(steps).pipe(map((parts) => Object.assign({}, ...parts) as SafProfileSync)) : of({});
             }),
-            catchError((error: { error?: { detail?: string } }) => of({ failure: error?.error?.detail ?? 'mise à jour du compte refusée' }))
+            catchError((error: { error?: { detail?: string } }) => of({ failure: readableApiText(error?.error?.detail ?? '') || 'mise à jour du compte refusée' }))
         );
     }
 
@@ -58,7 +59,7 @@ export class SafProfileSyncService {
                 }
                 return this.usersService.removeProfile(userId, profileId).pipe(map(() => ({ profileRemoved: true })));
             }),
-            catchError((error: { error?: { detail?: string } }) => of({ failure: error?.error?.detail ?? 'mise à jour du compte refusée' }))
+            catchError((error: { error?: { detail?: string } }) => of({ failure: readableApiText(error?.error?.detail ?? '') || 'mise à jour du compte refusée' }))
         );
     }
 
