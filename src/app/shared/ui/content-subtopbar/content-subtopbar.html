@@ -7,6 +7,18 @@
     </div>
 
     <div class="content-subtopbar-right">
+        @if (navigation(); as nav) {
+        <div class="content-subtopbar-nav" role="group" aria-label="Parcourir les fiches">
+            <button pButton type="button" icon="pi pi-chevron-left" severity="secondary" [text]="true" size="small"
+                [disabled]="!nav.hasPrevious || !!nav.disabled" (click)="nav.previous()" aria-label="Fiche précédente"></button>
+            @if (nav.position) {
+            <span class="content-subtopbar-position">{{ nav.position }}</span>
+            }
+            <button pButton type="button" icon="pi pi-chevron-right" severity="secondary" [text]="true" size="small"
+                [disabled]="!nav.hasNext || !!nav.disabled" (click)="nav.next()" aria-label="Fiche suivante"></button>
+        </div>
+        }
+
         @for (action of visibleActions(); track action.label) {
         <button pButton type="button" [label]="action.label" [icon]="action.icon ?? ''"
             [severity]="severity(action)" [outlined]="action.outlined ?? true"
@@ -17,6 +29,12 @@
             <p-badge class="content-subtopbar-badge" [value]="action.badge" [severity]="action.badgeSeverity ?? 'secondary'" />
             }
         </button>
+        }
+
+        @if (menuItems().length) {
+        <button pButton type="button" icon="pi pi-ellipsis-v" severity="secondary" [outlined]="true" size="small"
+            (click)="tools.toggle($event)" aria-label="Autres actions" aria-haspopup="true"></button>
+        <p-menu #tools [model]="menuItems()" [popup]="true" appendTo="body" />
         }
     </div>
 </div>

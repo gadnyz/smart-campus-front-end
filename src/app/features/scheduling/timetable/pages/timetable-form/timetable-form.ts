@@ -42,7 +42,8 @@ import {
     CourseAssignmentService,
     CourseService,
     Program,
-    ProgramService
+    ProgramService,
+    promotionLabel
 } from '@/app/features/academic/academic.public-api';
 import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { Room } from '../../../models/room.model';
@@ -61,7 +62,7 @@ import { SessionLine, WEEK_DAY_OPTIONS, WeekDay, weekDayLabel } from '../../mode
 import { TimetableEntryService } from '../../services/timetable-entry.service';
 import { TimetableScopeService } from '../../services/timetable-scope.service';
 import { TimetableService } from '../../services/timetable.service';
-import { programLevelLabel, programLevelOptions } from '../../utils/program-level';
+import { programLevelOptions } from '../../utils/program-level';
 import { readBatchErrors, timetableErrorMessage } from '../../utils/timetable-error';
 import { goBack } from '@/app/shared/navigation/go-back';
 import { TIMETABLE_PATH } from '../../utils/timetable-routes';
@@ -119,7 +120,7 @@ interface Promotion {
     /** Le niveau commun (L1, L4…), pour reconnaître les promotions d'un même niveau. */
     levelId: string;
     program: Program;
-    /** « Génie Logiciel L4 ». */
+    /** « L4 Génie Logiciel ». */
     label: string;
 }
 
@@ -253,10 +254,10 @@ export class TimetableFormPage implements LeaveConfirmable {
     /** Les promotions de la faculté : chaque niveau de chaque programme. */
     readonly promotions = computed<Promotion[]>(() =>
         this.programs().flatMap((program) =>
-            (program.levels ?? []).map((level) => ({ id: level.id, levelId: level.level.id, program, label: `${program.name} ${programLevelLabel(level)}` }))
+            (program.levels ?? []).map((level) => ({ id: level.id, levelId: level.level.id, program, label: promotionLabel(level.level, program.name) }))
         )
     );
-    /** « Génie Logiciel L4 » pour chaque promotion de la faculté. */
+    /** « L4 Génie Logiciel » pour chaque promotion de la faculté. */
     readonly promotionLabels = computed(() => new Map(this.promotions().map((promotion) => [promotion.id, promotion.label] as const)));
     /** Cours de chaque promotion de la faculté, pour savoir où un cours est aussi donné. `null` : pas encore chargé. */
     readonly coursesByPromotion = signal<CoursesByPromotion | null>(null);
@@ -329,7 +330,14 @@ export class TimetableFormPage implements LeaveConfirmable {
      */
     readonly schedulableCourses = computed(() => {
         const assignments = this.assignmentsByCourse();
-        return this.courses().filter((course) => pickSessionAssignment(assignments[course.id] ?? []) !== null);
+        // Un cours dont l'enseignant n'est pas encore connu reste proposé : la liste s'affiche tout
+        // de suite et se resserre au fil des réponses.
+        return this.courses().filter((course) => !(course.id in assignments) || pickSessionAssignment(assignments[course.id]) !== null);
+    });
+    /** Des enseignants de cours sont encore en chargement. */
+    readonly teachersLoading = computed(() => {
+        const assignments = this.assignmentsByCourse();
+        return this.courses().some((course) => !(course.id in assignments));
     });
 
     readonly dialogVisible = signal(false);
@@ -414,23 +422,22 @@ export class TimetableFormPage implements LeaveConfirmable {
             }
         });
 
-        // Les cours du niveau, puis leurs enseignants : seuls les cours qui en ont un sont proposés.
+        // Les cours du niveau, affichés tout de suite. Leurs enseignants ne sont cherchés qu'à
+        // l'ouverture de la fenêtre de séance, et la liste se filtre au fil des réponses.
         this.levelChanges
             .pipe(
                 tap((levelId) => this.coursesLoading.set(!!levelId)),
-                switchMap((levelId) =>
-                    levelId
-                        ? this.courseService.getByProgramLevel(levelId).pipe(
-                              catchError(() => of([] as Course[])),
-                              switchMap((courses) => this.loadAssignments(courses.map((course) => course.id)).pipe(map(() => courses)))
-                          )
-                        : of([] as Course[])
-                ),
+                switchMap((levelId) => (levelId ? this.courseService.getByProgramLevel(levelId).pipe(catchError(() => of([] as Course[]))) : of([] as Course[]))),
                 takeUntilDestroyed()
             )
             .subscribe((courses) => {
                 this.courses.set(courses);
                 this.coursesLoading.set(false);
+                if (this.dialogVisible()) {
+                    this.loadAssignments(courses.map((course) => course.id))
+                        .pipe(takeUntilDestroyed(this.destroyRef))
+                        .subscribe();
+                }
             });
 
         // Comme dans Teams : déplacer le début déplace la fin, la durée est gardée ; sans fin, 2 h.
@@ -477,6 +484,10 @@ export class TimetableFormPage implements LeaveConfirmable {
     openSessionDialog(index: number | null = null): void {
         this.ensureRooms();
         this.ensureCoursesByPromotion();
+        // Les enseignants des cours ne servent qu'ici : chargés à la première ouverture, puis gardés.
+        this.loadAssignments(this.courses().map((course) => course.id))
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe();
         const source = index === null ? null : this.lines.at(index);
         this.sessionForm.reset(
             source
@@ -1400,9 +1411,7 @@ export class TimetableFormPage implements LeaveConfirmable {
         }
         this.lines.markAsPristine();
         this.refreshRows();
-        for (const courseId of new Set(lines.map((line) => line.course_id).filter(Boolean))) {
-            this.ensureAssignments(courseId);
-        }
+        // Les séances enregistrées ont déjà leur enseignant : rien à charger à l'ouverture de la page.
     }
 
     private refreshRows(): void {

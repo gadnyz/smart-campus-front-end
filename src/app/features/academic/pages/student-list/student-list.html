@@ -1,60 +1,56 @@
 <p-toast />
 
-<app-content-subtopbar kicker="Académique" title="Étudiants" [actions]="actions()" />
+<app-content-subtopbar kicker="Académique" title="Étudiants" />
 
 <p-card>
     <div class="list-header">
         <div>
             <h3 class="list-title">Liste des étudiants</h3>
-            <span class="text-color-secondary">{{ totalElements() }} étudiant(s)</span>
+            <span class="text-color-secondary">
+                {{ visibleStudents().length }} étudiant(s)@if (visibleStudents().length !== students().length) { sur {{ students().length }} }
+            </span>
         </div>
-
-        <div class="list-filters">
-            <p-iconfield>
-                <p-inputicon styleClass="pi pi-search" />
-                <input pInputText type="search" placeholder="Matricule ou nom…" aria-label="Rechercher un étudiant par matricule ou nom"
-                    [ngModel]="search()" (ngModelChange)="onSearchInput($event)" />
-            </p-iconfield>
-        </div>
+        <app-table-toolbar title="Liste des étudiants" [subtitle]="subtitle()" [columns]="columns" [rows]="visibleStudents()"
+            [query]="query()" [refreshing]="loading()" (refresh)="reload()" />
     </div>
 
-    @if (advancedOpen()) {
-    <div class="advanced-search">
-        <div class="advanced-grid">
-            @if (!facultyLocked()) {
-            <p-select [options]="faculties()" optionLabel="label" optionValue="value" placeholder="Toutes les facultés"
-                [showClear]="true" [loading]="loadingCatalog()" [filter]="true" [ngModel]="facultyFilter()"
-                (ngModelChange)="onFacultyChange($event)" ariaLabel="Filtrer par faculté" />
-            }
-            <p-select [options]="programs()" optionLabel="label" optionValue="value" placeholder="Programme"
-                [showClear]="true" [filter]="true" [ngModel]="programFilter()"
-                (ngModelChange)="onProgramChange($event)" />
-            <p-select [options]="programLevels()" optionLabel="label" optionValue="value"
-                [placeholder]="programFilter() ? 'Promotion' : 'Promotion (choisir un programme)'"
-                [showClear]="true" [disabled]="!programFilter()" [ngModel]="programLevelFilter()"
-                (ngModelChange)="onProgramLevelChange($event)" />
-        </div>
-        <div class="advanced-actions">
-            <button pButton type="button" label="Réinitialiser" severity="secondary" outlined
-                (click)="resetSearch()"></button>
-        </div>
+    <div class="scope-filters">
+        @if (!facultyLocked()) {
+        <p-select [options]="faculties()" optionLabel="label" optionValue="value" placeholder="Toutes les facultés" [showClear]="true"
+            [loading]="loadingCatalog()" [filter]="true" [ngModel]="facultyFilter()" (ngModelChange)="onFacultyChange($event)"
+            ariaLabel="Filtrer par faculté" />
+        }
+        <p-select [options]="programs()" optionLabel="label" optionValue="value" placeholder="Programme" [showClear]="true" [filter]="true"
+            [ngModel]="programFilter()" (ngModelChange)="onProgramChange($event)" ariaLabel="Filtrer par programme" />
+        <p-select [options]="programLevels()" optionLabel="label" optionValue="value"
+            [placeholder]="programFilter() ? 'Promotion' : 'Promotion (choisir un programme)'" [showClear]="true" [disabled]="!programFilter()"
+            [ngModel]="programLevelFilter()" (ngModelChange)="onProgramLevelChange($event)" ariaLabel="Filtrer par promotion" />
     </div>
+
+    <app-data-filter class="block mb-3" [columns]="columns" [rows]="students()" [(query)]="query"
+        searchPlaceholder="Nom, matricule ou promotion…" />
+
+    @if (truncated()) {
+    <p class="m-0 mb-3 text-sm text-orange-600" role="status">
+        Seuls les {{ students().length }} premiers étudiants sur {{ totalElements() }} sont chargés : choisissez une faculté, un programme ou une promotion.
+    </p>
     }
 
-    <p-table styleClass="stack-table" [value]="students()" [loading]="loading()" dataKey="id" [rowHover]="true" responsiveLayout="scroll" [tableStyle]="{ 'min-width': '64rem' }">
+    <p-table styleClass="stack-table" [value]="visibleStudents()" [loading]="loading()" dataKey="id" [rowHover]="true" [paginator]="true"
+        [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" [showCurrentPageReport]="true"
+        currentPageReportTemplate="{first} à {last} sur {totalRecords}" [tableStyle]="{ 'min-width': '56rem' }">
         <ng-template pTemplate="header">
             <tr>
                 <th>Étudiant</th>
                 <th>Matricule</th>
-                <th>Email</th>
+                <th>Promotion</th>
                 <th>Faculté</th>
-                <th>Programme</th>
-                <th>Niveau</th>
-                <th class="actions-column">Actions</th>
+                <th>E-mail</th>
+                <th class="row-actions-cell"><span class="sr-only">Actions</span></th>
             </tr>
         </ng-template>
         <ng-template pTemplate="body" let-student>
-            <tr>
+            <tr class="clickable-row" (click)="openDetail(student)">
                 <td data-label="Étudiant">
                     <div class="font-medium">{{ displayName(student) }}</div>
                     <div class="text-sm text-color-secondary">
@@ -65,23 +61,21 @@
                     </div>
                 </td>
                 <td data-label="Matricule">{{ student.matricule || '—' }}</td>
-                <td data-label="Email">{{ student.email || '—' }}</td>
+                <td data-label="Promotion">{{ promotion(student) || '—' }}</td>
                 <td data-label="Faculté">{{ student.faculty_name || '—' }}</td>
-                <td data-label="Programme">{{ student.program_name || student.program_code || '—' }}</td>
-                <td data-label="Niveau">{{ student.level_code || student.level_name || '—' }}</td>
-                <td class="stack-actions actions-column">
-                    <button pButton type="button" icon="pi pi-arrow-right" rounded outlined
-                        [attr.aria-label]="'Ouvrir la fiche de ' + displayName(student)" (click)="openDetail(student)"></button>
+                <td data-label="E-mail">{{ student.email || '—' }}</td>
+                <td class="row-actions-cell">
+                    <div class="row-actions">
+                        <button pButton type="button" icon="pi pi-arrow-right" [rounded]="true" [text]="true" size="small"
+                            [attr.aria-label]="'Ouvrir la fiche de ' + displayName(student)" (click)="openDetail(student); $event.stopPropagation()"></button>
+                    </div>
                 </td>
             </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="7">Aucun étudiant trouvé.</td>
+                <td colspan="6">Aucun étudiant trouvé.</td>
             </tr>
         </ng-template>
     </p-table>
-
-    <p-paginator [first]="page() * size()" [rows]="size()" [totalRecords]="totalElements()"
-        [rowsPerPageOptions]="[10, 25, 50]" [alwaysShow]="false" (onPageChange)="onPageChange($event)" />
 </p-card>

@@ -15,6 +15,7 @@ import { TimetableScopeService, scopeQuery } from '../../services/timetable-scop
 import { TimetableService } from '../../services/timetable.service';
 import { CREATE_TIMETABLES, EDIT_TIMETABLES, TIMETABLE_PATH } from '../../utils/timetable-routes';
 import { formatWeekStart } from '../../utils/timetable-time';
+import { PromotionLabelPipe } from '@/app/features/academic/academic.public-api';
 
 const PAGE_SIZE = 10;
 
@@ -33,7 +34,7 @@ const EMPTY_MESSAGES: Record<TimetableStatus, string> = {
     selector: 'app-timetable-pending-page',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [FormsModule, ButtonModule, SelectButtonModule, TableModule, TagModule, ToastModule, ContentSubtopbar],
+    imports: [FormsModule, ButtonModule, SelectButtonModule, TableModule, TagModule, ToastModule, ContentSubtopbar, PromotionLabelPipe],
     templateUrl: './timetable-pending.html',
     styleUrl: './timetable-pending.scss',
     providers: [MessageService]

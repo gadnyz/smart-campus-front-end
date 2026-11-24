@@ -1,0 +1,61 @@
+/// Actions d'une ligne de tableau, sur la ligne elle-même (et non dans une colonne « Actions ») :
+/// elles apparaissent au survol, à droite de la ligne, comme dans Gmail. Elles restent visibles au
+/// clavier (focus dans la ligne) et sur les écrans tactiles, qui n'ont pas de survol.
+///
+/// Gabarit : `<td class="row-actions-cell"><div class="row-actions">…boutons…</div></td>` en dernière
+/// cellule, et un `<th class="row-actions-cell"></th>` vide dans l'en-tête.
+@mixin row-actions($table) {
+    #{$table} .row-actions-cell {
+        position: relative;
+        width: 0;
+        padding: 0 !important;
+        border-left: 0;
+        border-right: 0;
+    }
+
+    #{$table} .row-actions {
+        position: absolute;
+        top: 50%;
+        right: 0.5rem;
+        z-index: 1;
+        display: flex;
+        gap: 0.25rem;
+        padding: 0.15rem 0.35rem;
+        border-radius: 999px;
+        background: var(--surface-card);
+        box-shadow: 0 1px 4px rgb(0 0 0 / 12%);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-50%);
+        transition: opacity 120ms ease;
+    }
+
+    #{$table} tr:hover .row-actions,
+    #{$table} tr:focus-within .row-actions {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    @media (hover: none) {
+        #{$table} .row-actions-cell {
+            width: auto;
+            padding: 0.5rem !important;
+        }
+
+        #{$table} .row-actions {
+            position: static;
+            opacity: 1;
+            pointer-events: auto;
+            transform: none;
+            box-shadow: none;
+            background: transparent;
+        }
+    }
+}
+
+/// Une ligne cliquable ouvre la fiche : le curseur le dit.
+@mixin clickable-rows($table) {
+    #{$table} tr.clickable-row {
+        cursor: pointer;
+    }
+}

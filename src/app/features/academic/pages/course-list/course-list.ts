@@ -29,6 +29,7 @@ import { CourseUnitService } from '../../services/course-unit.service';
 import { FacultyService } from '../../services/faculty.service';
 import { ProgramService } from '../../services/program.service';
 import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
+import { levelLabel } from '../../utils/promotion-label';
 
 @Component({
     selector: 'app-course-list',
@@ -283,7 +284,7 @@ export class CourseListPage implements OnInit {
         const program = this.programs().find((item) => item.id === programId);
 
         return (program?.levels ?? []).map((item) => ({
-            label: item.is_common ? `${item.level.code} (commun)` : item.level.code,
+            label: levelLabel(item.level),
             value: item.id
         }));
     }

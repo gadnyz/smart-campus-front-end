@@ -2,6 +2,9 @@ export * from './models/academic-reference.model';
 export * from './services/academic-catalog.service';
 
 export { asList, refId, refName } from './utils/academic-http';
+/** Libellés des niveaux et des promotions (« L1 », « L3 Génie Logiciel »), partout pareils. */
+export { LevelLabelPipe, PromotionLabelPipe, levelLabel, promotionLabel } from './utils/promotion-label';
+export type { LabelForm, LevelLike } from './utils/promotion-label';
 export { toPaged } from './utils/academic-page';
 
 /** `ProgramLevel.id` est le `program_level_id` attendu par Scheduling. Le catalogue public ne le porte pas. */

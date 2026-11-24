@@ -1,3 +1,4 @@
+import { finalize } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { writeAuthorities } from '@/app/core/permissions/permission-scope';
@@ -15,7 +16,7 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
+import { ContentSubtopbar, SubtopbarAction, SubtopbarNavigation } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { AuthService } from '@/app/core/auth/services/auth.service';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { UsersService } from '@/app/features/identity/users/services/user.service';
@@ -31,6 +32,7 @@ import {
     DetailNavigationService,
     DetailNavigationState
 } from '@/app/shared/navigation/detail-navigation.service';
+import { levelLabel } from '../../utils/promotion-label';
 
 @Component({
     selector: 'app-faculty-detail',
@@ -72,6 +74,8 @@ export class FacultyDetailPage implements OnInit {
     readonly faculty = signal<Faculty | null>(null);
     readonly programs = signal<Program[]>([]);
     readonly leadership = signal<FacultyLeadership[]>([]);
+    readonly programsLoading = signal(false);
+    readonly leadershipLoading = signal(false);
     readonly loading = signal(false);
     readonly programDialogVisible = signal(false);
     readonly leadershipDialogVisible = signal(false);
@@ -117,9 +121,8 @@ export class FacultyDetailPage implements OnInit {
     readonly title = computed(() => {
         const faculty = this.faculty();
         const name = faculty ? `${faculty.code} — ${faculty.name}` : 'Faculté';
-        const position = this.navigationState()?.label;
 
-        return position ? `${name} (${position})` : name;
+        return name;
     });
 
     readonly canGoPrevious = computed(() => this.navigationState()?.hasPrevious ?? false);
@@ -145,6 +148,21 @@ export class FacultyDetailPage implements OnInit {
 
     readonly ownFaculty = signal(false);
 
+    /** Précédent et Suivant dans la sous-barre, avec la position dans la liste. */
+    readonly navigation = computed<SubtopbarNavigation | null>(() => {
+        const state = this.navigationState();
+        if (!state) {
+            return null;
+        }
+        return {
+            position: state.label,
+            hasPrevious: !(!this.canGoPrevious() || this.loading()),
+            hasNext: !(!this.canGoNext() || this.loading()),
+            previous: () => this.goToPreviousFaculty(),
+            next: () => this.goToNextFaculty()
+        };
+    });
+
     readonly actions = computed<SubtopbarAction[]>(() => {
         if (this.ownFaculty() || !this.permissionService.hasAnyPermission([AcademicPermission.FacultyReadAll])) {
             return [];
@@ -159,21 +177,8 @@ export class FacultyDetailPage implements OnInit {
                 command: () => void this.router.navigate(['/academic/faculties'])
             },
             {
-                label: 'Précédent',
-                icon: 'pi pi-chevron-left',
-                severity: 'secondary',
-                disabled: !this.canGoPrevious() || this.loading(),
-                command: () => this.goToPreviousFaculty()
-            },
-            {
-                label: 'Suivant',
-                icon: 'pi pi-chevron-right',
-                severity: 'secondary',
-                disabled: !this.canGoNext() || this.loading(),
-                command: () => this.goToNextFaculty()
-            },
-            {
                 label: 'Modifier',
+                primary: true,
                 icon: 'pi pi-pencil',
                 command: () => this.openEditFaculty(),
                 permissions: writeAuthorities('academic:faculty:update')
@@ -196,7 +201,7 @@ export class FacultyDetailPage implements OnInit {
         this.levelService.getAll().subscribe({
             next: (levels) =>
                 this.levelOptions.set(
-                    levels.map((level) => ({ label: `${level.code} — ${level.name}`, value: level.id }))
+                    levels.map((level) => ({ label: levelLabel(level), value: level.id }))
                 )
         });
 
@@ -409,15 +414,19 @@ export class FacultyDetailPage implements OnInit {
         return this.roleOptions.find((item) => item.value === role)?.label ?? role;
     }
 
+    /**
+     * La fiche, les programmes et la direction partent ensemble : les programmes (l'appel le plus
+     * lent) n'attendent plus la fiche. Les tableaux restent en chargement tant qu'ils n'ont rien.
+     */
     private loadFaculty(id: string): void {
         this.loading.set(true);
+        this.loadPrograms(id);
+        this.loadLeadership(id);
 
         this.facultyService.getById(id).subscribe({
             next: (faculty) => {
                 this.faculty.set(faculty);
                 this.loading.set(false);
-                this.loadPrograms(id);
-                this.loadLeadership(id);
             },
             error: () => {
                 this.loading.set(false);
@@ -427,15 +436,22 @@ export class FacultyDetailPage implements OnInit {
     }
 
     private loadPrograms(facultyId: string): void {
+        this.programsLoading.set(true);
         this.programService.getByFaculty(facultyId).subscribe({
-            next: (programs) => this.programs.set(programs),
-            error: (error: HttpErrorResponse) =>
-                this.showError(apiErrorMessage(error, 'Impossible de charger les programmes.'))
+            next: (programs) => {
+                this.programs.set(programs);
+                this.programsLoading.set(false);
+            },
+            error: (error: HttpErrorResponse) => {
+                this.programsLoading.set(false);
+                this.showError(apiErrorMessage(error, 'Impossible de charger les programmes.'));
+            }
         });
     }
 
     private loadLeadership(facultyId: string): void {
-        this.facultyService.getLeadership(facultyId).subscribe({
+        this.leadershipLoading.set(true);
+        this.facultyService.getLeadership(facultyId).pipe(finalize(() => this.leadershipLoading.set(false))).subscribe({
             next: (items) => this.leadership.set(items.filter((item) => item.active !== false)),
             error: (error: HttpErrorResponse) =>
                 this.showError(apiErrorMessage(error, 'Impossible de charger la direction.'))

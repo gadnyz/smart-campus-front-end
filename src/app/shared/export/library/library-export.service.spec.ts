@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { PrintableTimetable } from '../models/timetable-print.model';
-import { TimetableExportService } from './timetable-export.service';
+import { PrintableTimetable } from '@/app/features/scheduling/timetable/models/timetable-print.model';
+import { toWeeklyGridDocument } from '@/app/features/scheduling/timetable/services/timetable-export.service';
+import { TableExportDocument } from '../export-document.model';
+import { LibraryExportService } from './library-export.service';
 
 const week: PrintableTimetable = {
     title: 'Faculté des Sciences Informatiques',
@@ -12,7 +14,7 @@ const week: PrintableTimetable = {
 
 /** Service dont les chargements sont remplacés : pas de pdfmake réel, ni de logo à télécharger. */
 @Injectable()
-class TestableExportService extends TimetableExportService {
+class TestableExportService extends LibraryExportService {
     readonly pdf = jasmine.createSpyObj('TCreatedPdf', ['print', 'download']);
     readonly fakePdfMake = { createPdf: jasmine.createSpy('createPdf').and.returnValue(this.pdf), addVirtualFileSystem: () => undefined };
     readonly saved: { blob: Blob; fileName: string }[] = [];
@@ -31,7 +33,7 @@ class TestableExportService extends TimetableExportService {
     }
 }
 
-describe('TimetableExportService', () => {
+describe('LibraryExportService', () => {
     let service: TestableExportService;
 
     beforeEach(() => {
@@ -45,7 +47,7 @@ describe('TimetableExportService', () => {
         const tab = jasmine.createSpyObj<Window>('Window', ['close']);
         const open = spyOn(window, 'open').and.returnValue(tab);
 
-        const printing = service.print([week]);
+        const printing = service.print(toWeeklyGridDocument([week]));
         // Ouvert avant tout await : le bloqueur de fenêtres voit encore le geste de l'utilisateur.
         expect(open).toHaveBeenCalledWith('', '_blank');
         await printing;
@@ -57,7 +59,7 @@ describe('TimetableExportService', () => {
 
     it('should explain a blocked print tab', async () => {
         spyOn(window, 'open').and.returnValue(null);
-        await expectAsync(service.print([week])).toBeRejectedWithError(/bloqué/);
+        await expectAsync(service.print(toWeeklyGridDocument([week]))).toBeRejectedWithError(/bloqué/);
         expect(service.fakePdfMake.createPdf).not.toHaveBeenCalled();
     });
 
@@ -66,13 +68,13 @@ describe('TimetableExportService', () => {
         spyOn(window, 'open').and.returnValue(tab);
         service.pdf.print.and.rejectWith(new Error('boom'));
 
-        await expectAsync(service.print([week])).toBeRejected();
+        await expectAsync(service.print(toWeeklyGridDocument([week]))).toBeRejected();
         expect(tab.close).toHaveBeenCalled();
     });
 
     it('should download the PDF under a readable name, with the logo when available', async () => {
         service.logoResult = 'data:image/png;base64,AAAA';
-        await service.downloadPdf([week]);
+        await service.downloadPdf(toWeeklyGridDocument([week]));
 
         expect(service.pdf.download).toHaveBeenCalledWith('horaire-l1-science-informatique-2026-10-19.pdf');
         const definition = service.fakePdfMake.createPdf.calls.mostRecent().args[0];
@@ -80,11 +82,39 @@ describe('TimetableExportService', () => {
     });
 
     it('should save an .xlsx workbook', async () => {
-        await service.downloadExcel([week]);
+        await service.downloadExcel(toWeeklyGridDocument([week]));
 
         expect(service.saved.length).toBe(1);
         expect(service.saved[0].fileName).toBe('horaire-l1-science-informatique-2026-10-19.xlsx');
         expect(service.saved[0].blob.type).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         expect(service.saved[0].blob.size).toBeGreaterThan(1000);
+    });
+
+    describe('liste', () => {
+        const table: TableExportDocument = {
+            kind: 'table',
+            title: 'Liste des étudiants',
+            subtitle: 'Faculté des Sciences Informatiques',
+            filters: ['Promotion : L1 Génie Logiciel', 'Tri : Nom (A → Z)'],
+            columns: [{ label: 'Matricule' }, { label: 'Nom' }, { label: 'Promotion' }],
+            rows: [['FSI/2027/0001', 'Kalala Fiston', 'L1 Génie Logiciel']],
+            fileName: 'liste-des-etudiants'
+        };
+
+        it('should print the rows with the active filters, portrait for few columns', async () => {
+            await service.downloadPdf(table);
+
+            expect(service.pdf.download).toHaveBeenCalledWith('liste-des-etudiants.pdf');
+            const definition = service.fakePdfMake.createPdf.calls.mostRecent().args[0];
+            expect(definition.pageOrientation).toBe('portrait');
+            const text = JSON.stringify(definition.content);
+            expect(text).toContain('Kalala Fiston');
+            expect(text).toContain('Promotion : L1 Génie Logiciel');
+        });
+
+        it('should save the list as a workbook', async () => {
+            await service.downloadExcel(table);
+            expect(service.saved[0].fileName).toBe('liste-des-etudiants.xlsx');
+        });
     });
 });

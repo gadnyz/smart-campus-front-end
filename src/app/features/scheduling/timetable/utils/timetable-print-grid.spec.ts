@@ -72,7 +72,7 @@ describe('timetable-print-grid', () => {
         expect(buildPrintGrid(timetable([])).rows).toEqual([]);
     });
 
-    it('should build a printable week from a promotion timetable, with the level code when known', () => {
+    it('should build a printable week from a promotion timetable, with the long form of the level', () => {
         const source = {
             faculty_name: 'Faculté des Sciences Informatiques',
             program_id: 'prog-1',
@@ -83,8 +83,8 @@ describe('timetable-print-grid', () => {
         };
         const programs = [{ id: 'prog-1', name: 'Science Informatique', code: 'SI', faculty_id: 'fac-1', levels: [{ id: 'pl-1', is_common: false, level: { id: 'l1', code: 'L1', name: 'Licence 1', level_order: 1 } }] }];
 
-        expect(printableFromTimetable(source, [], programs).heading).toBe('L1 — Science Informatique');
-        expect(printableFromTimetable(source, [], []).heading).toBe('Licence 1 — Science Informatique');
+        expect(printableFromTimetable(source, [], programs).heading).toBe('Licence 1 Science Informatique');
+        expect(printableFromTimetable(source, [], []).heading).toBe('Licence 1 Science Informatique');
         expect(printableFromTimetable(source, [], []).title).toBe('Faculté des Sciences Informatiques');
     });
 

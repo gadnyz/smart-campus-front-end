@@ -186,7 +186,7 @@ describe('MyTimetablePage', () => {
             expect(component.events().map((event) => event.id)).toEqual(['e-validated']);
             expect(component.events()[0].title).toBe('Algèbre');
             expect((component.events()[0].extendedProps as { session: { professor_name: string } }).session.professor_name).toBe('PO Ada Lovelace');
-            expect((component.events()[0].extendedProps as { session: { promotion: string } }).session.promotion).toBe('Informatique · Licence 1');
+            expect((component.events()[0].extendedProps as { session: { promotion: string } }).session.promotion).toBe('L1 Informatique');
         });
 
         it('should read each timetable once across weeks', () => {

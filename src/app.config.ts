@@ -7,6 +7,7 @@ import { definePreset } from '@primeuix/themes';
 
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
+import { provideExport } from '@/app/shared/export/provide-export';
 import { appRoutes } from './app.routes';
 
 const UNHPreset = definePreset(Aura, {
@@ -51,6 +52,8 @@ export const appConfig: ApplicationConfig = {
         provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
         provideAppInitializer(() => inject(AuthService).restoreSession()),
         provideZonelessChangeDetection(),
-        providePrimeNG({ theme: { preset: UNHPreset, options: { darkModeSelector: '.app-dark' } } })
+        providePrimeNG({ theme: { preset: UNHPreset, options: { darkModeSelector: '.app-dark' } } }),
+        // Impression et exports : la seule implémentation qui connaît pdfmake et ExcelJS.
+        provideExport()
     ]
 };

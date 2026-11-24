@@ -6,6 +6,8 @@ import { DetailNavigationService } from '@/app/shared/navigation/detail-navigati
 import { Student } from '../../models/student.model';
 import { AcademicCatalogService } from '../../services/academic-catalog.service';
 import { StudentService } from '../../services/student.service';
+import { EXPORT_SERVICE, ExportService } from '@/app/shared/export/export.service';
+import { TableExportDocument } from '@/app/shared/export/export-document.model';
 import { StudentListPage } from './student-list';
 
 describe('StudentListPage', () => {
@@ -14,6 +16,7 @@ describe('StudentListPage', () => {
     let studentService: jasmine.SpyObj<StudentService>;
     let catalog: jasmine.SpyObj<AcademicCatalogService>;
     let router: Router;
+    let exporter: jasmine.SpyObj<ExportService>;
 
     const students: Student[] = [
         {
@@ -85,6 +88,7 @@ describe('StudentListPage', () => {
                 DetailNavigationService,
                 { provide: StudentService, useValue: studentService },
                 { provide: AcademicCatalogService, useValue: catalog },
+                { provide: EXPORT_SERVICE, useFactory: () => (exporter = jasmine.createSpyObj<ExportService>('ExportService', ['print', 'downloadPdf', 'downloadExcel'])) },
                 {
                     provide: AuthService,
                     useValue: {
@@ -105,10 +109,34 @@ describe('StudentListPage', () => {
         await fixture.whenStable();
     });
 
-    it('should load students without validate or reject actions', () => {
+    it('should load the students of the scope at once', () => {
         expect(component.students().map((student) => student.id)).toEqual(['st-1', 'st-2']);
-        expect(component.totalElements()).toBe(2);
-        expect(component.actions().some((action) => /valider|rejeter/i.test(action.label))).toBeFalse();
+        expect(studentService.getAll).toHaveBeenCalledWith(jasmine.objectContaining({ page: 0, size: 1000, search: null }));
+        expect(component.truncated()).toBeFalse();
+    });
+
+    it('should search by name or promotion, then filter and sort in the browser', () => {
+        component.query.set({ search: 'l1 genie', filters: [], sort: null });
+        expect(component.visibleStudents().length).toBe(2);
+
+        component.query.set({ search: '', filters: [{ key: 'gender', operator: 'in', values: ['Masculin'] }], sort: null });
+        expect(component.visibleStudents().map((student) => student.id)).toEqual(['st-2']);
+
+        component.query.set({ search: '', filters: [], sort: { key: 'name', direction: 'asc' } });
+        expect(component.visibleStudents().map((student) => student.id)).toEqual(['st-2', 'st-1']);
+    });
+
+    it('should export exactly the filtered rows, with the active filters', async () => {
+        exporter.downloadExcel.and.resolveTo();
+        component.query.set({ search: 'banda', filters: [], sort: null });
+        fixture.detectChanges();
+
+        (fixture.nativeElement.querySelector('[aria-label="Exporter la liste en Excel"]') as HTMLElement).click();
+
+        const document = exporter.downloadExcel.calls.mostRecent().args[0] as TableExportDocument;
+        expect(document.rows.length).toBe(1);
+        expect(document.rows[0]).toContain('FST-002');
+        expect(document.filters).toEqual(['Recherche : « banda »']);
     });
 
     it('should navigate to the student detail', () => {
@@ -116,22 +144,22 @@ describe('StudentListPage', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/academic/students', 'st-2']);
     });
 
-    it('should filter by faculty and promotion through the API, trusting its total', () => {
+    it('should filter by faculty and promotion through the API, and say when not everything is loaded', () => {
         studentService.getAll.calls.reset();
         studentService.getAll.and.returnValue(of({ content: [students[1]], page: 0, size: 10, total_elements: 37, total_pages: 4 }));
         component.onFacultyChange('fac-info');
         component.onProgramChange('pr-1');
 
-        expect(component.programLevels()).toEqual([{ label: 'L1 — Licence 1', value: 'pl-1' }]);
+        expect(component.programLevels()).toEqual([{ label: 'L1', value: 'pl-1' }]);
         component.onProgramLevelChange('pl-1');
 
         expect(studentService.getAll).toHaveBeenCalledWith(
             jasmine.objectContaining({ page: 0, facultyId: 'fac-info', programId: 'pr-1', programLevelId: 'pl-1' })
         );
         expect(catalog.getProgramsByFaculty).toHaveBeenCalledWith('fac-info');
-        // Aucun filtrage local : la page et le total viennent du serveur.
         expect(component.students().map((student) => student.id)).toEqual(['st-2']);
         expect(component.totalElements()).toBe(37);
+        expect(component.truncated()).toBeTrue();
     });
 
     it('should clear the promotion when the program changes', () => {

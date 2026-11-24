@@ -1,7 +1,11 @@
 import type { RichText, Workbook } from 'exceljs';
-import { PrintableTimetable } from '../models/timetable-print.model';
-import { PRINT_COLORS, argb } from './timetable-export-style';
-import { fillWorkbook, sheetName } from './timetable-excel';
+import { PrintableTimetable } from '@/app/features/scheduling/timetable/models/timetable-print.model';
+import { toWeeklyGridDocument } from '@/app/features/scheduling/timetable/services/timetable-export.service';
+import { PRINT_COLORS, argb } from '../export-style';
+import { ExcelBranding, fillWeeklyGridWorkbook, sheetName } from './weekly-grid-excel';
+
+/** Les pages viennent des horaires, comme dans l'application. */
+const fillWorkbook = (workbook: Workbook, weeks: PrintableTimetable[], branding: ExcelBranding) => fillWeeklyGridWorkbook(workbook, toWeeklyGridDocument(weeks).pages, branding);
 
 /** PNG 1×1 transparent. */
 const PIXEL = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';

@@ -42,7 +42,7 @@ import {
 } from '@/app/shared/navigation/detail-navigation.service';
 import {
     ContentSubtopbar,
-    SubtopbarAction
+    SubtopbarAction, SubtopbarNavigation
 } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 
 import {
@@ -274,6 +274,21 @@ export class CandidateDetail implements OnInit {
             : 'secondary';
     });
 
+    /** Précédent et Suivant dans la sous-barre, avec la position dans la liste. */
+    readonly navigation = computed<SubtopbarNavigation | null>(() => {
+        const state = this.navigationState();
+        if (!state) {
+            return null;
+        }
+        return {
+            position: state.label,
+            hasPrevious: !(!this.canGoPrevious() || this.busy()),
+            hasNext: !(!this.canGoNext() || this.busy()),
+            previous: () => this.goToPreviousCandidate(),
+            next: () => this.goToNextCandidate()
+        };
+    });
+
     readonly actions = computed<SubtopbarAction[]>(() => (this.editing() ? this.editActions() : this.readActions()));
 
     private editActions(): SubtopbarAction[] {
@@ -288,6 +303,7 @@ export class CandidateDetail implements OnInit {
             },
             {
                 label: 'Enregistrer',
+                primary: true,
                 icon: 'pi pi-save',
                 loading: this.saving(),
                 disabled: this.saving(),
@@ -306,23 +322,8 @@ export class CandidateDetail implements OnInit {
             command: () => this.goToList()
         },
         {
-            label: 'Précédent',
-            icon: 'pi pi-chevron-left',
-            severity: 'secondary',
-            disabled:
-                !this.canGoPrevious() || this.busy(),
-            command: () => this.goToPreviousCandidate()
-        },
-        {
-            label: 'Suivant',
-            icon: 'pi pi-chevron-right',
-            severity: 'secondary',
-            disabled:
-                !this.canGoNext() || this.busy(),
-            command: () => this.goToNextCandidate()
-        },
-        {
             label: 'Valider',
+            primary: true,
             icon: 'pi pi-check',
             severity: 'success',
             outlined: false,
@@ -351,6 +352,7 @@ export class CandidateDetail implements OnInit {
             ? [
                 {
                     label: 'Modifier',
+                    primary: true,
                     icon: 'pi pi-pencil',
                     severity: 'secondary' as const,
                     outlined: true,

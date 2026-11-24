@@ -1,6 +1,6 @@
 <p-toast />
 
-<app-content-subtopbar kicker="Académique" [title]="title()" [actions]="actions()" />
+<app-content-subtopbar kicker="Académique" [title]="title()" [actions]="actions()" [navigation]="navigation()" [maxVisible]="2" />
 
 @if (!student() && loading()) {
 <p-card>

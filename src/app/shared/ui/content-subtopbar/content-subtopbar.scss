@@ -57,3 +57,26 @@
 .content-subtopbar-badge {
     margin-left: 0.5rem;
 }
+
+/* Précédent · 3/42 · Suivant */
+.content-subtopbar-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding-right: 0.5rem;
+    margin-right: 0.25rem;
+    border-right: 1px solid var(--surface-border);
+}
+
+.content-subtopbar-position {
+    min-width: 3rem;
+    text-align: center;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-color-secondary);
+}
+
+::ng-deep .content-subtopbar-menu-danger .p-menu-item-label,
+::ng-deep .content-subtopbar-menu-danger .p-menu-item-icon {
+    color: var(--p-red-500);
+}

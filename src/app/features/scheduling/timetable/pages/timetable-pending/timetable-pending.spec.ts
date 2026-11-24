@@ -59,7 +59,7 @@ describe('TimetablePendingPage', () => {
         expect(component.totalRecords()).toBe(11);
         const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
         expect(text).toContain('Informatique');
-        expect(text).toContain('Licence 1');
+        expect(text).toContain('L1 Informatique');
         expect(text).toContain('5 octobre 2026');
     });
 

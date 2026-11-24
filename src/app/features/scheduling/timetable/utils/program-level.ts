@@ -1,11 +1,11 @@
-import { Program, ProgramLevel } from '@/app/features/academic/academic.public-api';
+import { Program, ProgramLevel, levelLabel } from '@/app/features/academic/academic.public-api';
 
 /**
  * « L1 » : le code suffit, son nom (« Licence 1 ») le répète. Un tronc commun n'est pas signalé :
  * il se reconnaît à son programme, qui n'a pas de filière à ce niveau.
  */
 export function programLevelLabel(level: ProgramLevel): string {
-    return level.level.code;
+    return levelLabel(level.level);
 }
 
 export function programLevelOptions(programs: readonly Program[], programId: string | null): { label: string; value: string }[] {

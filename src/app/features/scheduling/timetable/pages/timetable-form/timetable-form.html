@@ -213,7 +213,7 @@
                 optionLabel="name"
                 optionValue="id"
                 [filter]="true"
-                [loading]="coursesLoading()"
+                [loading]="coursesLoading() || teachersLoading()"
                 [invalid]="!!errors.course"
                 placeholder="Cours"
                 emptyMessage="Aucun cours avec un enseignant pour ce niveau"

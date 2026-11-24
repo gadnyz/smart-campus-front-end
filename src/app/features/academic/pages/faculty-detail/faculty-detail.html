@@ -1,7 +1,7 @@
 <p-toast />
 <p-confirmdialog [style]="{ width: '450px' }" />
 
-<app-content-subtopbar kicker="Académique" [title]="title()" [actions]="actions()" />
+<app-content-subtopbar kicker="Académique" [title]="title()" [actions]="actions()" [navigation]="navigation()" [maxVisible]="2" />
 
 <div class="card mb-4">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -12,7 +12,7 @@
         }
     </div>
 
-    <p-table [value]="programs()" dataKey="id" [rowHover]="true" responsiveLayout="scroll">
+    <p-table [value]="programs()" [loading]="programsLoading() && !programs().length" dataKey="id" [rowHover]="true" responsiveLayout="scroll">
         <ng-template pTemplate="header">
             <tr>
                 <th>Code</th>
@@ -65,7 +65,7 @@
         }
     </div>
 
-    <p-table [value]="leadership()" dataKey="id" [rowHover]="true" responsiveLayout="scroll">
+    <p-table [value]="leadership()" [loading]="leadershipLoading() && !leadership().length" dataKey="id" [rowHover]="true" responsiveLayout="scroll">
         <ng-template pTemplate="header">
             <tr>
                 <th>Rôle</th>

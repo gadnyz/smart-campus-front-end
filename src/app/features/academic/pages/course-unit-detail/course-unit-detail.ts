@@ -23,6 +23,7 @@ import { CourseUnit, CourseUnitCourse, CourseUnitDetail, KnowledgeSkillsBloc, UE
 import { CourseService } from '../../services/course.service';
 import { CourseUnitService } from '../../services/course-unit.service';
 import { ProgramService } from '../../services/program.service';
+import { promotionLabel } from '../../utils/promotion-label';
 
 interface CurriculumRow {
     programLevelId: string;
@@ -425,7 +426,7 @@ export class CourseUnitDetailPage implements OnInit {
                 const labels = new Map<string, string>();
                 for (const program of programs) {
                     for (const item of program.levels ?? []) {
-                        labels.set(item.id, `${program.name} — ${item.level.code}${item.is_common ? ' (commun)' : ''}`);
+                        labels.set(item.id, promotionLabel(item.level, program.name));
                     }
                 }
                 this.promotionLabels.set(labels);

@@ -1,0 +1,39 @@
+site_name: Smart Campus — Documentation front-end
+site_description: Documentation technique du front-end Angular de Smart Campus (Université Nouveaux Horizons)
+docs_dir: docs
+exclude_docs: |
+  DONNEES_REFERENCE.md
+
+theme:
+  name: material
+  language: fr
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Accueil: index.md
+  - Installation: installation.md
+  - Technologies: technologies.md
+  - Développement:
+      - Architecture: developpement/architecture.md
+      - Créer un module: developpement/creer-un-module.md
+      - Brancher un module: developpement/brancher-un-module.md
+      - Communication avec le backend: developpement/communication-backend.md

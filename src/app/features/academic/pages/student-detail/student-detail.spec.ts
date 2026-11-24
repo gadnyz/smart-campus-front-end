@@ -124,7 +124,8 @@ describe('StudentDetailPage', () => {
         expect(component.student()?.id).toBe('st-1');
         expect(component.displayName()).toBe('Lovelace Ada Byron');
         expect(component.editing()).toBeFalse();
-        expect(component.actions().map((action) => action.label)).toEqual(['Liste', 'Précédent', 'Suivant', 'Modifier']);
+        expect(component.actions().map((action) => action.label)).toEqual(['Liste', 'Modifier']);
+        expect(component.navigation()?.position).toBeTruthy();
     });
 
     it('should switch the same fields to editable inputs then back after save', () => {
@@ -159,8 +160,8 @@ describe('StudentDetailPage', () => {
     });
 
     it('should navigate to the next student in the list', () => {
-        const next = component.actions().find((action) => action.label === 'Suivant');
-        next?.command?.();
+        // Précédent et Suivant sont dans la navigation de la sous-barre.
+        component.navigation()?.next();
         expect(router.navigate).toHaveBeenCalledWith(['/academic/students', 'st-2']);
     });
 });

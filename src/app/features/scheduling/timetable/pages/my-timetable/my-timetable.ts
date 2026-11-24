@@ -20,6 +20,7 @@ import { TimetableService } from '../../services/timetable.service';
 import { toCalendarEvent, toCalendarSession, weeksInRange } from '../../utils/timetable-events';
 import { printableFromTimetable, toPrintSession } from '../../utils/timetable-print-grid';
 import { addDays, mondayOf, parseApiDate, toApiDate } from '../../utils/timetable-time';
+import { promotionLabel } from '@/app/features/academic/academic.public-api';
 
 interface WeekResult {
     sessions: CalendarSession[];
@@ -202,7 +203,7 @@ export class MyTimetablePage {
                     .filter((entry) => validated.has(entry.timetable_id))
                     .map((entry) => {
                         const timetable = validated.get(entry.timetable_id)!;
-                        return { ...toCalendarSession(entry, labels), promotion: `${timetable.program_name} · ${timetable.program_level_name}` };
+                        return { ...toCalendarSession(entry, labels), promotion: promotionLabel({ name: timetable.program_level_name }, timetable.program_name) };
                     });
                 return { sessions, documents: this.professorDocuments(sessions, labels) };
             })

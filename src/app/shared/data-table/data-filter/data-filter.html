@@ -1,0 +1,104 @@
+<div class="data-filter">
+    <div class="data-filter-bar">
+        <p-iconfield class="data-filter-search">
+            <p-inputicon styleClass="pi pi-search" />
+            <input pInputText type="search" [placeholder]="searchPlaceholder()" [ngModel]="query().search" (ngModelChange)="onSearch($event)"
+                [attr.aria-label]="searchPlaceholder()" class="w-full" />
+        </p-iconfield>
+
+        <p-button icon="pi pi-filter" label="Filtres" severity="secondary" [outlined]="true" size="small" (onClick)="panel.toggle($event)"
+            [badge]="activeCount() ? '' + activeCount() : undefined" ariaLabel="Filtres avancés" />
+
+        <div class="data-filter-sort">
+            <p-select [options]="sortOptions()" optionLabel="label" optionValue="value" [ngModel]="query().sort?.key ?? null"
+                (ngModelChange)="setSort($event)" placeholder="Trier par" [showClear]="true" appendTo="body" size="small" ariaLabel="Trier par" />
+            @if (query().sort; as sort) {
+            <p-button [icon]="sort.direction === 'asc' ? 'pi pi-sort-amount-up-alt' : 'pi pi-sort-amount-down'" severity="secondary" [text]="true"
+                size="small" (onClick)="toggleDirection()"
+                [ariaLabel]="sort.direction === 'asc' ? 'Tri croissant : passer en décroissant' : 'Tri décroissant : passer en croissant'" />
+            }
+        </div>
+    </div>
+
+    @if (chips().length || sortLabel()) {
+    <div class="data-filter-chips" aria-label="Filtres actifs">
+        @for (chip of chips(); track chip.index) {
+        <p-chip [label]="chip.label" [removable]="true" (onRemove)="removeFilter(chip.index)" />
+        }
+        @if (sortLabel(); as label) {
+        <p-chip [label]="label" icon="pi pi-sort-alt" [removable]="true" (onRemove)="clearSort()" />
+        }
+        <p-button label="Tout effacer" [text]="true" size="small" (onClick)="clearAll()" />
+    </div>
+    }
+</div>
+
+<p-popover #panel appendTo="body" styleClass="data-filter-panel">
+    <div class="data-filter-form">
+        <div>
+            <label for="data-filter-column" class="block text-sm mb-1">Colonne</label>
+            <p-select inputId="data-filter-column" [options]="columnOptions()" optionLabel="label" optionValue="value" [ngModel]="draftKey()"
+                (ngModelChange)="selectColumn($event)" placeholder="Choisir une colonne" appendTo="body" class="w-full" />
+        </div>
+
+        @if (draftColumn(); as column) {
+        <div>
+            <label for="data-filter-operator" class="block text-sm mb-1">Condition</label>
+            <p-select inputId="data-filter-operator" [options]="operatorOptions()" optionLabel="label" optionValue="value" [ngModel]="draftOperator()"
+                (ngModelChange)="selectOperator($event)" appendTo="body" class="w-full" />
+        </div>
+
+        @switch (draftOperator()) {
+        @case ('in') {
+        <div class="data-filter-values">
+            <input pInputText type="search" placeholder="Chercher une valeur" [ngModel]="valueSearch()" (ngModelChange)="valueSearch.set($event)"
+                aria-label="Chercher une valeur" class="w-full" />
+            <div class="data-filter-values-actions">
+                <p-button label="Tout cocher" [text]="true" size="small" (onClick)="selectAllValues(true)" />
+                <p-button label="Tout décocher" [text]="true" size="small" (onClick)="selectAllValues(false)" />
+            </div>
+            <ul class="data-filter-values-list">
+                @for (value of draftChoices(); track value) {
+                <li>
+                    <p-checkbox [inputId]="'data-filter-value-' + $index" [binary]="true" [ngModel]="draftValues().includes(value)"
+                        (ngModelChange)="toggleValue(value, $event)" />
+                    <label [for]="'data-filter-value-' + $index">{{ value }}</label>
+                </li>
+                } @empty {
+                <li class="text-muted-color">Aucune valeur.</li>
+                }
+            </ul>
+        </div>
+        }
+        @case ('empty') {}
+        @case ('notEmpty') {}
+        @default {
+        @if (column.type === 'number') {
+        <div class="data-filter-range">
+            <p-inputnumber [ngModel]="draftValue()" (ngModelChange)="draftValue.set($event)" [placeholder]="draftOperator() === 'between' ? 'De' : 'Valeur'"
+                [fluid]="true" ariaLabel="Valeur" />
+            @if (draftOperator() === 'between') {
+            <p-inputnumber [ngModel]="draftTo()" (ngModelChange)="draftTo.set($event)" placeholder="À" [fluid]="true" ariaLabel="Valeur haute" />
+            }
+        </div>
+        } @else if (column.type === 'date') {
+        <div class="data-filter-range">
+            <input pInputText type="date" [ngModel]="draftValue()" (ngModelChange)="draftValue.set($event)" aria-label="Date" class="w-full" />
+            @if (draftOperator() === 'between') {
+            <input pInputText type="date" [ngModel]="draftTo()" (ngModelChange)="draftTo.set($event)" aria-label="Date de fin" class="w-full" />
+            }
+        </div>
+        } @else {
+        <input pInputText type="text" [ngModel]="draftValue()" (ngModelChange)="draftValue.set($event)" placeholder="Texte" aria-label="Texte"
+            class="w-full" />
+        }
+        }
+        }
+
+        <div class="data-filter-form-actions">
+            <p-button label="Annuler" severity="secondary" [text]="true" size="small" (onClick)="panel.hide()" />
+            <p-button label="Ajouter le filtre" icon="pi pi-check" size="small" [disabled]="!draftReady()" (onClick)="addFilter() && panel.hide()" />
+        </div>
+        }
+    </div>
+</p-popover>

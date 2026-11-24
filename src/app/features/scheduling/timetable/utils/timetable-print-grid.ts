@@ -1,4 +1,4 @@
-import { Program } from '@/app/features/academic/academic.public-api';
+import { Program, promotionLabel } from '@/app/features/academic/academic.public-api';
 import { Timetable } from '../models/timetable.model';
 import { CalendarSession } from '../models/timetable-view.model';
 import { PrintDay, PrintGrid, PrintRow, PrintSession, PrintableTimetable } from '../models/timetable-print.model';
@@ -108,7 +108,7 @@ export function toPrintSession(session: CalendarSession): PrintSession {
 
 /**
  * Semaine imprimable d'un horaire de promotion : intitulé = faculté, titre de niveau 2 = code du
- * niveau et programme (« L1 — Science Informatique »). Le code vient du catalogue des programmes ;
+ * niveau, en forme longue, puis programme (« Licence 1 Sciences Informatiques »). Le code vient du catalogue des programmes ;
  * à défaut, le nom du niveau porté par l'horaire.
  */
 export function printableFromTimetable(
@@ -119,7 +119,8 @@ export function printableFromTimetable(
     const level = programs.find((program) => program.id === timetable.program_id)?.levels?.find((item) => item.id === timetable.program_level_id)?.level;
     return {
         title: timetable.faculty_name,
-        heading: `${level?.code || timetable.program_level_name} — ${timetable.program_name}`,
+        // Document officiel : la forme longue du niveau, « Licence 1 Sciences Informatiques ».
+        heading: promotionLabel(level ?? { name: timetable.program_level_name }, timetable.program_name, 'long'),
         weekStart: timetable.week_start,
         sessions: sessions.map(toPrintSession)
     };

@@ -1,0 +1,94 @@
+<p-dialog [header]="config().title" [visible]="visible()" (visibleChange)="$event || close()" [modal]="true" [draggable]="false"
+    [style]="{ width: '52rem' }" [breakpoints]="{ '960px': '95vw' }" appendTo="body">
+    @switch (step()) {
+    @case ('file') {
+    <ol class="m-0 pl-4 flex flex-col gap-3">
+        <li>
+            <span>Téléchargez le modèle, puis remplissez une ligne par élément. Les colonnes marquées * sont obligatoires.</span>
+            <div class="mt-2">
+                <p-button label="Télécharger le modèle" icon="pi pi-download" severity="secondary" [outlined]="true" size="small" (onClick)="downloadTemplate()" />
+            </div>
+        </li>
+        <li>
+            <label for="import-file">Choisissez le fichier rempli (.xlsx).</label>
+            <div class="mt-2 flex items-center gap-3">
+                <input id="import-file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" (change)="onFile($event)"
+                    [disabled]="reading()" />
+                @if (reading()) {
+                <i class="pi pi-spin pi-spinner" aria-label="Lecture du fichier"></i>
+                }
+            </div>
+            @if (fileError()) {
+            <small class="block mt-2 text-red-500" role="alert">{{ fileError() }}</small>
+            }
+        </li>
+    </ol>
+    }
+
+    @case ('preview') {
+    <p class="mt-0">
+        <strong>{{ fileName() }}</strong> : {{ validLines().length }} ligne(s) prête(s)@if (invalidLines().length) {, <span class="text-red-500">{{ invalidLines().length }} à corriger</span>}.
+        Les lignes à corriger ne seront pas importées.
+    </p>
+    <p-table [value]="lines()" [scrollable]="true" scrollHeight="20rem" size="small">
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width: 4rem">Ligne</th>
+                @for (header of headers(); track header) {
+                <th>{{ header }}</th>
+                }
+                <th>Contrôle</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-line>
+            <tr>
+                <td>{{ line.line }}</td>
+                @for (cell of line.cells; track $index) {
+                <td>{{ cell }}</td>
+                }
+                <td>
+                    @if (line.errors.length) {
+                    <ul class="m-0 pl-4 text-red-500 text-sm">
+                        @for (error of line.errors; track $index) {
+                        <li>{{ error }}</li>
+                        }
+                    </ul>
+                    } @else {
+                    <p-tag value="Prête" severity="success" />
+                    }
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+    }
+
+    @case ('done') {
+    <p class="mt-0">{{ savedCount() }} ligne(s) importée(s).</p>
+    @if (rejected().length) {
+    <p class="mb-2 text-red-500">Lignes refusées :</p>
+    <ul class="m-0 pl-4">
+        @for (item of rejected(); track item.line) {
+        <li>Ligne {{ item.line }} : {{ item.message }}</li>
+        }
+    </ul>
+    }
+    }
+    }
+
+    <ng-template pTemplate="footer">
+        @switch (step()) {
+        @case ('preview') {
+        <p-button label="Choisir un autre fichier" severity="secondary" [text]="true" (onClick)="restart()" />
+        <p-button [label]="'Importer ' + validLines().length + ' ligne(s)'" icon="pi pi-check" [disabled]="validLines().length === 0"
+            [loading]="saving()" (onClick)="save()" />
+        }
+        @case ('done') {
+        <p-button label="Importer un autre fichier" severity="secondary" [text]="true" (onClick)="restart()" />
+        <p-button label="Fermer" (onClick)="close()" />
+        }
+        @default {
+        <p-button label="Annuler" severity="secondary" [text]="true" (onClick)="close()" />
+        }
+        }
+    </ng-template>
+</p-dialog>

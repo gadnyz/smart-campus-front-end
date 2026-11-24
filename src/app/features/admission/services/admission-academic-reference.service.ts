@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { AcademicCatalogService, AcademicReference, LevelReference, ProgramReference } from '@/app/features/academic/academic.public-api';
 import { CandidateResponse } from '../models/candidate.model';
+import { levelLabel } from '@/app/features/academic/academic.public-api';
 
 export type SelectOption = {
     label: string;
@@ -68,7 +69,7 @@ export class AdmissionAcademicReferenceService {
                 academicYearLabel: academicYear?.label ?? '',
                 facultyLabel: this.labelOf(faculty, candidate.faculty_id),
                 programLabel: this.labelOf(program, candidate.program_id),
-                levelLabel: this.labelOf(level, candidate.level_id)
+                levelLabel: level ? levelLabel(level) : candidate.level_id
             }))
         );
     }

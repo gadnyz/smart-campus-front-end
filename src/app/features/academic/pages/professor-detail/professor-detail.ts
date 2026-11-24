@@ -20,7 +20,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { catchError, of, switchMap } from 'rxjs';
 import { resolveAvatarUrl } from '@/app/shared/utils/avatar-url';
-import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
+import { ContentSubtopbar, SubtopbarAction, SubtopbarNavigation } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import {
@@ -124,8 +124,7 @@ export class ProfessorDetailPage implements OnInit {
     readonly title = computed(() => {
         const professor = this.professor();
         const name = professor ? professorDisplayName(professor) : 'Professeur';
-        const position = this.navigationState()?.label;
-        return position ? `${name} (${position})` : name;
+        return name;
     });
 
     readonly displayName = computed(() => {
@@ -250,6 +249,21 @@ export class ProfessorDetailPage implements OnInit {
         assignment_type: [null as CourseAssignmentType | null, Validators.required]
     });
 
+    /** Précédent et Suivant dans la sous-barre, avec la position dans la liste. */
+    readonly navigation = computed<SubtopbarNavigation | null>(() => {
+        const state = this.navigationState();
+        if (!state) {
+            return null;
+        }
+        return {
+            position: state.label,
+            hasPrevious: !(!this.canGoPrevious() || this.loading()),
+            hasNext: !(!this.canGoNext() || this.loading()),
+            previous: () => this.goToPrevious(),
+            next: () => this.goToNext()
+        };
+    });
+
     readonly actions = computed<SubtopbarAction[]>(() => [
         {
             label: 'Liste',
@@ -259,21 +273,8 @@ export class ProfessorDetailPage implements OnInit {
             command: () => void this.router.navigate(['/academic/professors'])
         },
         {
-            label: 'Précédent',
-            icon: 'pi pi-chevron-left',
-            severity: 'secondary',
-            disabled: !this.canGoPrevious() || this.loading(),
-            command: () => this.goToPrevious()
-        },
-        {
-            label: 'Suivant',
-            icon: 'pi pi-chevron-right',
-            severity: 'secondary',
-            disabled: !this.canGoNext() || this.loading(),
-            command: () => this.goToNext()
-        },
-        {
             label: 'Modifier',
+            primary: true,
             icon: 'pi pi-pencil',
             command: () => this.openEdit(),
             permissions: writeAuthorities('academic:professor:update')

@@ -1,7 +1,11 @@
 import type { Content, ContentColumns, ContentTable, TableCell } from 'pdfmake/interfaces';
-import { PrintableTimetable } from '../models/timetable-print.model';
-import { PRINT_COLORS } from './timetable-export-style';
-import { buildPdfDefinition } from './timetable-pdf';
+import { PrintableTimetable } from '@/app/features/scheduling/timetable/models/timetable-print.model';
+import { toWeeklyGridDocument } from '@/app/features/scheduling/timetable/services/timetable-export.service';
+import { PRINT_COLORS } from '../export-style';
+import { PdfBranding, buildWeeklyGridPdf } from './weekly-grid-pdf';
+
+/** Les pages viennent des horaires, comme dans l'application. */
+const buildPdfDefinition = (weeks: PrintableTimetable[], branding: PdfBranding) => buildWeeklyGridPdf(toWeeklyGridDocument(weeks).pages, 'Horaire', branding);
 
 const week: PrintableTimetable = {
     title: 'Faculté des Sciences Informatiques',

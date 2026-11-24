@@ -1,53 +1,18 @@
-import { SessionType } from './timetable-entry.model';
+import { PrintSession } from '@/app/shared/export/export-document.model';
 
-/** Séance telle qu'imprimée : ce que montre une cellule de la grille « Horaire Faculté ». */
-export interface PrintSession {
-    date: string;
-    start_hour: string;
-    end_hour: string;
-    course: string;
-    /** Enseignant avec son grade (« C.C Ortega KABWE »). */
-    professor: string;
-    room: string;
-    session_type: SessionType;
-    /** Promotion de la séance, utile sur l'horaire d'un enseignant (plusieurs promotions). */
-    promotion?: string;
-}
+/** La grille imprimée est un document du module d'export, sans lien avec une librairie. */
+export type { PrintCell, PrintDay, PrintGrid, PrintRow, PrintSession } from '@/app/shared/export/export-document.model';
 
 /**
  * Une semaine à imprimer ou exporter. L'en-tête reprend le modèle « Horaire Faculté » : logo,
- * « Horaire » + intitulé + période au centre, puis un titre de niveau 2 (niveau — programme).
+ * « Horaire » + intitulé + période, puis un titre de niveau 2 (niveau et programme).
  */
 export interface PrintableTimetable {
     /** Intitulé sous « Horaire » (ex. « Faculté des Sciences Informatiques »). */
     title: string;
-    /** Titre de niveau 2 (ex. « L1 — Science Informatique », ou l'enseignant pour son horaire). */
+    /** Titre de niveau 2 (ex. « Licence 1 Sciences Informatiques », ou l'enseignant pour son horaire). */
     heading: string;
     /** Lundi de la semaine, `yyyy-MM-dd`. */
     weekStart: string;
     sessions: PrintSession[];
-}
-
-export interface PrintDay {
-    date: string;
-    /** « Lundi ». */
-    weekday: string;
-    /** « 19 octobre ». */
-    label: string;
-}
-
-export type PrintCell = PrintSession[];
-
-export type PrintRow =
-    | { kind: 'slot'; label: string; start: string; end: string; cells: PrintCell[] }
-    /** Pause d'au moins une heure entre deux créneaux (la ligne grise du modèle). */
-    | { kind: 'break' };
-
-export interface PrintGrid {
-    /** « Semaine 42 ». */
-    weekLabel: string;
-    /** « Du 12 au 18 octobre 2026 ». */
-    period: string;
-    days: PrintDay[];
-    rows: PrintRow[];
 }

@@ -62,7 +62,7 @@
                 <td data-label="Type">{{ roomTypeLabel(room.type) }}</td>
                 <td data-label="Lien">
                     @if (room.link) {
-                    <a [href]="room.link" target="_blank" rel="noopener noreferrer">Ouvrir</a>
+                    <a pButton [href]="room.link" target="_blank" rel="noopener noreferrer" icon="pi pi-external-link" iconPos="right" label="Rejoindre" [text]="true" size="small" [attr.aria-label]="'Rejoindre la salle ' + room.name + ' (nouvel onglet)'"></a>
                     } @else {
                     —
                     }
@@ -135,21 +135,20 @@
             <input pInputText id="roomCoordinates" formControlName="coordinates" placeholder="Étage 2, aile Est" class="w-full" />
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label for="roomCapacity" class="block text-sm text-color-secondary mb-1">Capacité</label>
-                <p-inputnumber inputId="roomCapacity" formControlName="capacity" [min]="1" [maxFractionDigits]="0" [showButtons]="true" class="w-full" />
-                @if (isInvalid('capacity')) {
-                <small class="text-red-500 block mt-1">La capacité doit être un entier positif.</small>
-                }
-            </div>
-            <div>
-                <label for="roomType" class="block text-sm text-color-secondary mb-1">Type</label>
-                <p-select inputId="roomType" formControlName="type" [options]="typeOptions" optionLabel="label" optionValue="value" appendTo="body" class="w-full" />
-                @if (isInvalid('type')) {
-                <small class="text-red-500 block mt-1">Le type est obligatoire.</small>
-                }
-            </div>
+        <div>
+            <label for="roomCapacity" class="block text-sm text-color-secondary mb-1">Capacité</label>
+            <p-inputnumber inputId="roomCapacity" formControlName="capacity" [min]="1" [maxFractionDigits]="0" [showButtons]="true" [fluid]="true" class="w-full" />
+            @if (isInvalid('capacity')) {
+            <small class="text-red-500 block mt-1">La capacité doit être un entier positif.</small>
+            }
+        </div>
+
+        <div>
+            <label for="roomType" class="block text-sm text-color-secondary mb-1">Type</label>
+            <p-select inputId="roomType" formControlName="type" [options]="typeOptions" optionLabel="label" optionValue="value" appendTo="body" class="w-full" />
+            @if (isInvalid('type')) {
+            <small class="text-red-500 block mt-1">Le type est obligatoire.</small>
+            }
         </div>
 
         <div>

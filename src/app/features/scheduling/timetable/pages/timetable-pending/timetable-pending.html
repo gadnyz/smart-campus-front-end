@@ -39,19 +39,18 @@
     >
         <ng-template pTemplate="header">
             <tr>
-                <th>Programme</th>
-                <th>Niveau</th>
-                <th>Semaine de début</th>
+                <th style="width: 12rem">Date</th>
+                <th>Promotion</th>
                 <th style="width: 8rem">Statut</th>
                 <th style="width: 6rem">Actions</th>
             </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-timetable>
+            @let promotion = { name: timetable.program_level_name } | promotionLabel: timetable.program_name;
             <tr>
-                <td data-label="Programme">{{ timetable.program_name }}</td>
-                <td data-label="Niveau">{{ timetable.program_level_name }}</td>
-                <td data-label="Semaine">{{ formatWeekStart(timetable.week_start) }}</td>
+                <td data-label="Date">{{ formatWeekStart(timetable.week_start) }}</td>
+                <td data-label="Promotion">{{ promotion }}</td>
                 <td data-label="Statut"><p-tag [value]="statusLabel(timetable.status)" [severity]="statusSeverity(timetable.status)" /></td>
                 <td class="stack-actions">
                     @if (canEdit()) {
@@ -61,7 +60,7 @@
                             [rounded]="true"
                             [outlined]="true"
                             (onClick)="edit(timetable)"
-                            [ariaLabel]="(validated ? 'Ouvrir l’horaire ' : 'Modifier l’horaire ') + timetable.program_level_name + ' du ' + formatWeekStart(timetable.week_start)"
+                            [ariaLabel]="(validated ? 'Ouvrir l’horaire ' : 'Modifier l’horaire ') + promotion + ' du ' + formatWeekStart(timetable.week_start)"
                         />
                     }
                 </td>
@@ -70,7 +69,7 @@
 
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="5">{{ emptyMessage() }}</td>
+                <td colspan="4">{{ emptyMessage() }}</td>
             </tr>
         </ng-template>
     </p-table>

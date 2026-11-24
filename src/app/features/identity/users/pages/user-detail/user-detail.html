@@ -4,7 +4,7 @@
 <app-content-subtopbar
     kicker=""
     [title]="navigationState()?.label ? 'Détail ' + navigationState()!.label : 'Détail'"
-    [actions]="actions()"
+    [actions]="actions()" [navigation]="navigation()" [maxVisible]="2"
 />
 
 @if (loading()) {

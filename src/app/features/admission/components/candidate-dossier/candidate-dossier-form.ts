@@ -16,6 +16,7 @@ import {
     UpdateCandidatureRequest
 } from '../../models/candidate.model';
 import { AdmissionAcademicReferenceService, CandidateAcademicLabels, SelectOption } from '../../services/admission-academic-reference.service';
+import { levelLabel } from '@/app/features/academic/academic.public-api';
 
 /**
  * Modification d'un dossier candidat, commune à « Mon dossier » (`PUT /candidates/me`) et à
@@ -272,7 +273,7 @@ export class CandidateAcademicChoices {
         const program = programs.find((p) => p.id === programId);
         return (
             program?.levels?.map((item) => ({
-                label: item.level.code ? `${item.level.code} - ${item.level.name}` : item.level.name,
+                label: levelLabel(item.level),
                 value: item.level.id
             })) ?? []
         );

@@ -1,56 +1,64 @@
 import { CommonModule } from '@angular/common';
 import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
-import { InputTextModule } from 'primeng/inputtext';
-import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
-import { Subject, debounceTime, distinctUntilChanged, map } from 'rxjs';
+import { map } from 'rxjs';
 import { DetailNavigationService } from '@/app/shared/navigation/detail-navigation.service';
-import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
-import { PagedResponse, ProgramReference } from '../../models/academic-reference.model';
-import { Student, StudentQuery, formatStudentGender, studentDisplayName } from '../../models/student.model';
+import { ContentSubtopbar } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
+import { ColumnDef } from '@/app/shared/data-table/column.model';
+import { DataFilter } from '@/app/shared/data-table/data-filter/data-filter';
+import { TableToolbar } from '@/app/shared/data-table/table-toolbar/table-toolbar';
+import { EMPTY_QUERY, TableQuery, applyQuery } from '@/app/shared/data-table/table-query';
+import { ProgramReference } from '../../models/academic-reference.model';
+import { STUDENT_GENDER_OPTIONS, Student, StudentQuery, formatStudentGender, studentDisplayName } from '../../models/student.model';
 import { AcademicCatalogService } from '../../services/academic-catalog.service';
 import { FacultyService } from '../../services/faculty.service';
 import { StudentService } from '../../services/student.service';
 import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
+import { levelLabel, promotionLabel } from '../../utils/promotion-label';
 
 type Option = { label: string; value: string };
 
-/** Délai de saisie avant d'interroger l'API sur la recherche. */
-const SEARCH_DEBOUNCE_MS = 350;
+/** Étudiants chargés en une fois pour la faculté, le programme ou la promotion choisis. */
+export const STUDENT_LOAD_LIMIT = 1000;
+
+/** La promotion d'un étudiant : « L1 Génie Logiciel ». */
+export function studentPromotion(student: Student): string {
+    return promotionLabel({ code: student.level_code, name: student.level_name }, student.program_name || student.program_code);
+}
+
+/** Les colonnes de la liste, déclarées une fois : affichage, recherche, filtres, tri et export. */
+export const STUDENT_COLUMNS: ColumnDef<Student>[] = [
+    { key: 'name', label: 'Étudiant', type: 'text', value: (row) => studentDisplayName(row), searchable: true, exportWidth: 2 },
+    { key: 'matricule', label: 'Matricule', type: 'text', value: (row) => row.matricule, searchable: true },
+    { key: 'promotion', label: 'Promotion', type: 'text', value: (row) => studentPromotion(row), searchable: true, exportWidth: 2 },
+    { key: 'faculty', label: 'Faculté', type: 'text', value: (row) => row.faculty_name, exportWidth: 2 },
+    { key: 'gender', label: 'Genre', type: 'enum', value: (row) => row.gender, options: STUDENT_GENDER_OPTIONS.map((option) => ({ label: option.label, value: option.value })) },
+    { key: 'nationality', label: 'Nationalité', type: 'text', value: (row) => row.nationality },
+    { key: 'email', label: 'E-mail', type: 'text', value: (row) => row.email, exportWidth: 2 }
+];
 
 /**
- * Liste des étudiants. Tous les filtres sont ceux de `GET /students` (faculté, programme,
- * promotion, recherche) : la pagination et le total viennent du serveur, sans filtrage local.
+ * Liste des étudiants, pilote du composant de recherche (fonctionnement mixte) :
+ *
+ * - la faculté, le programme et la promotion sont des filtres de l'API (`GET /students`) ;
+ * - la recherche (nom, matricule, promotion), les filtres avancés, le tri et la pagination se
+ *   font dans le navigateur, sur les étudiants chargés pour ce périmètre.
+ *
+ * Imprimer et exporter reprennent exactement les lignes filtrées et triées.
  */
 @Component({
     selector: 'app-student-list',
     standalone: true,
-    imports: [
-        CommonModule,
-        FormsModule,
-        ButtonModule,
-        CardModule,
-        IconFieldModule,
-        InputIconModule,
-        InputTextModule,
-        PaginatorModule,
-        SelectModule,
-        TableModule,
-        ToastModule,
-        ContentSubtopbar
-    ],
+    imports: [CommonModule, FormsModule, ButtonModule, CardModule, SelectModule, TableModule, ToastModule, ContentSubtopbar, DataFilter, TableToolbar],
     templateUrl: './student-list.html',
     styleUrl: './student-list.scss',
     providers: [MessageService]
@@ -62,58 +70,45 @@ export class StudentListPage implements OnInit {
     private readonly messageService = inject(MessageService);
     private readonly router = inject(Router);
     private readonly route = inject(ActivatedRoute);
-    private readonly destroyRef = inject(DestroyRef);
     private readonly detailNavigation = inject(DetailNavigationService);
     private readonly facultyScope = inject(FacultyScopeService);
     private readonly navigationScope = 'academic.students';
-    private readonly searchInput = new Subject<string>();
 
+    readonly columns = STUDENT_COLUMNS;
     readonly loading = signal(false);
     readonly loadingCatalog = signal(false);
-    readonly advancedOpen = signal(false);
     readonly students = signal<Student[]>([]);
-    readonly page = signal(0);
-    readonly size = signal(10);
+    /** Total annoncé par l'API pour le périmètre : au-delà de la limite, tous ne sont pas chargés. */
     readonly totalElements = signal(0);
+    readonly query = signal<TableQuery>(EMPTY_QUERY);
+    /** Les lignes affichées, imprimées et exportées. */
+    readonly visibleStudents = computed(() => applyQuery(this.students(), this.columns, this.query()));
+    readonly truncated = computed(() => this.totalElements() > this.students().length);
 
-    readonly search = signal('');
     readonly facultyFilter = signal<string | null>(null);
     readonly programFilter = signal<string | null>(null);
     readonly programLevelFilter = signal<string | null>(null);
 
     readonly faculties = signal<Option[]>([]);
     private readonly programRefs = signal<ProgramReference[]>([]);
-    readonly programs = computed<Option[]>(() =>
-        this.programRefs().map((program) => ({ label: program.code ? `${program.code} — ${program.name}` : program.name, value: program.id }))
-    );
+    readonly programs = computed<Option[]>(() => this.programRefs().map((program) => ({ label: program.name, value: program.id })));
     /** Promotions du programme choisi : le filtre de l'API porte sur la promotion, pas sur le niveau seul. */
     readonly programLevels = computed<Option[]>(() => {
         const program = this.programRefs().find((item) => item.id === this.programFilter());
-        return (program?.levels ?? [])
-            .filter((item) => !!item.id)
-            .map((item) => ({ label: item.level.code ? `${item.level.code} — ${item.level.name}` : item.level.name, value: item.id as string }));
+        return (program?.levels ?? []).filter((item) => !!item.id).map((item) => ({ label: levelLabel(item.level), value: item.id as string }));
+    });
+    readonly facultyLocked = computed(() => this.facultyScope.isScopedFor('academic:student:read'));
+    readonly subtitle = computed(() => {
+        const faculty = this.faculties().find((item) => item.value === this.facultyFilter())?.label;
+        const program = this.programs().find((item) => item.value === this.programFilter())?.label;
+        const level = this.programLevels().find((item) => item.value === this.programLevelFilter())?.label;
+        return [faculty, level && program ? `${level} ${program}` : program].filter(Boolean).join(' · ') || undefined;
     });
 
-    readonly facultyLocked = computed(() => this.facultyScope.isScopedFor('academic:student:read'));
-
-    readonly actions = computed<SubtopbarAction[]>(() => [
-        {
-            label: 'Recherche avancée',
-            icon: this.advancedOpen() ? 'pi pi-filter-slash' : 'pi pi-filter',
-            severity: 'secondary',
-            outlined: true,
-            command: () => this.advancedOpen.update((open) => !open)
-        },
-        {
-            label: 'Actualiser',
-            icon: 'pi pi-refresh',
-            severity: 'secondary',
-            outlined: true,
-            loading: this.loading(),
-            disabled: this.loading(),
-            command: () => this.loadStudents(this.page())
-        }
-    ]);
+    constructor() {
+        // Fiche précédente / suivante : dans l'ordre affiché, filtres compris.
+        effect(() => this.registerNavigation(this.visibleStudents()));
+    }
 
     ngOnInit(): void {
         this.applyQueryFilters();
@@ -123,30 +118,9 @@ export class StudentListPage implements OnInit {
         } else if (!this.facultyFilter() && this.facultyScope.workingFacultyId()) {
             // Portée all : on reprend la dernière faculté choisie.
             this.facultyFilter.set(this.facultyScope.workingFacultyId());
-            this.advancedOpen.set(true);
         }
-        this.searchInput
-            .pipe(debounceTime(SEARCH_DEBOUNCE_MS), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
-            .subscribe(() => this.applySearch(0));
         this.loadCatalog();
-        this.loadStudents(0);
-    }
-
-    onSearchInput(value: string): void {
-        this.search.set(value);
-        this.searchInput.next(value.trim());
-    }
-
-    resetSearch(): void {
-        if (!this.facultyLocked()) {
-            this.facultyScope.rememberFaculty(null);
-            this.facultyFilter.set(null);
-            this.loadPrograms(null);
-        }
-        this.programFilter.set(null);
-        this.programLevelFilter.set(null);
-        this.search.set('');
-        this.applySearch(0);
+        this.loadStudents();
     }
 
     onFacultyChange(facultyId: string | null): void {
@@ -155,28 +129,23 @@ export class StudentListPage implements OnInit {
         this.programFilter.set(null);
         this.programLevelFilter.set(null);
         this.loadPrograms(facultyId);
-        this.applySearch(0);
+        this.reload();
     }
 
     onProgramChange(programId: string | null): void {
         this.programFilter.set(programId);
         this.programLevelFilter.set(null);
-        this.applySearch(0);
+        this.reload();
     }
 
     onProgramLevelChange(programLevelId: string | null): void {
         this.programLevelFilter.set(programLevelId);
-        this.applySearch(0);
+        this.reload();
     }
 
-    onPageChange(event: PaginatorState): void {
-        this.size.set(event.rows ?? this.size());
-        this.loadStudents(event.page ?? 0);
-    }
-
-    applySearch(page = 0): void {
+    reload(): void {
         this.syncQueryParams();
-        this.loadStudents(page);
+        this.loadStudents();
     }
 
     openDetail(student: Student): void {
@@ -191,33 +160,34 @@ export class StudentListPage implements OnInit {
         return formatStudentGender(student.gender);
     }
 
-    private currentQuery(page: number): StudentQuery {
+    promotion(student: Student): string {
+        return studentPromotion(student);
+    }
+
+    private scopeQuery(): StudentQuery {
         return {
-            page,
-            size: this.size(),
+            page: 0,
+            size: STUDENT_LOAD_LIMIT,
             facultyId: this.facultyScope.scopedIdFor('academic:student:read') ?? this.facultyFilter(),
             programId: this.programFilter(),
             programLevelId: this.programLevelFilter(),
-            search: this.search().trim() || null
+            search: null
         };
     }
 
-    private loadStudents(page: number): void {
+    private loadStudents(): void {
         this.loading.set(true);
-        this.studentService.getAll(this.currentQuery(page)).subscribe({
+        this.studentService.getAll(this.scopeQuery()).subscribe({
             next: (response) => {
                 this.students.set(response.content);
-                this.page.set(response.page);
-                this.size.set(response.size);
                 this.totalElements.set(response.total_elements);
-                this.registerNavigation(response);
                 this.loading.set(false);
             },
             error: (error: unknown) => {
                 this.students.set([]);
                 this.totalElements.set(0);
                 this.loading.set(false);
-                this.showError(this.errorDetail(error, 'Impossible de charger les étudiants.'));
+                this.showError(error instanceof HttpErrorResponse ? apiErrorMessage(error, 'Impossible de charger les étudiants.') : 'Impossible de charger les étudiants.');
             }
         });
     }
@@ -228,7 +198,7 @@ export class StudentListPage implements OnInit {
         const faculties$ = locked ? this.facultyService.getById(locked).pipe(map((faculty) => [faculty])) : this.catalog.getFaculties();
         faculties$.subscribe({
             next: (faculties) => {
-                this.faculties.set(faculties.map((faculty) => ({ label: `${faculty.code} — ${faculty.name}`, value: faculty.id })));
+                this.faculties.set(faculties.map((faculty) => ({ label: faculty.name, value: faculty.id })));
                 this.loadingCatalog.set(false);
             },
             error: () => {
@@ -252,48 +222,31 @@ export class StudentListPage implements OnInit {
         this.facultyFilter.set(params.get('facultyId') || null);
         this.programFilter.set(params.get('programId') || null);
         this.programLevelFilter.set(params.get('programLevelId') || null);
-        this.search.set(params.get('search') ?? '');
-        if (this.facultyFilter() || this.programFilter() || this.programLevelFilter()) {
-            this.advancedOpen.set(true);
+        const search = params.get('search') ?? '';
+        if (search) {
+            this.query.set({ ...EMPTY_QUERY, search });
         }
     }
 
     private syncQueryParams(): void {
         void this.router.navigate([], {
             relativeTo: this.route,
-            queryParams: {
-                facultyId: this.facultyFilter(),
-                programId: this.programFilter(),
-                programLevelId: this.programLevelFilter(),
-                search: this.search().trim() || null
-            },
+            queryParams: { facultyId: this.facultyFilter(), programId: this.programFilter(), programLevelId: this.programLevelFilter() },
             queryParamsHandling: 'merge'
         });
     }
 
-    private registerNavigation(response: PagedResponse<Student>): void {
+    private registerNavigation(students: readonly Student[]): void {
         this.detailNavigation.setContext({
             scope: this.navigationScope,
             listRoute: ['/academic/students'],
-            page: response.page,
-            size: response.size,
-            totalElements: response.total_elements,
-            totalPages: response.total_pages,
-            items: response.content.map((student) => ({ id: student.id, label: studentDisplayName(student) })),
-            filters: {
-                facultyId: this.facultyFilter(),
-                programId: this.programFilter(),
-                programLevelId: this.programLevelFilter(),
-                search: this.search()
-            }
+            page: 0,
+            size: Math.max(students.length, 1),
+            totalElements: students.length,
+            totalPages: 1,
+            items: students.map((student) => ({ id: student.id, label: studentDisplayName(student) })),
+            filters: { facultyId: this.facultyFilter(), programId: this.programFilter(), programLevelId: this.programLevelFilter() }
         });
-    }
-
-    private errorDetail(error: unknown, fallback: string): string {
-        if (error instanceof HttpErrorResponse) {
-            return apiErrorMessage(error, fallback);
-        }
-        return fallback;
     }
 
     private showError(detail: string): void {

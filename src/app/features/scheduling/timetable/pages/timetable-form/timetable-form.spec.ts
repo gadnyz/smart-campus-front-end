@@ -659,7 +659,7 @@ describe('TimetableFormPage', () => {
 
             const [document] = component.exportDocuments();
             expect(document.title).toBe('Sciences');
-            expect(document.heading).toBe('L1 — Informatique');
+            expect(document.heading).toBe('Licence 1 Informatique');
             expect(document.weekStart).toBe('2026-10-05');
             expect(document.sessions).toEqual([jasmine.objectContaining({ course: 'Algèbre', professor: 'PO Ada Lovelace', room: 'A101' })]);
             expect(component.exportBlockedReason()).toBeNull();
@@ -906,7 +906,7 @@ describe('TimetableFormPage', () => {
             fillSession();
 
             expect(component.sessionForm.controls.shared_with.value).toEqual(['pl-9']);
-            expect(component.sessionAudienceOptions().map((option) => option.label)).toEqual(['Informatique L2', 'Réseaux L1']);
+            expect(component.sessionAudienceOptions().map((option) => option.label)).toEqual(['L2 Informatique', 'L1 Réseaux']);
         });
 
         it('should only offer the promotions where the course is given', () => {
@@ -932,7 +932,7 @@ describe('TimetableFormPage', () => {
                 entries: [jasmine.objectContaining({ shared_with_program_level_ids: ['pl-9'] })]
             });
             const state = (router.navigate as jasmine.Spy).calls.mostRecent().args[1].state;
-            expect(state.notes).toEqual(['Horaire créé en brouillon pour Réseaux L1, semaine du 5 octobre 2026, pour y partager les séances.']);
+            expect(state.notes).toEqual(['Horaire créé en brouillon pour L1 Réseaux, semaine du 5 octobre 2026, pour y partager les séances.']);
         });
 
         it('should stop with a clear message when an invited promotion has a validated timetable', () => {
@@ -945,7 +945,7 @@ describe('TimetableFormPage', () => {
             component.save();
 
             expect(entryService.create).not.toHaveBeenCalled();
-            expect(errorToasts()[0]).toContain('Réseaux L1 a déjà un horaire validé pour la semaine du 5 octobre 2026');
+            expect(errorToasts()[0]).toContain('L1 Réseaux a déjà un horaire validé pour la semaine du 5 octobre 2026');
             expect(component.saving()).toBeFalse();
         });
     });

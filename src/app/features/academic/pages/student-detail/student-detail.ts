@@ -22,7 +22,7 @@ import { catchError, of, switchMap } from 'rxjs';
 import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { DetailNavigationService, DetailNavigationState } from '@/app/shared/navigation/detail-navigation.service';
-import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
+import { ContentSubtopbar, SubtopbarAction, SubtopbarNavigation } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { resolveAvatarUrl } from '@/app/shared/utils/avatar-url';
 import {
     STUDENT_GENDER_OPTIONS,
@@ -36,6 +36,7 @@ import { AcademicCatalogService } from '../../services/academic-catalog.service'
 import { FacultyService } from '../../services/faculty.service';
 import { StudentService } from '../../services/student.service';
 import { blankToNull, toApiDate, toDateValue } from '../../utils/academic-date';
+import { levelLabel } from '../../utils/promotion-label';
 
 @Component({
     selector: 'app-student-detail',
@@ -140,8 +141,7 @@ export class StudentDetailPage implements OnInit {
     readonly title = computed(() => {
         const student = this.student();
         const name = student ? studentDisplayName(student) : 'Étudiant';
-        const position = this.navigationState()?.label;
-        return position ? `${name} (${position})` : name;
+        return name;
     });
 
     readonly displayName = computed(() => {
@@ -191,13 +191,27 @@ export class StudentDetailPage implements OnInit {
     readonly levelLabel = computed(() => {
         const student = this.student();
         return (
-            student?.level_code ||
-            student?.level_name ||
+            levelLabel({ code: student?.level_code, name: student?.level_name }) ||
             this.levels().find((item) => item.value === student?.level_id)?.label ||
             '—'
         );
     });
     readonly yearLabel = computed(() => this.student()?.academic_year_label || '—');
+
+    /** Précédent et Suivant dans la sous-barre, avec la position dans la liste. */
+    readonly navigation = computed<SubtopbarNavigation | null>(() => {
+        const state = this.navigationState();
+        if (!state) {
+            return null;
+        }
+        return {
+            position: state.label,
+            hasPrevious: !(!this.canGoPrevious() || this.loading()),
+            hasNext: !(!this.canGoNext() || this.loading()),
+            previous: () => this.goToPrevious(),
+            next: () => this.goToNext()
+        };
+    });
 
     readonly actions = computed<SubtopbarAction[]>(() => {
         if (this.editing()) {
@@ -210,6 +224,7 @@ export class StudentDetailPage implements OnInit {
                 },
                 {
                     label: 'Enregistrer',
+                    primary: true,
                     icon: 'pi pi-save',
                     loading: this.saving(),
                     disabled: this.saving(),
@@ -226,21 +241,8 @@ export class StudentDetailPage implements OnInit {
                 command: () => void this.router.navigate(['/academic/students'])
             },
             {
-                label: 'Précédent',
-                icon: 'pi pi-chevron-left',
-                severity: 'secondary',
-                disabled: !this.canGoPrevious() || this.loading(),
-                command: () => this.goToPrevious()
-            },
-            {
-                label: 'Suivant',
-                icon: 'pi pi-chevron-right',
-                severity: 'secondary',
-                disabled: !this.canGoNext() || this.loading(),
-                command: () => this.goToNext()
-            },
-            {
                 label: 'Modifier',
+                primary: true,
                 icon: 'pi pi-pencil',
                 command: () => this.startEdit(),
                 permissions: writeAuthorities('academic:student:update')
@@ -265,7 +267,7 @@ export class StudentDetailPage implements OnInit {
         }
         this.catalog.getLevels().subscribe({
             next: (levels) =>
-                this.levels.set(levels.map((level) => ({ label: `${level.code} — ${level.name}`, value: level.id })))
+                this.levels.set(levels.map((level) => ({ label: levelLabel(level), value: level.id })))
         });
 
         this.form.controls.faculty_id.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((facultyId) => {

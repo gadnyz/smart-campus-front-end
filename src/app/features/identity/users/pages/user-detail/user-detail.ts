@@ -16,7 +16,7 @@ import {
     DetailNavigationService,
     DetailNavigationState
 } from '@/app/shared/navigation/detail-navigation.service';
-import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
+import { ContentSubtopbar, SubtopbarAction, SubtopbarNavigation } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { PermissionService } from '@/app/core/permissions/permission.service';
 import { AcademicCatalogService } from '@/app/features/academic/academic.public-api';
 import { IdentityPermission } from '../../../permissions/permission.model';
@@ -157,6 +157,21 @@ export class UserDetail implements OnInit {
         faculty_id: [null as string | null]
     });
 
+    /** Précédent et Suivant dans la sous-barre, avec la position dans la liste. */
+    readonly navigation = computed<SubtopbarNavigation | null>(() => {
+        const state = this.navigationState();
+        if (!state) {
+            return null;
+        }
+        return {
+            position: state.label,
+            hasPrevious: !(!this.canGoPrevious() || this.loading()),
+            hasNext: !(!this.canGoNext() || this.loading()),
+            previous: () => this.goToPreviousUser(),
+            next: () => this.goToNextUser()
+        };
+    });
+
     readonly actions = computed<SubtopbarAction[]>(() => [
         {
             label: 'Liste',
@@ -164,20 +179,6 @@ export class UserDetail implements OnInit {
             severity: 'secondary',
             outlined: false,
             command: () => this.goToList()
-        },
-        {
-            label: 'Précédent',
-            icon: 'pi pi-chevron-left',
-            severity: 'secondary',
-            disabled: !this.canGoPrevious() || this.loading(),
-            command: () => this.goToPreviousUser()
-        },
-        {
-            label: 'Suivant',
-            icon: 'pi pi-chevron-right',
-            severity: 'secondary',
-            disabled: !this.canGoNext() || this.loading(),
-            command: () => this.goToNextUser()
         },
         ...(this.canUpdate()
             ? [

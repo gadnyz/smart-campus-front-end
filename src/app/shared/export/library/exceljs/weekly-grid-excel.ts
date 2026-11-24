@@ -1,7 +1,6 @@
 import type { Borders, Cell, RichText, Workbook, Worksheet } from 'exceljs';
-import { PrintGrid, PrintSession, PrintableTimetable } from '../models/timetable-print.model';
-import { PRINT_COLORS, argb } from './timetable-export-style';
-import { buildPrintGrid } from './timetable-print-grid';
+import { PrintGrid, PrintSession, WeeklyGridPage } from '../../export-document.model';
+import { PRINT_COLORS, argb } from '../export-style';
 
 export interface ExcelBranding {
     /** Logo en base64 (PNG, sans préfixe data:), ou `null`. */
@@ -44,11 +43,11 @@ function styleGridCell(cell: Cell): void {
     cell.border = BORDER;
 }
 
-function fillHeader(sheet: Worksheet, timetable: PrintableTimetable, grid: PrintGrid, lastColumn: number): void {
+function fillHeader(sheet: Worksheet, page: WeeklyGridPage, grid: PrintGrid, lastColumn: number): void {
     // Lignes 1 à 3 : « Horaire », intitulé, période, centrés au-dessus des jours ; logo en A1.
     const lines: [string, number, boolean][] = [
         ['Horaire', 18, true],
-        [timetable.title, 12, false],
+        [page.title, 12, false],
         [grid.period, 11, false]
     ];
     lines.forEach(([text, size, bold], index) => {
@@ -64,7 +63,7 @@ function fillHeader(sheet: Worksheet, timetable: PrintableTimetable, grid: Print
     // Ligne 4 : titre de niveau 2 (niveau — programme).
     sheet.mergeCells(4, 1, 4, lastColumn);
     const heading = sheet.getCell(4, 1);
-    heading.value = timetable.heading;
+    heading.value = page.heading;
     heading.font = { size: 14, bold: true };
     sheet.getRow(4).height = 24;
 }
@@ -131,16 +130,16 @@ function fillGrid(sheet: Worksheet, grid: PrintGrid, lastColumn: number): void {
  * Remplit le classeur : un onglet par semaine, au format « Horaire Faculté », prêt à imprimer en
  * A4 paysage (ajusté à la largeur d'une page).
  */
-export function fillWorkbook(workbook: Workbook, timetables: readonly PrintableTimetable[], branding: ExcelBranding): void {
+export function fillWeeklyGridWorkbook(workbook: Workbook, pages: readonly WeeklyGridPage[], branding: ExcelBranding): void {
     workbook.creator = branding.appName;
     workbook.created = new Date();
     const logo = branding.logoBase64 ? workbook.addImage({ base64: branding.logoBase64, extension: 'png' }) : null;
     const names = new Set<string>();
 
-    for (const timetable of timetables) {
-        const grid = buildPrintGrid(timetable);
+    for (const page of pages) {
+        const { grid } = page;
         const lastColumn = grid.days.length + 1;
-        const name = sheetName(`${grid.weekLabel} ${timetable.weekStart}`, names);
+        const name = sheetName(page.sheetLabel, names);
         names.add(name);
 
         const sheet = workbook.addWorksheet(name, {
@@ -164,7 +163,7 @@ export function fillWorkbook(workbook: Workbook, timetables: readonly PrintableT
         if (logo !== null) {
             sheet.addImage(logo, { tl: { col: 0.15, row: 0.1 }, ext: { width: 64, height: 64 } });
         }
-        fillHeader(sheet, timetable, grid, lastColumn);
+        fillHeader(sheet, page, grid, lastColumn);
         fillGrid(sheet, grid, lastColumn);
     }
 }

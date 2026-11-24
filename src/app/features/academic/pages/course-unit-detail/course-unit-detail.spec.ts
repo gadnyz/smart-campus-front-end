@@ -95,8 +95,8 @@ describe('CourseUnitDetailPage', () => {
 
     it('propose seulement les promotions où l’UE ne figure pas', async () => {
         await create();
-        expect(component.curriculum()).toEqual([{ programLevelId: 'pl-1', label: 'Informatique — L1', bloc: 'FONDAMENTAL' }]);
-        expect(component.enrollOptions()).toEqual([{ label: 'Informatique — L2', value: 'pl-2' }]);
+        expect(component.curriculum()).toEqual([{ programLevelId: 'pl-1', label: 'L1 Informatique', bloc: 'FONDAMENTAL' }]);
+        expect(component.enrollOptions()).toEqual([{ label: 'L2 Informatique', value: 'pl-2' }]);
     });
 
     it('inscrit l’UE dans une autre promotion avec son bloc', async () => {

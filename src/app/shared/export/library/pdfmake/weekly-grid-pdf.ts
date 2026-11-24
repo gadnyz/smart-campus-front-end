@@ -1,7 +1,6 @@
 import type { Content, TDocumentDefinitions, TableCell } from 'pdfmake/interfaces';
-import { PrintGrid, PrintSession, PrintableTimetable } from '../models/timetable-print.model';
-import { PRINT_COLORS } from './timetable-export-style';
-import { buildPrintGrid } from './timetable-print-grid';
+import { PrintGrid, PrintSession, WeeklyGridPage } from '../../export-document.model';
+import { PRINT_COLORS } from '../export-style';
 
 export interface PdfBranding {
     /** Logo de l'université en data URL (PNG), ou `null` s'il n'a pas pu être chargé. */
@@ -66,7 +65,8 @@ function gridTable(grid: PrintGrid): Content {
     };
 }
 
-function weekPage(timetable: PrintableTimetable, grid: PrintGrid, branding: PdfBranding, first: boolean): Content[] {
+function weekPage(page: WeeklyGridPage, branding: PdfBranding, first: boolean): Content[] {
+    const { grid } = page;
     return [
         {
             // En-tête « Horaire Faculté » : logo, puis titre, faculté et période alignés à gauche.
@@ -77,7 +77,7 @@ function weekPage(timetable: PrintableTimetable, grid: PrintGrid, branding: PdfB
                     alignment: 'left',
                     stack: [
                         { text: 'Horaire', fontSize: 22, bold: true, color: PRINT_COLORS.header },
-                        { text: timetable.title.toLocaleUpperCase('fr-FR'), fontSize: 13, bold: true, margin: [0, 2, 0, 0] },
+                        { text: page.title.toLocaleUpperCase('fr-FR'), fontSize: 13, bold: true, margin: [0, 2, 0, 0] },
                         { text: grid.period, fontSize: 11, color: PRINT_COLORS.muted, margin: [0, 2, 0, 0] }
                     ]
                 }
@@ -86,21 +86,21 @@ function weekPage(timetable: PrintableTimetable, grid: PrintGrid, branding: PdfB
             pageBreak: first ? undefined : 'before'
         },
         // Promotion et programme : sous la faculté, donc plus petits qu'elle.
-        { text: timetable.heading, fontSize: 11, bold: true, margin: [0, 12, 0, 8] },
+        { text: page.heading, fontSize: 11, bold: true, margin: [0, 12, 0, 8] },
         gridTable(grid)
     ];
 }
 
 /** Document pdfmake : une page A4 paysage par semaine, au format « Horaire Faculté ». */
-export function buildPdfDefinition(timetables: readonly PrintableTimetable[], branding: PdfBranding): TDocumentDefinitions {
+export function buildWeeklyGridPdf(pages: readonly WeeklyGridPage[], documentTitle: string, branding: PdfBranding): TDocumentDefinitions {
     const printedAt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' }).format(branding.printedAt);
     return {
         pageSize: 'A4',
         pageOrientation: 'landscape',
         pageMargins: [28, 24, 28, 32],
-        info: { title: `Horaire — ${timetables[0]?.heading ?? ''}`, creator: branding.appName },
+        info: { title: documentTitle, creator: branding.appName },
         defaultStyle: { fontSize: 9 },
-        content: timetables.flatMap((timetable, index) => weekPage(timetable, buildPrintGrid(timetable), branding, index === 0)),
+        content: pages.flatMap((page, index) => weekPage(page, branding, index === 0)),
         footer: (currentPage, pageCount) => ({
             text: `${branding.appName} · imprimé le ${printedAt} · page ${currentPage} / ${pageCount}`,
             alignment: 'right',

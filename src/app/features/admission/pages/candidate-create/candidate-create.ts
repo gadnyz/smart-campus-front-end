@@ -29,6 +29,7 @@ import {
     getCountryCallingCode,
     parsePhoneNumberFromString
 } from 'libphonenumber-js/max';
+import { levelLabel } from '@/app/features/academic/academic.public-api';
 
 type CountryOption = {
     code: CountryCode;
@@ -424,7 +425,7 @@ export class CandidateCreate implements OnInit {
             facultyName: program.faculty_name,
             levels: (program.levels ?? [])
                 .map((item) => ({
-                    label: item.level.code ? `${item.level.code} - ${item.level.name}` : item.level.name,
+                    label: levelLabel(item.level),
                     value: item.level.id,
                     isCommon: item.is_common,
                     order: item.level.level_order ?? 0

@@ -19,7 +19,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from '@/app/core/auth/services/auth.service';
 import { PermissionService } from '@/app/core/permissions/permission.service';
-import { ContentSubtopbar, SubtopbarAction } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
+import { ContentSubtopbar, SubtopbarAction, SubtopbarNavigation } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
 import { AcademicPermission } from '../../permissions/permission.model';
 import { AcademicYear } from '../../models/academic-year.model';
 import { Course } from '../../models/course.model';
@@ -119,9 +119,23 @@ export class CourseDetailPage implements OnInit {
     readonly title = computed(() => {
         const course = this.course();
         const name = course ? `${course.code} — ${course.name}` : 'Cours';
-        const position = this.navigationState()?.label;
 
-        return position ? `${name} (${position})` : name;
+        return name;
+    });
+
+    /** Précédent et Suivant dans la sous-barre, avec la position dans la liste. */
+    readonly navigation = computed<SubtopbarNavigation | null>(() => {
+        const state = this.navigationState();
+        if (!state) {
+            return null;
+        }
+        return {
+            position: state.label,
+            hasPrevious: !(!this.canGoPrevious() || this.loading()),
+            hasNext: !(!this.canGoNext() || this.loading()),
+            previous: () => this.goToPreviousCourse(),
+            next: () => this.goToNextCourse()
+        };
     });
 
     readonly actions = computed<SubtopbarAction[]>(() => [
@@ -133,21 +147,8 @@ export class CourseDetailPage implements OnInit {
             command: () => this.goToList()
         },
         {
-            label: 'Précédent',
-            icon: 'pi pi-chevron-left',
-            severity: 'secondary',
-            disabled: !this.canGoPrevious() || this.loading(),
-            command: () => this.goToPreviousCourse()
-        },
-        {
-            label: 'Suivant',
-            icon: 'pi pi-chevron-right',
-            severity: 'secondary',
-            disabled: !this.canGoNext() || this.loading(),
-            command: () => this.goToNextCourse()
-        },
-        {
             label: 'Modifier',
+            primary: true,
             icon: 'pi pi-pencil',
             command: () => this.openEditCourse(),
             permissions: writeAuthorities('academic:course:update')
