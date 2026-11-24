@@ -1,0 +1,1444 @@
+
+<!doctype html>
+<html lang="fr" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation technique du front-end Angular de Smart Campus (Université Nouveaux Horizons)">
+      
+      
+      
+      
+        <link rel="prev" href="../architecture/">
+      
+      
+        <link rel="next" href="../brancher-un-module/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Créer un module - Smart Campus — Documentation front-end</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#creer-un-module" class="md-skip">
+          Aller au contenu
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="En-tête">
+    <a href="../.." title="Smart Campus — Documentation front-end" class="md-header__button md-logo" aria-label="Smart Campus — Documentation front-end" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Smart Campus — Documentation front-end
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Créer un module
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Recherche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initialisation de la recherche
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Smart Campus — Documentation front-end" class="md-nav__button md-logo" aria-label="Smart Campus — Documentation front-end" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Smart Campus — Documentation front-end
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accueil
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technologies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technologies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Développement
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Développement
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Créer un module
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Créer un module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ce-que-vous-allez-construire" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ce que vous allez construire
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#avant-de-commencer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Avant de commencer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#arborescence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Arborescence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-1-declarer-les-autorites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 1 : déclarer les autorités
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-2-ecrire-les-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 2 : écrire les types
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-3-ecrire-le-service-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 3 : écrire le service API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-4-ecrire-letat-de-la-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 4 : écrire l'état de la page
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-5-ecrire-la-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 5 : écrire la page
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Étape 5 : écrire la page">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#declarer-le-composant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Déclarer le composant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#charger-la-liste" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Charger la liste
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#declarer-le-formulaire" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Déclarer le formulaire
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enregistrer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enregistrer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ecrire-le-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Écrire le template
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-6-declarer-les-routes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 6 : déclarer les routes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-7-ecrire-les-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 7 : écrire les tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Étape 7 : écrire les tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tester-le-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tester le service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tester-la-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tester la page
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-suivante" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape suivante
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../brancher-un-module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Brancher un module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../communication-backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Communication avec le backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ce-que-vous-allez-construire" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ce que vous allez construire
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#avant-de-commencer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Avant de commencer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#arborescence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Arborescence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-1-declarer-les-autorites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 1 : déclarer les autorités
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-2-ecrire-les-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 2 : écrire les types
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-3-ecrire-le-service-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 3 : écrire le service API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-4-ecrire-letat-de-la-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 4 : écrire l'état de la page
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-5-ecrire-la-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 5 : écrire la page
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Étape 5 : écrire la page">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#declarer-le-composant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Déclarer le composant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#charger-la-liste" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Charger la liste
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#declarer-le-formulaire" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Déclarer le formulaire
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enregistrer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enregistrer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ecrire-le-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Écrire le template
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-6-declarer-les-routes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 6 : déclarer les routes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-7-ecrire-les-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 7 : écrire les tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Étape 7 : écrire les tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tester-le-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tester le service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tester-la-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tester la page
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-suivante" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape suivante
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="creer-un-module">Créer un module<a class="headerlink" href="#creer-un-module" title="Permanent link">&para;</a></h1>
+<p>Ce tutoriel vous apprend à écrire un module de gestion complet : types, service API, page avec liste et formulaire, routes et tests. Il s'appuie sur un module réel du projet, la gestion des salles du module Planification. Chaque étape cite le code existant, puis indique ce que vous changez pour votre propre ressource.</p>
+<p>À la fin, votre page sera prête à être branchée dans l'application, ce que décrit le guide <a href="../brancher-un-module/">Brancher un module</a>.</p>
+<h2 id="ce-que-vous-allez-construire">Ce que vous allez construire<a class="headerlink" href="#ce-que-vous-allez-construire" title="Permanent link">&para;</a></h2>
+<p>La gestion des salles est une page unique, accessible dans Paramètres › Planification. Elle affiche la liste des salles, permet de les filtrer et de les rechercher, et ouvre une fenêtre pour créer ou modifier une salle. La suppression passe par une confirmation. Les boutons n'apparaissent que si l'utilisateur a les droits correspondants.</p>
+<p>Ce modèle convient aux données de référence, c'est-à-dire des listes courtes gérées par un administrateur. Pour une ressource qui nécessite une page de détail, consultez en plus <code>features/academic/pages/course-detail/</code>.</p>
+<h2 id="avant-de-commencer">Avant de commencer<a class="headerlink" href="#avant-de-commencer" title="Permanent link">&para;</a></h2>
+<p>Vous avez besoin des informations suivantes, fournies par l'équipe backend :</p>
+<ul>
+<li>l'URL de la ressource, par exemple <code>/api/v1/rooms</code> pour les salles ;</li>
+<li>la forme des réponses et des requêtes. Le backend publie un schéma OpenAPI, que cite le commentaire de <code>features/scheduling/models/room.model.ts</code> ;</li>
+<li>le comportement de la liste : tableau simple ou réponse paginée ;</li>
+<li>les autorités qui protègent chaque action.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>N'écrivez pas de service pour un endpoint qui n'existe pas encore. Si l'endpoint manque, adressez la demande à l'équipe backend.</p>
+</div>
+<h2 id="arborescence">Arborescence<a class="headerlink" href="#arborescence" title="Permanent link">&para;</a></h2>
+<p>Les fichiers de la gestion des salles sont les suivants :</p>
+<div class="highlight"><pre><span></span><code>features/scheduling/
+├── permissions/
+│   └── permission.model.ts           Étape 1
+├── models/
+│   ├── room.model.ts                  Étape 2
+│   └── room.model.spec.ts
+├── services/
+│   ├── room.service.ts                Étape 3
+│   └── room.service.spec.ts           Étape 7
+├── settings/
+│   ├── routes.ts                      Étape 6
+│   └── pages/rooms/
+│       ├── rooms.ts                   Étapes 4 et 5
+│       ├── rooms.html
+│       ├── rooms.scss
+│       └── rooms.spec.ts              Étape 7
+├── scheduling.public-api.ts           Étape 3
+└── scheduling.feature.ts              Voir « Brancher un module »
+</code></pre></div>
+<p>Pour un nouveau module, créez <code>features/&lt;module&gt;/</code> avec la même organisation.</p>
+<h2 id="etape-1-declarer-les-autorites">Étape 1 : déclarer les autorités<a class="headerlink" href="#etape-1-declarer-les-autorites" title="Permanent link">&para;</a></h2>
+<p>Les autorités sont les droits que l'API transmet à la connexion. Le module les déclare dans un objet constant, pour les référencer sans faute de frappe.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/permissions/permission.model.ts (lignes 8 à 12 et 35)</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">SchedulingPermission</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">RoomReadAll</span><span class="o">:</span><span class="w"> </span><span class="s1">'scheduling:room:read:all'</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">RoomCreateAll</span><span class="o">:</span><span class="w"> </span><span class="s1">'scheduling:room:create:all'</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">RoomUpdateAll</span><span class="o">:</span><span class="w"> </span><span class="s1">'scheduling:room:update:all'</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">RoomDeleteAll</span><span class="o">:</span><span class="w"> </span><span class="s1">'scheduling:room:delete:all'</span><span class="p">,</span>
+<span class="w">    </span><span class="c1">// …</span>
+<span class="p">}</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="kd">const</span><span class="p">;</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nx">SchedulingPermission</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="ow">typeof</span><span class="w"> </span><span class="nx">SchedulingPermission</span><span class="p">)[</span><span class="nx">keyof</span><span class="w"> </span><span class="ow">typeof</span><span class="w"> </span><span class="nx">SchedulingPermission</span><span class="p">];</span>
+</code></pre></div>
+<p>Chaque valeur suit le format <code>module:ressource:action:portée</code>. Les portées possibles sont décrites dans <code>core/permissions/permission-scope.ts</code>.</p>
+<p><strong>À adapter.</strong> Créez <code>features/&lt;module&gt;/permissions/permission.model.ts</code> avec les autorités réellement déclarées par le backend pour votre ressource. N'ajoutez aucune autorité qui n'existe pas côté serveur.</p>
+<h2 id="etape-2-ecrire-les-types">Étape 2 : écrire les types<a class="headerlink" href="#etape-2-ecrire-les-types" title="Permanent link">&para;</a></h2>
+<p>Les types reprennent exactement le schéma de l'API, champs en snake_case compris. Le même fichier porte les libellés français des valeurs.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/models/room.model.ts (lignes 9 à 44)</span>
+<span class="k">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nx">RoomType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'ONLINE'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'OFFICE'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'LABORATORY'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'NORMAL'</span><span class="p">;</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="nx">Room</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">location</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">    </span><span class="cm">/** Repère libre (bâtiment, étage…) ; optionnel côté backend. */</span>
+<span class="w">    </span><span class="nx">coordinates</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">capacity</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<span class="w">    </span><span class="kr">type</span><span class="o">:</span><span class="w"> </span><span class="nx">RoomType</span><span class="p">;</span>
+<span class="w">    </span><span class="cm">/** Lien de visioconférence — pertinent uniquement pour les salles ONLINE. */</span>
+<span class="w">    </span><span class="nx">link</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">created_at</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">updated_at</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="nx">RoomRequest</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">location</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">coordinates?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">capacity</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<span class="w">    </span><span class="kr">type</span><span class="o">:</span><span class="w"> </span><span class="nx">RoomType</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">link?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">ROOM_TYPE_OPTIONS</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w"> </span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="kt">RoomType</span><span class="w"> </span><span class="p">}[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Standard'</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="s1">'NORMAL'</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'En ligne'</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="s1">'ONLINE'</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Bureau'</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="s1">'OFFICE'</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Laboratoire'</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="s1">'LABORATORY'</span><span class="w"> </span><span class="p">}</span>
+<span class="p">];</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">roomTypeLabel</span><span class="p">(</span><span class="kr">type</span><span class="o">:</span><span class="w"> </span><span class="nx">RoomType</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">undefined</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// `||` et non `??` pour le repli : une chaîne vide doit afficher le tiret, pas une cellule vide.</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">ROOM_TYPE_OPTIONS</span><span class="p">.</span><span class="nx">find</span><span class="p">((</span><span class="nx">option</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">option</span><span class="p">.</span><span class="nx">value</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="kr">type</span><span class="p">)</span><span class="o">?</span><span class="p">.</span><span class="nx">label</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="p">(</span><span class="kr">type</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">'—'</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Deux interfaces séparent ce que l'API renvoie (<code>Room</code>) de ce qu'elle reçoit (<code>RoomRequest</code>). La fonction <code>roomTypeLabel</code> garantit qu'aucun code technique comme <code>LABORATORY</code> ne s'affiche à l'écran.</p>
+<p><strong>À adapter.</strong> Créez <code>features/&lt;module&gt;/models/&lt;ressource&gt;.model.ts</code>. Si l'API renvoie une liste paginée, utilisez <code>PagedResponse&lt;T&gt;</code> de <code>shared/models/paged-response.model.ts</code> plutôt qu'une nouvelle interface.</p>
+<h2 id="etape-3-ecrire-le-service-api">Étape 3 : écrire le service API<a class="headerlink" href="#etape-3-ecrire-le-service-api" title="Permanent link">&para;</a></h2>
+<p>Le service est la seule classe qui connaît les URL de la ressource. Il renvoie des <code>Observable</code> typés et ne s'abonne jamais lui-même.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/services/room.service.ts (lignes 12 à 36)</span>
+<span class="kd">@Injectable</span><span class="p">({</span><span class="w"> </span><span class="nx">providedIn</span><span class="o">:</span><span class="w"> </span><span class="s1">'root'</span><span class="w"> </span><span class="p">})</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">class</span><span class="w"> </span><span class="nx">RoomService</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="nx">http</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">inject</span><span class="p">(</span><span class="nx">HttpClient</span><span class="p">);</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="nx">baseUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sb">`</span><span class="si">${</span><span class="nx">environment</span><span class="p">.</span><span class="nx">apiBaseUrl</span><span class="si">}</span><span class="sb">/api/v1/rooms`</span><span class="p">;</span>
+
+<span class="w">    </span><span class="nx">getAll</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nx">Observable</span><span class="o">&lt;</span><span class="nx">Room</span><span class="p">[]</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">http</span><span class="p">.</span><span class="nx">get</span><span class="o">&lt;</span><span class="nx">Room</span><span class="p">[]</span><span class="o">&gt;</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">baseUrl</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nx">getById</span><span class="p">(</span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">Observable</span><span class="o">&lt;</span><span class="nx">Room</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">http</span><span class="p">.</span><span class="nx">get</span><span class="o">&lt;</span><span class="nx">Room</span><span class="o">&gt;</span><span class="p">(</span><span class="sb">`</span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">baseUrl</span><span class="si">}</span><span class="sb">/</span><span class="si">${</span><span class="nx">id</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nx">create</span><span class="p">(</span><span class="nx">payload</span><span class="o">:</span><span class="w"> </span><span class="kt">RoomRequest</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">Observable</span><span class="o">&lt;</span><span class="nx">Room</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">http</span><span class="p">.</span><span class="nx">post</span><span class="o">&lt;</span><span class="nx">Room</span><span class="o">&gt;</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">baseUrl</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nx">update</span><span class="p">(</span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="o">:</span><span class="w"> </span><span class="kt">RoomRequest</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">Observable</span><span class="o">&lt;</span><span class="nx">Room</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">http</span><span class="p">.</span><span class="nx">put</span><span class="o">&lt;</span><span class="nx">Room</span><span class="o">&gt;</span><span class="p">(</span><span class="sb">`</span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">baseUrl</span><span class="si">}</span><span class="sb">/</span><span class="si">${</span><span class="nx">id</span><span class="si">}</span><span class="sb">`</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="ow">delete</span><span class="p">(</span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">Observable</span><span class="o">&lt;</span><span class="ow">void</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">http</span><span class="p">.</span><span class="ow">delete</span><span class="o">&lt;</span><span class="ow">void</span><span class="o">&gt;</span><span class="p">(</span><span class="sb">`</span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">baseUrl</span><span class="si">}</span><span class="sb">/</span><span class="si">${</span><span class="nx">id</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>L'URL commence par <code>environment.apiBaseUrl</code>. En développement, ce préfixe est vide et la requête passe par le proxy. Le jeton d'authentification est ajouté par l'intercepteur : le service n'a pas à s'en occuper.</p>
+<p>Si d'autres modules ont besoin de ces types ou de ce service, exposez-les dans le fichier d'API publique du module :</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/scheduling.public-api.ts (lignes 7 et 8)</span>
+<span class="k">export</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'./models/room.model'</span><span class="p">;</span>
+<span class="k">export</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'./services/room.service'</span><span class="p">;</span>
+</code></pre></div>
+<p><strong>À adapter.</strong> Créez <code>features/&lt;module&gt;/services/&lt;ressource&gt;.service.ts</code> avec l'URL fournie par le backend et seulement les méthodes qu'il expose. Pour une liste paginée ou filtrée, construisez les paramètres avec <code>toApiParams</code> (voir <a href="../communication-backend/#pagination-filtres-et-recherche">Communication avec le backend</a>).</p>
+<h2 id="etape-4-ecrire-letat-de-la-page">Étape 4 : écrire l'état de la page<a class="headerlink" href="#etape-4-ecrire-letat-de-la-page" title="Permanent link">&para;</a></h2>
+<p>La page garde son état dans des signals. Les valeurs dérivées, comme la liste filtrée ou les droits, sont des <code>computed</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/settings/pages/rooms/rooms.ts (lignes 60 à 85)</span>
+<span class="k">readonly</span><span class="w"> </span><span class="nx">rooms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">signal</span><span class="o">&lt;</span><span class="nx">Room</span><span class="p">[]</span><span class="o">&gt;</span><span class="p">([]);</span>
+<span class="k">readonly</span><span class="w"> </span><span class="nx">loading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">signal</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<span class="k">readonly</span><span class="w"> </span><span class="nx">saving</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">signal</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<span class="k">readonly</span><span class="w"> </span><span class="nx">dialogVisible</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">signal</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<span class="k">readonly</span><span class="w"> </span><span class="nx">editingId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">signal</span><span class="o">&lt;</span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="o">&gt;</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+<span class="k">readonly</span><span class="w"> </span><span class="nx">typeFilter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">signal</span><span class="o">&lt;</span><span class="nx">RoomType</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="o">&gt;</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+
+<span class="k">readonly</span><span class="w"> </span><span class="nx">typeOptions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">ROOM_TYPE_OPTIONS</span><span class="p">;</span>
+<span class="k">readonly</span><span class="w"> </span><span class="nx">roomTypeLabel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">roomTypeLabel</span><span class="p">;</span>
+
+<span class="k">readonly</span><span class="w"> </span><span class="nx">dialogTitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">computed</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">editingId</span><span class="p">()</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s1">'Modifier la salle'</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s1">'Nouvelle salle'</span><span class="p">));</span>
+
+<span class="cm">/** Filtrage client-side : `GET /api/v1/rooms` n'expose aucun paramètre de requête. */</span>
+<span class="k">readonly</span><span class="w"> </span><span class="nx">filteredRooms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">computed</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">typeFilter</span><span class="p">();</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">rooms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">rooms</span><span class="p">();</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="nx">rooms</span><span class="p">.</span><span class="nx">filter</span><span class="p">((</span><span class="nx">room</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">room</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="kr">type</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">rooms</span><span class="p">;</span>
+<span class="p">});</span>
+
+<span class="k">readonly</span><span class="w"> </span><span class="nx">canUpdate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">computed</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span>
+<span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">permissionService</span><span class="p">.</span><span class="nx">hasAnyPermission</span><span class="p">([</span><span class="nx">SchedulingPermission</span><span class="p">.</span><span class="nx">RoomUpdateAll</span><span class="p">])</span>
+<span class="p">);</span>
+
+<span class="k">readonly</span><span class="w"> </span><span class="nx">canDelete</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">computed</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span>
+<span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">permissionService</span><span class="p">.</span><span class="nx">hasAnyPermission</span><span class="p">([</span><span class="nx">SchedulingPermission</span><span class="p">.</span><span class="nx">RoomDeleteAll</span><span class="p">])</span>
+<span class="p">);</span>
+</code></pre></div>
+<p>Cet état reste local à la page. Si plusieurs écrans doivent partager un même état, suivez le modèle de <code>core/settings/services/core-settings.store.ts</code> : un signal privé, une vue publique en lecture seule obtenue avec <code>asReadonly()</code>, et des méthodes qui modifient l'état.</p>
+<p><strong>À adapter.</strong> Remplacez les signals par ceux de votre ressource. Gardez <code>loading</code> et <code>saving</code> : la vue les utilise pour l'indicateur de chargement et pour désactiver le bouton d'enregistrement.</p>
+<h2 id="etape-5-ecrire-la-page">Étape 5 : écrire la page<a class="headerlink" href="#etape-5-ecrire-la-page" title="Permanent link">&para;</a></h2>
+<h3 id="declarer-le-composant">Déclarer le composant<a class="headerlink" href="#declarer-le-composant" title="Permanent link">&para;</a></h3>
+<p>Le composant est standalone et importe explicitement les composants PrimeNG qu'il utilise. Il fournit ses propres <code>ConfirmationService</code> et <code>MessageService</code>, pour les confirmations et les toasts.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/settings/pages/rooms/rooms.ts (lignes 29 à 58)</span>
+<span class="kd">@Component</span><span class="p">({</span>
+<span class="w">    </span><span class="nx">selector</span><span class="o">:</span><span class="w"> </span><span class="s1">'app-scheduling-rooms'</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">standalone</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">changeDetection</span><span class="o">:</span><span class="w"> </span><span class="kt">ChangeDetectionStrategy.OnPush</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">imports</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="nx">CommonModule</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">FormsModule</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">ReactiveFormsModule</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">TableModule</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">ButtonModule</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">ToastModule</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">ConfirmDialogModule</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">DialogModule</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">InputTextModule</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">InputNumber</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">SelectModule</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">IconFieldModule</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">InputIconModule</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">ContentSubtopbar</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="nx">templateUrl</span><span class="o">:</span><span class="w"> </span><span class="s1">'./rooms.html'</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">styleUrl</span><span class="o">:</span><span class="w"> </span><span class="s1">'./rooms.scss'</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">providers</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">ConfirmationService</span><span class="p">,</span><span class="w"> </span><span class="nx">MessageService</span><span class="p">]</span>
+<span class="p">})</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">class</span><span class="w"> </span><span class="nx">RoomsPage</span><span class="w"> </span><span class="k">implements</span><span class="w"> </span><span class="nx">OnInit</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="nx">roomService</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">inject</span><span class="p">(</span><span class="nx">RoomService</span><span class="p">);</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="nx">confirmationService</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">inject</span><span class="p">(</span><span class="nx">ConfirmationService</span><span class="p">);</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="nx">messageService</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">inject</span><span class="p">(</span><span class="nx">MessageService</span><span class="p">);</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="nx">permissionService</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">inject</span><span class="p">(</span><span class="nx">PermissionService</span><span class="p">);</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="nx">fb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">inject</span><span class="p">(</span><span class="nx">FormBuilder</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="charger-la-liste">Charger la liste<a class="headerlink" href="#charger-la-liste" title="Permanent link">&para;</a></h3>
+<p>Les données sont chargées dans <code>ngOnInit</code>. En cas d'échec, la page vide la liste et affiche un toast avec un message lisible.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/settings/pages/rooms/rooms.ts (lignes 229 à 243)</span>
+<span class="k">private</span><span class="w"> </span><span class="nx">load</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="ow">void</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">loading</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">roomService</span><span class="p">.</span><span class="nx">getAll</span><span class="p">().</span><span class="nx">subscribe</span><span class="p">({</span>
+<span class="w">        </span><span class="nx">next</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">rooms</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">this</span><span class="p">.</span><span class="nx">rooms</span><span class="p">.</span><span class="nx">set</span><span class="p">([...</span><span class="nx">rooms</span><span class="p">].</span><span class="nx">sort</span><span class="p">((</span><span class="nx">a</span><span class="p">,</span><span class="w"> </span><span class="nx">b</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">a</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">localeCompare</span><span class="p">(</span><span class="nx">b</span><span class="p">.</span><span class="nx">name</span><span class="p">)));</span>
+<span class="w">            </span><span class="k">this</span><span class="p">.</span><span class="nx">loading</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nx">error</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="o">:</span><span class="w"> </span><span class="kt">HttpErrorResponse</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">this</span><span class="p">.</span><span class="nx">rooms</span><span class="p">.</span><span class="nx">set</span><span class="p">([]);</span>
+<span class="w">            </span><span class="k">this</span><span class="p">.</span><span class="nx">loading</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<span class="w">            </span><span class="k">this</span><span class="p">.</span><span class="nx">showError</span><span class="p">(</span><span class="nx">apiErrorMessage</span><span class="p">(</span><span class="nx">error</span><span class="p">,</span><span class="w"> </span><span class="s1">'Impossible de charger les salles.'</span><span class="p">));</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="declarer-le-formulaire">Déclarer le formulaire<a class="headerlink" href="#declarer-le-formulaire" title="Permanent link">&para;</a></h3>
+<p>Le formulaire est réactif et non nullable. Les validations reprennent les contraintes connues de l'API.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/settings/pages/rooms/rooms.ts (lignes 87 à 94)</span>
+<span class="k">readonly</span><span class="w"> </span><span class="nx">form</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">fb</span><span class="p">.</span><span class="nx">nonNullable</span><span class="p">.</span><span class="nx">group</span><span class="p">({</span>
+<span class="w">    </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">''</span><span class="p">,</span><span class="w"> </span><span class="nx">Validators</span><span class="p">.</span><span class="nx">required</span><span class="p">],</span>
+<span class="w">    </span><span class="nx">location</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">''</span><span class="p">,</span><span class="w"> </span><span class="nx">Validators</span><span class="p">.</span><span class="nx">required</span><span class="p">],</span>
+<span class="w">    </span><span class="nx">coordinates</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">''</span><span class="p">],</span>
+<span class="w">    </span><span class="nx">capacity</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="nx">Validators</span><span class="p">.</span><span class="nx">required</span><span class="p">,</span><span class="w"> </span><span class="nx">Validators</span><span class="p">.</span><span class="nx">min</span><span class="p">(</span><span class="mf">1</span><span class="p">)]],</span>
+<span class="w">    </span><span class="kr">type</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">'NORMAL'</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">RoomType</span><span class="p">,</span><span class="w"> </span><span class="nx">Validators</span><span class="p">.</span><span class="nx">required</span><span class="p">],</span>
+<span class="w">    </span><span class="nx">link</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">''</span><span class="p">]</span>
+<span class="p">});</span>
+</code></pre></div>
+<h3 id="enregistrer">Enregistrer<a class="headerlink" href="#enregistrer" title="Permanent link">&para;</a></h3>
+<p>La même méthode crée ou modifie la ressource, selon <code>editingId</code>. Les champs facultatifs vides sont envoyés à <code>null</code>. Un conflit (409) reçoit un message propre à l'écran.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/settings/pages/rooms/rooms.ts (lignes 157 à 197)</span>
+<span class="nx">submit</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="ow">void</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">form</span><span class="p">.</span><span class="nx">invalid</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="nx">form</span><span class="p">.</span><span class="nx">markAllAsTouched</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">raw</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">form</span><span class="p">.</span><span class="nx">getRawValue</span><span class="p">();</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">payload</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">raw.name.trim</span><span class="p">(),</span>
+<span class="w">        </span><span class="nx">location</span><span class="o">:</span><span class="w"> </span><span class="kt">raw.location.trim</span><span class="p">(),</span>
+<span class="w">        </span><span class="nx">coordinates</span><span class="o">:</span><span class="w"> </span><span class="kt">raw.coordinates.trim</span><span class="p">()</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">capacity</span><span class="o">:</span><span class="w"> </span><span class="kt">raw.capacity</span><span class="p">,</span>
+<span class="w">        </span><span class="kr">type</span><span class="o">:</span><span class="w"> </span><span class="nx">raw</span><span class="p">.</span><span class="kr">type</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">link</span><span class="o">:</span><span class="w"> </span><span class="kt">raw.link.trim</span><span class="p">()</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">    </span><span class="p">};</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">editingId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">editingId</span><span class="p">();</span>
+<span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">saving</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">request$</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">editingId</span>
+<span class="w">        </span><span class="o">?</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">roomService</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="nx">editingId</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="p">)</span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">roomService</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">payload</span><span class="p">);</span>
+
+<span class="w">    </span><span class="nx">request$</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">({</span>
+<span class="w">        </span><span class="nx">next</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">room</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">this</span><span class="p">.</span><span class="nx">saving</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<span class="w">            </span><span class="k">this</span><span class="p">.</span><span class="nx">dialogVisible</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<span class="w">            </span><span class="k">this</span><span class="p">.</span><span class="nx">editingId</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+<span class="w">            </span><span class="k">this</span><span class="p">.</span><span class="nx">load</span><span class="p">();</span>
+<span class="w">            </span><span class="k">this</span><span class="p">.</span><span class="nx">showSuccess</span><span class="p">(</span><span class="nx">editingId</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="sb">`Salle </span><span class="si">${</span><span class="nx">room</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb"> modifiée.`</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="sb">`Salle </span><span class="si">${</span><span class="nx">room</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb"> créée.`</span><span class="p">);</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nx">error</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="o">:</span><span class="w"> </span><span class="kt">HttpErrorResponse</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">this</span><span class="p">.</span><span class="nx">saving</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<span class="w">            </span><span class="k">this</span><span class="p">.</span><span class="nx">showError</span><span class="p">(</span>
+<span class="w">                </span><span class="p">(</span><span class="nx">readableApiText</span><span class="p">(</span><span class="nx">error</span><span class="p">.</span><span class="nx">error</span><span class="o">?</span><span class="p">.</span><span class="nx">detail</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="s1">''</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="o">??</span>
+<span class="w">                    </span><span class="p">(</span><span class="nx">error</span><span class="p">.</span><span class="nx">status</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="mf">409</span>
+<span class="w">                        </span><span class="o">?</span><span class="w"> </span><span class="s1">'Une salle porte déjà ce nom.'</span>
+<span class="w">                        </span><span class="o">:</span><span class="w"> </span><span class="s1">'Impossible d’enregistrer la salle.'</span><span class="p">)</span>
+<span class="w">            </span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="ecrire-le-template">Écrire le template<a class="headerlink" href="#ecrire-le-template" title="Permanent link">&para;</a></h3>
+<p>L'en-tête de page utilise <code>ContentSubtopbar</code>. L'action « Nouvelle salle » déclare son autorité : le composant la masque si l'utilisateur ne l'a pas.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/settings/pages/rooms/rooms.ts (lignes 96 à 106)</span>
+<span class="k">readonly</span><span class="w"> </span><span class="nx">actions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">computed</span><span class="o">&lt;</span><span class="nx">SubtopbarAction</span><span class="p">[]</span><span class="o">&gt;</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Nouvelle salle'</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="s1">'pi pi-plus'</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">severity</span><span class="o">:</span><span class="w"> </span><span class="s1">'info'</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">outlined</span><span class="o">:</span><span class="w"> </span><span class="kt">false</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">command</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">openCreateDialog</span><span class="p">(),</span>
+<span class="w">        </span><span class="nx">permissions</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">SchedulingPermission</span><span class="p">.</span><span class="nx">RoomCreateAll</span><span class="p">],</span>
+<span class="w">        </span><span class="nx">mode</span><span class="o">:</span><span class="w"> </span><span class="s1">'any'</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">]);</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="cm">&lt;!-- src/app/features/scheduling/settings/pages/rooms/rooms.html (lignes 1 à 4) --&gt;</span>
+<span class="p">&lt;</span><span class="nt">p-toast</span> <span class="p">/&gt;</span>
+<span class="p">&lt;</span><span class="nt">p-confirmdialog</span> <span class="err">[</span><span class="na">style</span><span class="err">]="{</span> <span class="na">width:</span> <span class="err">'</span><span class="na">450px</span><span class="err">'</span> <span class="err">}"</span> <span class="p">/&gt;</span>
+
+<span class="p">&lt;</span><span class="nt">app-content-subtopbar</span> <span class="na">kicker</span><span class="o">=</span><span class="s">""</span> <span class="na">title</span><span class="o">=</span><span class="s">"Salles"</span> <span class="err">[</span><span class="na">actions</span><span class="err">]="</span><span class="na">actions</span><span class="err">()"</span> <span class="p">/&gt;</span>
+</code></pre></div>
+<p>Le tableau lit les signals. Les boutons de ligne dépendent des droits calculés à l'étape 4.</p>
+<div class="highlight"><pre><span></span><code><span class="cm">&lt;!-- src/app/features/scheduling/settings/pages/rooms/rooms.html (lignes 70 à 96) --&gt;</span>
+<span class="p">&lt;</span><span class="nt">td</span> <span class="na">class</span><span class="o">=</span><span class="s">"stack-actions"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"flex gap-2"</span><span class="p">&gt;</span>
+        @if (canUpdate()) {
+        <span class="p">&lt;</span><span class="nt">button</span>
+            <span class="na">pButton</span>
+            <span class="na">type</span><span class="o">=</span><span class="s">"button"</span>
+            <span class="na">icon</span><span class="o">=</span><span class="s">"pi pi-pencil"</span>
+            <span class="na">rounded</span>
+            <span class="na">outlined</span>
+            <span class="err">[</span><span class="na">attr</span><span class="err">.</span><span class="na">aria-label</span><span class="err">]="'</span><span class="na">Modifier</span> <span class="err">'</span> <span class="err">+</span> <span class="na">room</span><span class="err">.</span><span class="na">name</span><span class="err">"</span>
+            <span class="err">(</span><span class="na">click</span><span class="err">)="</span><span class="na">openEditDialog</span><span class="err">(</span><span class="na">room</span><span class="err">)"</span>
+        <span class="p">&gt;&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+        }
+        @if (canDelete()) {
+        <span class="p">&lt;</span><span class="nt">button</span>
+            <span class="na">pButton</span>
+            <span class="na">type</span><span class="o">=</span><span class="s">"button"</span>
+            <span class="na">icon</span><span class="o">=</span><span class="s">"pi pi-trash"</span>
+            <span class="na">rounded</span>
+            <span class="na">outlined</span>
+            <span class="na">severity</span><span class="o">=</span><span class="s">"danger"</span>
+            <span class="err">[</span><span class="na">attr</span><span class="err">.</span><span class="na">aria-label</span><span class="err">]="'</span><span class="na">Supprimer</span> <span class="err">'</span> <span class="err">+</span> <span class="na">room</span><span class="err">.</span><span class="na">name</span><span class="err">"</span>
+            <span class="err">(</span><span class="na">click</span><span class="err">)="</span><span class="na">confirmDelete</span><span class="err">(</span><span class="na">room</span><span class="err">)"</span>
+        <span class="p">&gt;&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+        }
+    <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">td</span><span class="p">&gt;</span>
+</code></pre></div>
+<p>Une erreur de saisie s'affiche sous le champ concerné, dès que le champ a été modifié ou quitté :</p>
+<div class="highlight"><pre><span></span><code><span class="cm">&lt;!-- src/app/features/scheduling/settings/pages/rooms/rooms.html (lignes 117 à 123) --&gt;</span>
+<span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">label</span> <span class="na">for</span><span class="o">=</span><span class="s">"roomName"</span> <span class="na">class</span><span class="o">=</span><span class="s">"block text-sm text-color-secondary mb-1"</span><span class="p">&gt;</span>Nom<span class="p">&lt;/</span><span class="nt">label</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">input</span> <span class="na">pInputText</span> <span class="na">id</span><span class="o">=</span><span class="s">"roomName"</span> <span class="na">formControlName</span><span class="o">=</span><span class="s">"name"</span> <span class="na">placeholder</span><span class="o">=</span><span class="s">"A101"</span> <span class="na">class</span><span class="o">=</span><span class="s">"w-full"</span> <span class="p">/&gt;</span>
+    @if (isInvalid('name')) {
+    <span class="p">&lt;</span><span class="nt">small</span> <span class="na">class</span><span class="o">=</span><span class="s">"text-red-500 block mt-1"</span><span class="p">&gt;</span>Le nom est obligatoire.<span class="p">&lt;/</span><span class="nt">small</span><span class="p">&gt;</span>
+    }
+<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</code></pre></div>
+<p><strong>À adapter.</strong> Créez <code>features/&lt;module&gt;/settings/pages/&lt;ressource&gt;/</code> ou <code>features/&lt;module&gt;/pages/&lt;ressource&gt;/</code>, selon que la page est une donnée de référence (Paramètres) ou une donnée d'exploitation (menu). Reprenez la structure : chargement, formulaire, enregistrement, suppression confirmée, toasts. Écrivez tous les libellés en français et n'affichez jamais d'identifiant technique.</p>
+<h2 id="etape-6-declarer-les-routes">Étape 6 : déclarer les routes<a class="headerlink" href="#etape-6-declarer-les-routes" title="Permanent link">&para;</a></h2>
+<p>Le fichier de routes exporte un tableau par défaut. La page est chargée à la demande avec <code>loadComponent</code>, et protégée par <code>permissionGuard</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/settings/routes.ts (lignes 11 à 22)</span>
+<span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">'rooms'</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">loadComponent</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">import</span><span class="p">(</span><span class="s1">'./pages/rooms/rooms'</span><span class="p">).</span><span class="nx">then</span><span class="p">((</span><span class="nx">m</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">m</span><span class="p">.</span><span class="nx">RoomsPage</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">canActivate</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">permissionGuard</span><span class="p">],</span>
+<span class="w">        </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">permissions</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">SchedulingPermission</span><span class="p">.</span><span class="nx">RoomUpdateAll</span><span class="p">],</span>
+<span class="w">            </span><span class="nx">mode</span><span class="o">:</span><span class="w"> </span><span class="s1">'any'</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">''</span><span class="p">,</span><span class="w"> </span><span class="nx">redirectTo</span><span class="o">:</span><span class="w"> </span><span class="s1">'rooms'</span><span class="p">,</span><span class="w"> </span><span class="nx">pathMatch</span><span class="o">:</span><span class="w"> </span><span class="s1">'full'</span><span class="w"> </span><span class="p">}</span>
+<span class="p">]</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">Routes</span><span class="p">;</span>
+</code></pre></div>
+<p><strong>À adapter.</strong> Remplacez le chemin, le composant et les autorités. Le montage de ces routes dans l'application est décrit dans <a href="../brancher-un-module/#declarer-les-routes">Brancher un module</a>.</p>
+<h2 id="etape-7-ecrire-les-tests">Étape 7 : écrire les tests<a class="headerlink" href="#etape-7-ecrire-les-tests" title="Permanent link">&para;</a></h2>
+<h3 id="tester-le-service">Tester le service<a class="headerlink" href="#tester-le-service" title="Permanent link">&para;</a></h3>
+<p>Le test du service vérifie la méthode HTTP, l'URL et les paramètres, avec <code>HttpTestingController</code>. Aucune requête réelle n'est envoyée.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/services/room.service.spec.ts (lignes 32 à 50)</span>
+<span class="nx">beforeEach</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">TestBed</span><span class="p">.</span><span class="nx">configureTestingModule</span><span class="p">({</span>
+<span class="w">        </span><span class="nx">providers</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">provideHttpClient</span><span class="p">(),</span><span class="w"> </span><span class="nx">provideHttpClientTesting</span><span class="p">()]</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="w">    </span><span class="nx">service</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">TestBed</span><span class="p">.</span><span class="nx">inject</span><span class="p">(</span><span class="nx">RoomService</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">httpTesting</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">TestBed</span><span class="p">.</span><span class="nx">inject</span><span class="p">(</span><span class="nx">HttpTestingController</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="nx">afterEach</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">httpTesting</span><span class="p">.</span><span class="nx">verify</span><span class="p">();</span>
+<span class="p">});</span>
+
+<span class="nx">it</span><span class="p">(</span><span class="s1">'should list all rooms from a plain array payload (no pagination on this endpoint)'</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="nx">result</span><span class="o">:</span><span class="w"> </span><span class="kt">Room</span><span class="p">[]</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">undefined</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">service</span><span class="p">.</span><span class="nx">getAll</span><span class="p">().</span><span class="nx">subscribe</span><span class="p">((</span><span class="nx">rooms</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">(</span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">rooms</span><span class="p">));</span>
+
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">request</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">httpTesting</span><span class="p">.</span><span class="nx">expectOne</span><span class="p">(</span><span class="nx">baseUrl</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">expect</span><span class="p">(</span><span class="nx">request</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">method</span><span class="p">).</span><span class="nx">toBe</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">expect</span><span class="p">(</span><span class="nx">request</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">params</span><span class="p">.</span><span class="nx">keys</span><span class="p">().</span><span class="nx">length</span><span class="p">).</span><span class="nx">toBe</span><span class="p">(</span><span class="mf">0</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="tester-la-page">Tester la page<a class="headerlink" href="#tester-la-page" title="Permanent link">&para;</a></h3>
+<p>Le test de la page remplace le service par un espion et fournit un faux <code>AuthService</code> qui porte les autorités voulues. Vous testez ainsi l'affichage selon les droits.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/settings/pages/rooms/rooms.spec.ts (lignes 59 à 92)</span>
+<span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">createComponent</span><span class="p">(</span><span class="nx">authorities</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">[],</span><span class="w"> </span><span class="nx">getAll?</span><span class="o">:</span><span class="w"> </span><span class="kt">Observable</span><span class="o">&lt;</span><span class="nx">Room</span><span class="p">[]</span><span class="o">&gt;</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="ow">void</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">roomService</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">jasmine</span><span class="p">.</span><span class="nx">createSpyObj</span><span class="o">&lt;</span><span class="nx">RoomService</span><span class="o">&gt;</span><span class="p">(</span><span class="s1">'RoomService'</span><span class="p">,</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="s1">'getAll'</span><span class="p">,</span>
+<span class="w">        </span><span class="s1">'create'</span><span class="p">,</span>
+<span class="w">        </span><span class="s1">'update'</span><span class="p">,</span>
+<span class="w">        </span><span class="s1">'delete'</span>
+<span class="w">    </span><span class="p">]);</span>
+<span class="w">    </span><span class="nx">roomService</span><span class="p">.</span><span class="nx">getAll</span><span class="p">.</span><span class="nx">and</span><span class="p">.</span><span class="nx">returnValue</span><span class="p">(</span><span class="nx">getAll</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="k">of</span><span class="p">(</span><span class="nx">rooms</span><span class="p">));</span>
+
+<span class="w">    </span><span class="k">await</span><span class="w"> </span><span class="nx">TestBed</span><span class="p">.</span><span class="nx">configureTestingModule</span><span class="p">({</span>
+<span class="w">        </span><span class="nx">imports</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">RoomsPage</span><span class="p">],</span>
+<span class="w">        </span><span class="nx">providers</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="nx">provideRouter</span><span class="p">([]),</span>
+<span class="w">            </span><span class="p">{</span><span class="w"> </span><span class="nx">provide</span><span class="o">:</span><span class="w"> </span><span class="kt">RoomService</span><span class="p">,</span><span class="w"> </span><span class="nx">useValue</span><span class="o">:</span><span class="w"> </span><span class="kt">roomService</span><span class="w"> </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="nx">provide</span><span class="o">:</span><span class="w"> </span><span class="kt">AuthService</span><span class="p">,</span>
+<span class="w">                </span><span class="nx">useValue</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="nx">getCurrentUser</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">({</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="s1">'admin'</span><span class="p">,</span><span class="w"> </span><span class="nx">email</span><span class="o">:</span><span class="w"> </span><span class="s1">'admin@unh.edu'</span><span class="p">,</span><span class="w"> </span><span class="nx">authorities</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}).</span><span class="nx">compileComponents</span><span class="p">();</span>
+
+<span class="w">    </span><span class="nx">fixture</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">TestBed</span><span class="p">.</span><span class="nx">createComponent</span><span class="p">(</span><span class="nx">RoomsPage</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">component</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">fixture</span><span class="p">.</span><span class="nx">componentInstance</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// RoomsPage déclare ses propres `providers: [ConfirmationService, MessageService]` : ces</span>
+<span class="w">    </span><span class="c1">// jetons se résolvent via l'injecteur du composant, pas via TestBed.inject().</span>
+<span class="w">    </span><span class="nx">confirmationService</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">fixture</span><span class="p">.</span><span class="nx">debugElement</span><span class="p">.</span><span class="nx">injector</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">ConfirmationService</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">messageService</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">fixture</span><span class="p">.</span><span class="nx">debugElement</span><span class="p">.</span><span class="nx">injector</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">MessageService</span><span class="p">);</span>
+
+<span class="w">    </span><span class="nx">fixture</span><span class="p">.</span><span class="nx">detectChanges</span><span class="p">();</span>
+<span class="w">    </span><span class="k">await</span><span class="w"> </span><span class="nx">fixture</span><span class="p">.</span><span class="nx">whenStable</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Vérifiez au minimum : le chargement de la liste, l'affichage des actions selon les autorités, la création, la modification, la suppression et le message affiché en cas d'erreur.</p>
+<p>Lancez les tests d'un seul fichier pendant le développement :</p>
+<div class="highlight"><pre><span></span><code>npx<span class="w"> </span>ng<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--include<span class="o">=</span>src/app/features/scheduling/services/room.service.spec.ts
+</code></pre></div>
+<p><strong>À adapter.</strong> Placez chaque fichier <code>.spec.ts</code> à côté du fichier testé. Remplacez les données de test par des valeurs représentatives de votre ressource.</p>
+<h2 id="etape-suivante">Étape suivante<a class="headerlink" href="#etape-suivante" title="Permanent link">&para;</a></h2>
+<p>Votre page existe, mais elle n'est encore accessible depuis aucun menu. Suivez <a href="../brancher-un-module/">Brancher un module</a> pour déclarer le module, l'ajouter au registre, au menu et aux Paramètres, puis contrôler l'ensemble avec la checklist finale.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Retour en haut de la page
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

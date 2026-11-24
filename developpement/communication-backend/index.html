@@ -1,0 +1,1425 @@
+
+<!doctype html>
+<html lang="fr" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation technique du front-end Angular de Smart Campus (Université Nouveaux Horizons)">
+      
+      
+      
+      
+        <link rel="prev" href="../brancher-un-module/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Communication avec le backend - Smart Campus — Documentation front-end</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#communication-avec-le-backend" class="md-skip">
+          Aller au contenu
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="En-tête">
+    <a href="../.." title="Smart Campus — Documentation front-end" class="md-header__button md-logo" aria-label="Smart Campus — Documentation front-end" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Smart Campus — Documentation front-end
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Communication avec le backend
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Recherche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initialisation de la recherche
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Smart Campus — Documentation front-end" class="md-nav__button md-logo" aria-label="Smart Campus — Documentation front-end" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Smart Campus — Documentation front-end
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accueil
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technologies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technologies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Développement
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Développement
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../creer-un-module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Créer un module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../brancher-un-module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Brancher un module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Communication avec le backend
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Communication avec le backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#url-de-base-et-proxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        URL de base et proxy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentification
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Authentification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ouvrir-une-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ouvrir une session
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#envoyer-le-jeton" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Envoyer le jeton
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expiration-et-rafraichissement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expiration et rafraîchissement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fermer-une-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fermer une session
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#guards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Guards
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ecrire-un-service-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Écrire un service API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typer-les-requetes-et-les-reponses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typer les requêtes et les réponses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gerer-les-erreurs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gérer les erreurs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Gérer les erreurs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#message-dune-erreur-de-lapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Message d'une erreur de l'API
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#erreurs-de-validation-renvoyees-par-lapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Erreurs de validation renvoyées par l'API
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etats-de-chargement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        États de chargement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pagination-filtres-et-recherche" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pagination, filtres et recherche
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pagination, filtres et recherche">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parametres-de-requete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paramètres de requête
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trois-cas-de-pagination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trois cas de pagination
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fichiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fichiers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fichiers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#envoyer-un-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Envoyer un document
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telecharger-un-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Télécharger un document
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exporter-en-pdf-et-en-excel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exporter en PDF et en Excel
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#developper-sans-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Développer sans backend
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#url-de-base-et-proxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        URL de base et proxy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentification
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Authentification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ouvrir-une-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ouvrir une session
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#envoyer-le-jeton" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Envoyer le jeton
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expiration-et-rafraichissement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expiration et rafraîchissement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fermer-une-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fermer une session
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#guards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Guards
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ecrire-un-service-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Écrire un service API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typer-les-requetes-et-les-reponses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typer les requêtes et les réponses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gerer-les-erreurs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gérer les erreurs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Gérer les erreurs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#message-dune-erreur-de-lapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Message d'une erreur de l'API
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#erreurs-de-validation-renvoyees-par-lapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Erreurs de validation renvoyées par l'API
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etats-de-chargement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        États de chargement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pagination-filtres-et-recherche" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pagination, filtres et recherche
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pagination, filtres et recherche">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parametres-de-requete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paramètres de requête
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trois-cas-de-pagination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trois cas de pagination
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fichiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fichiers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fichiers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#envoyer-un-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Envoyer un document
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telecharger-un-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Télécharger un document
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exporter-en-pdf-et-en-excel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exporter en PDF et en Excel
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#developper-sans-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Développer sans backend
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="communication-avec-le-backend">Communication avec le backend<a class="headerlink" href="#communication-avec-le-backend" title="Permanent link">&para;</a></h1>
+<p>Ce guide explique comment le front-end appelle l'API : construction des URL, authentification, écriture d'un service, gestion des erreurs, pagination et fichiers. Il s'adresse aux développeurs qui ajoutent ou modifient un appel à l'API. Le fonctionnement interne du backend n'est pas décrit ici.</p>
+<h2 id="url-de-base-et-proxy">URL de base et proxy<a class="headerlink" href="#url-de-base-et-proxy" title="Permanent link">&para;</a></h2>
+<p>Toutes les URL de l'API suivent le même modèle :</p>
+<div class="highlight"><pre><span></span><code><span class="sb">`</span><span class="si">${</span><span class="nx">environment</span><span class="p">.</span><span class="nx">apiBaseUrl</span><span class="si">}</span><span class="sb">/api/v1/&lt;ressource&gt;`</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Contexte</th>
+<th><code>apiBaseUrl</code></th>
+<th>Résultat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Développement (<code>npm start</code>)</td>
+<td><code>''</code></td>
+<td>URL relative <code>/api/v1/...</code>, relayée par <code>proxy.conf.json</code> vers <code>http://localhost:8085</code></td>
+</tr>
+<tr>
+<td>Production (<code>npm run build:prod</code>)</td>
+<td><code>'http://localhost:8085'</code></td>
+<td>URL absolue, appelée directement par le navigateur</td>
+</tr>
+</tbody>
+</table>
+<p>La configuration détaillée est dans <a href="../../installation/#configuration">Installation</a>.</p>
+<p>Le client HTTP est configuré une seule fois, dans <code>src/app.config.ts</code> :</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app.config.ts (ligne 51)</span>
+<span class="nx">provideHttpClient</span><span class="p">(</span><span class="nx">withFetch</span><span class="p">(),</span><span class="w"> </span><span class="nx">withInterceptors</span><span class="p">([</span><span class="nx">authInterceptor</span><span class="p">])),</span>
+</code></pre></div>
+<p>Le seul intercepteur est <code>authInterceptor</code>.</p>
+<h2 id="authentification">Authentification<a class="headerlink" href="#authentification" title="Permanent link">&para;</a></h2>
+<h3 id="ouvrir-une-session">Ouvrir une session<a class="headerlink" href="#ouvrir-une-session" title="Permanent link">&para;</a></h3>
+<ol>
+<li>La page de connexion appelle <code>AuthService.login()</code>, qui envoie <code>POST /api/v1/auth/login</code>.</li>
+<li>L'API renvoie un <code>AuthResponse</code> : jeton d'accès, jeton de rafraîchissement, durée de validité et utilisateur, avec ses <code>authorities</code>.</li>
+<li><code>AuthService.storeSession()</code> enregistre la session dans <code>localStorage</code>.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Clé <code>localStorage</code></th>
+<th>Contenu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>access_token</code></td>
+<td>Jeton d'accès</td>
+</tr>
+<tr>
+<td><code>refresh_token</code></td>
+<td>Jeton de rafraîchissement</td>
+</tr>
+<tr>
+<td><code>current_user</code></td>
+<td>Utilisateur connecté, en JSON</td>
+</tr>
+<tr>
+<td><code>expires_at</code></td>
+<td>Date d'expiration du jeton d'accès, en millisecondes</td>
+</tr>
+</tbody>
+</table>
+<p>L'utilisateur connecté est aussi exposé par le signal <code>AuthService.currentUser</code>.</p>
+<h3 id="envoyer-le-jeton">Envoyer le jeton<a class="headerlink" href="#envoyer-le-jeton" title="Permanent link">&para;</a></h3>
+<p><code>authInterceptor</code> (<code>core/auth/interceptors/auth.interceptor.ts</code>) ajoute l'en-tête <code>Authorization: Bearer &lt;jeton&gt;</code> à toute requête vers <code>/api/</code>, sauf dans deux cas :</p>
+<ul>
+<li>les routes d'authentification publiques : connexion, déconnexion, rafraîchissement, mot de passe oublié et réinitialisation ;</li>
+<li>les requêtes marquées comme publiques avec le jeton de contexte <code>PUBLIC_API_REQUEST</code>.</li>
+</ul>
+<p>Le formulaire public de candidature (<code>/apply</code>) utilise ce marquage :</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/admission/services/candidate.service.ts (lignes 276 à 280)</span>
+<span class="k">private</span><span class="w"> </span><span class="nx">httpContext</span><span class="p">(</span><span class="nx">publicRequest?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">HttpContext</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">publicRequest</span>
+<span class="w">        </span><span class="o">?</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">HttpContext</span><span class="p">().</span><span class="nx">set</span><span class="p">(</span><span class="nx">PUBLIC_API_REQUEST</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">)</span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">HttpContext</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="expiration-et-rafraichissement">Expiration et rafraîchissement<a class="headerlink" href="#expiration-et-rafraichissement" title="Permanent link">&para;</a></h3>
+<p>Quand l'API répond 401 à une requête authentifiée, l'intercepteur :</p>
+<ol>
+<li>rafraîchit la session avec <code>POST /api/v1/auth/refresh-token</code> ;</li>
+<li>rejoue la requête avec le nouveau jeton.</li>
+</ol>
+<p>Si plusieurs requêtes reçoivent un 401 en même temps, un seul rafraîchissement est envoyé et toutes l'attendent. Si le rafraîchissement échoue, ou si aucun jeton de rafraîchissement n'existe, la session est effacée et l'utilisateur est renvoyé vers <code>/auth/login</code>.</p>
+<p>Au démarrage de l'application, <code>AuthService.restoreSession()</code> est exécuté (<code>provideAppInitializer</code> dans <code>src/app.config.ts</code>). Si le jeton d'accès a expiré, ou expire dans les 30 secondes, la session est rafraîchie avant le premier affichage. Si l'API refuse le rafraîchissement (401 ou 403), la session est effacée.</p>
+<h3 id="fermer-une-session">Fermer une session<a class="headerlink" href="#fermer-une-session" title="Permanent link">&para;</a></h3>
+<p>La déconnexion, déclenchée depuis la barre supérieure (<code>layout/component/app.topbar.ts</code>), envoie <code>POST /api/v1/auth/logout</code> avec les deux jetons. La session locale est effacée ensuite, que l'appel réussisse ou non.</p>
+<p>La session est partagée entre les onglets du navigateur : une connexion ou une déconnexion dans un onglet s'applique aux autres, grâce à l'événement <code>storage</code>.</p>
+<h3 id="guards">Guards<a class="headerlink" href="#guards" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Guard</th>
+<th>Fichier</th>
+<th>Effet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>authGuard</code></td>
+<td><code>core/auth/guards/auth.guard.ts</code></td>
+<td>Sans session, redirige vers <code>/auth/login</code>. Protège tout le shell applicatif.</td>
+</tr>
+<tr>
+<td><code>guestGuard</code></td>
+<td><code>core/auth/guards/guest.guard.ts</code></td>
+<td>Avec une session, redirige vers <code>/</code>. Protège la connexion et la réinitialisation du mot de passe.</td>
+</tr>
+<tr>
+<td><code>permissionGuard</code></td>
+<td><code>core/permissions/permission.guard.ts</code></td>
+<td>Sans les autorités requises, redirige vers <code>/access-denied</code>. Voir <a href="../brancher-un-module/#gerer-les-droits">Brancher un module</a>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ecrire-un-service-api">Écrire un service API<a class="headerlink" href="#ecrire-un-service-api" title="Permanent link">&para;</a></h2>
+<p>Le tutoriel <a href="../creer-un-module/#etape-3-ecrire-le-service-api">Créer un module</a> détaille un service complet, <code>RoomService</code>. Les services existants appliquent les règles suivantes :</p>
+<ul>
+<li>Déclarez le service avec <code>@Injectable({ providedIn: 'root' })</code>.</li>
+<li>Injectez <code>HttpClient</code> avec <code>inject()</code>.</li>
+<li>Construisez l'URL à partir de <code>environment.apiBaseUrl</code>.</li>
+<li>Renvoyez des <code>Observable</code> typés ; le composant s'abonne.</li>
+<li>Ne gérez pas le jeton : l'intercepteur s'en charge.</li>
+</ul>
+<h2 id="typer-les-requetes-et-les-reponses">Typer les requêtes et les réponses<a class="headerlink" href="#typer-les-requetes-et-les-reponses" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Reprenez exactement les noms de champs de l'API, en snake_case : <code>created_at</code>, <code>program_level_id</code>.</li>
+<li>Séparez le type reçu du type envoyé, par exemple <code>Room</code> et <code>RoomRequest</code> dans <code>features/scheduling/models/room.model.ts</code>.</li>
+<li>
+<p>Pour une réponse paginée, utilisez <code>PagedResponse&lt;T&gt;</code> de <code>shared/models/paged-response.model.ts</code> :</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/shared/models/paged-response.model.ts (lignes 8 à 14)</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="nx">PagedResponse</span><span class="o">&lt;</span><span class="nx">T</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="kt">T</span><span class="p">[];</span>
+<span class="w">    </span><span class="nx">page</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">size</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">total_elements</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">total_pages</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+</li>
+<li>
+<p>Si l'API renvoie une forme difficile à afficher, convertissez-la dans le service. <code>CandidateService</code> le fait avec ses méthodes <code>normalizeCandidate</code> et <code>normalizeListItem</code>.</p>
+</li>
+</ul>
+<h2 id="gerer-les-erreurs">Gérer les erreurs<a class="headerlink" href="#gerer-les-erreurs" title="Permanent link">&para;</a></h2>
+<p>L'application applique quatre règles d'affichage.</p>
+<table>
+<thead>
+<tr>
+<th>Règle</th>
+<th>Mise en œuvre</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Une erreur de saisie s'affiche sous le champ concerné.</td>
+<td>Validators Angular et message conditionnel sous le champ (voir <code>rooms.html</code>, lignes 117 à 123).</td>
+</tr>
+<tr>
+<td>Une erreur de l'API s'affiche dans un toast.</td>
+<td><code>MessageService</code> de PrimeNG, avec un message lisible.</td>
+</tr>
+<tr>
+<td>Aucun identifiant technique n'est affiché.</td>
+<td><code>readableApiText</code> retire les UUID d'un message.</td>
+</tr>
+<tr>
+<td>Les dates sont en français.</td>
+<td><code>readableApiText</code> convertit les dates ISO, par exemple en « 23 novembre 2026 ».</td>
+</tr>
+</tbody>
+</table>
+<h3 id="message-dune-erreur-de-lapi">Message d'une erreur de l'API<a class="headerlink" href="#message-dune-erreur-de-lapi" title="Permanent link">&para;</a></h3>
+<p>L'API renvoie ses erreurs au format ProblemDetail, avec un champ <code>detail</code> déjà en français. <code>apiErrorMessage</code> choisit le message à afficher :</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/shared/http/api-error.ts (lignes 21 à 31)</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">apiErrorMessage</span><span class="p">(</span><span class="nx">error</span><span class="o">:</span><span class="w"> </span><span class="kt">unknown</span><span class="p">,</span><span class="w"> </span><span class="nx">fallback</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">detail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">problem</span><span class="p">(</span><span class="nx">error</span><span class="p">)</span><span class="o">?</span><span class="p">.[</span><span class="s1">'detail'</span><span class="p">];</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="ow">typeof</span><span class="w"> </span><span class="nx">detail</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'string'</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">detail</span><span class="p">.</span><span class="nx">trim</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Jamais d'identifiant technique ni de date ISO à l'écran.</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">readableApiText</span><span class="p">(</span><span class="nx">detail</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">fallback</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="w"> </span><span class="ow">instanceof</span><span class="w"> </span><span class="nx">HttpErrorResponse</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">error</span><span class="p">.</span><span class="nx">status</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">UNREACHABLE_MESSAGE</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">fallback</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Message affiché</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L'API renvoie un <code>detail</code></td>
+<td>Le <code>detail</code>, rendu lisible</td>
+</tr>
+<tr>
+<td>L'API n'a pas répondu (statut 0)</td>
+<td>« Le serveur est injoignable. Vérifiez votre connexion puis réessayez. »</td>
+</tr>
+<tr>
+<td>Autre cas</td>
+<td>Le message de repli passé par l'écran</td>
+</tr>
+</tbody>
+</table>
+<p>Utilisation dans une page :</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/settings/pages/rooms/rooms.ts (ligne 240)</span>
+<span class="k">this</span><span class="p">.</span><span class="nx">showError</span><span class="p">(</span><span class="nx">apiErrorMessage</span><span class="p">(</span><span class="nx">error</span><span class="p">,</span><span class="w"> </span><span class="s1">'Impossible de charger les salles.'</span><span class="p">));</span>
+</code></pre></div>
+<p>Quand un écran connaît le nom correspondant à un identifiant, passez une table de libellés à <code>readableApiText(texte, libellés)</code> : l'identifiant est alors remplacé par ce nom au lieu d'être retiré.</p>
+<h3 id="erreurs-de-validation-renvoyees-par-lapi">Erreurs de validation renvoyées par l'API<a class="headerlink" href="#erreurs-de-validation-renvoyees-par-lapi" title="Permanent link">&para;</a></h3>
+<p>Une erreur 400 peut contenir un champ <code>invalid_fields</code>, qui associe chaque champ à son message. <code>apiInvalidFields</code> (<code>shared/http/api-error.ts</code>) extrait cet objet, pour afficher chaque message sous le champ concerné.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>apiInvalidFields</code> n'est encore utilisé par aucun écran.</p>
+</div>
+<h2 id="etats-de-chargement">États de chargement<a class="headerlink" href="#etats-de-chargement" title="Permanent link">&para;</a></h2>
+<p>Chaque page déclare des signals d'état, lus par le template :</p>
+<ul>
+<li><code>loading</code> pendant le chargement d'une liste, passé à <code>[loading]</code> de <code>p-table</code> ;</li>
+<li><code>saving</code> pendant un enregistrement, pour désactiver le bouton et afficher son indicateur.</li>
+</ul>
+<p>Remettez toujours ces signals à <code>false</code>, aussi dans la branche <code>error</code> de l'abonnement (voir <code>rooms.ts</code>, lignes 229 à 243).</p>
+<h2 id="pagination-filtres-et-recherche">Pagination, filtres et recherche<a class="headerlink" href="#pagination-filtres-et-recherche" title="Permanent link">&para;</a></h2>
+<h3 id="parametres-de-requete">Paramètres de requête<a class="headerlink" href="#parametres-de-requete" title="Permanent link">&para;</a></h3>
+<p>Construisez les paramètres avec <code>toApiParams</code> (<code>shared/http/api-params.ts</code>). La fonction :</p>
+<ul>
+<li>refuse une clé qui n'est pas en snake_case, car l'API ignorerait ce paramètre sans erreur ;</li>
+<li>omet les valeurs vides, <code>null</code> et <code>undefined</code> ;</li>
+<li>répète la clé pour un tableau : <code>sort=a&amp;sort=b</code>.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/academic/services/course.service.ts (lignes 18 à 28)</span>
+<span class="nx">list</span><span class="p">(</span><span class="nx">query</span><span class="o">:</span><span class="w"> </span><span class="kt">CourseQuery</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{})</span><span class="o">:</span><span class="w"> </span><span class="nx">Observable</span><span class="o">&lt;</span><span class="nx">PagedResponse</span><span class="o">&lt;</span><span class="nx">Course</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">http</span><span class="p">.</span><span class="nx">get</span><span class="o">&lt;</span><span class="nx">PagedResponse</span><span class="o">&lt;</span><span class="nx">Course</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">baseUrl</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">params</span><span class="o">:</span><span class="w"> </span><span class="kt">toApiParams</span><span class="p">({</span>
+<span class="w">            </span><span class="nx">faculty_id</span><span class="o">:</span><span class="w"> </span><span class="kt">query.facultyId</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">search</span><span class="o">:</span><span class="w"> </span><span class="kt">query.search</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">page</span><span class="o">:</span><span class="w"> </span><span class="kt">query.page</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">size</span><span class="o">:</span><span class="w"> </span><span class="kt">query.size</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="mf">20</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">sort</span><span class="o">:</span><span class="w"> </span><span class="kt">query.sort</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">        </span><span class="p">})</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="trois-cas-de-pagination">Trois cas de pagination<a class="headerlink" href="#trois-cas-de-pagination" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Cas</th>
+<th>Exemple</th>
+<th>Méthode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L'API renvoie un tableau simple</td>
+<td><code>GET /api/v1/rooms</code></td>
+<td>Filtrage et pagination dans le navigateur. Voir <code>filteredRooms</code> dans <code>rooms.ts</code>.</td>
+</tr>
+<tr>
+<td>La liste est longue et l'API est paginée</td>
+<td>Horaires en attente</td>
+<td>Tableau <code>p-table</code> en mode <code>[lazy]="true"</code> : chaque changement de page appelle l'API (<code>onLazyLoad</code>) et <code>totalRecords</code> vient de <code>total_elements</code>. Voir <code>features/scheduling/timetable/pages/timetable-pending/</code>.</td>
+</tr>
+<tr>
+<td>Il faut toute la liste, par exemple pour une liste de choix</td>
+<td>Tous les cours</td>
+<td>Parcours des pages successives avec l'opérateur <code>expand</code>. Voir la méthode privée <code>pages</code> de <code>features/academic/services/course.service.ts</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Le commentaire de <code>course.service.ts</code> indique que l'API renvoie au plus 100 cours par page.</p>
+<h2 id="fichiers">Fichiers<a class="headerlink" href="#fichiers" title="Permanent link">&para;</a></h2>
+<h3 id="envoyer-un-document">Envoyer un document<a class="headerlink" href="#envoyer-un-document" title="Permanent link">&para;</a></h3>
+<p>Les documents des candidats sont envoyés en trois étapes (<code>features/admission/services/candidate.service.ts</code>) :</p>
+<ol>
+<li><code>requestDocumentUploadUrl()</code> demande à l'API une URL d'envoi : <code>POST /api/v1/candidates/{id}/documents/upload-url</code>, avec le type de document et l'extension en paramètres.</li>
+<li><code>uploadDocument()</code> envoie le fichier directement à cette URL, par une requête <code>PUT</code>. Cette URL ne commence pas par <code>/api/</code> : l'intercepteur n'y ajoute pas de jeton.</li>
+<li><code>confirmDocumentUpload()</code> confirme l'envoi : <code>POST /api/v1/candidates/{id}/documents/confirm</code>.</li>
+</ol>
+<h3 id="telecharger-un-document">Télécharger un document<a class="headerlink" href="#telecharger-un-document" title="Permanent link">&para;</a></h3>
+<p><code>getDocumentDownloadUrl()</code> demande une URL de téléchargement signée et temporaire : <code>GET /api/v1/candidates/{id}/documents/{documentId}/download-url</code>. <code>isSignedUrlExpiredOrExpiring</code> (<code>shared/utils/signed-url.ts</code>) indique si une URL signée a expiré ou expire dans la minute.</p>
+<h3 id="exporter-en-pdf-et-en-excel">Exporter en PDF et en Excel<a class="headerlink" href="#exporter-en-pdf-et-en-excel" title="Permanent link">&para;</a></h3>
+<p>Les exports des horaires sont produits dans le navigateur, sans appel à l'API (<code>features/scheduling/timetable/services/timetable-export.service.ts</code>) :</p>
+<table>
+<thead>
+<tr>
+<th>Méthode</th>
+<th>Effet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>print()</code></td>
+<td>Ouvre le PDF dans un nouvel onglet, avec la boîte d'impression</td>
+</tr>
+<tr>
+<td><code>downloadPdf()</code></td>
+<td>Télécharge le PDF</td>
+</tr>
+<tr>
+<td><code>downloadExcel()</code></td>
+<td>Télécharge le classeur Excel</td>
+</tr>
+</tbody>
+</table>
+<p>pdfmake et ExcelJS ne sont chargés qu'au premier export.</p>
+<h2 id="developper-sans-backend">Développer sans backend<a class="headerlink" href="#developper-sans-backend" title="Permanent link">&para;</a></h2>
+<p>Le dépôt ne fournit ni serveur simulé, ni données locales de remplacement : l'application a besoin de l'API pour afficher des données. Seuls les tests unitaires fonctionnent sans backend. Ils remplacent les appels par <code>HttpTestingController</code> ou par des services espionnés (voir <a href="../creer-un-module/#etape-7-ecrire-les-tests">Créer un module</a>).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Retour en haut de la page
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

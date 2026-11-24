@@ -1,0 +1,1213 @@
+
+<!doctype html>
+<html lang="fr" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation technique du front-end Angular de Smart Campus (Université Nouveaux Horizons)">
+      
+      
+      
+      
+        <link rel="prev" href="../creer-un-module/">
+      
+      
+        <link rel="next" href="../communication-backend/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Brancher un module - Smart Campus — Documentation front-end</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#brancher-un-module" class="md-skip">
+          Aller au contenu
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="En-tête">
+    <a href="../.." title="Smart Campus — Documentation front-end" class="md-header__button md-logo" aria-label="Smart Campus — Documentation front-end" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Smart Campus — Documentation front-end
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Brancher un module
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Recherche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initialisation de la recherche
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Smart Campus — Documentation front-end" class="md-nav__button md-logo" aria-label="Smart Campus — Documentation front-end" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Smart Campus — Documentation front-end
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accueil
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technologies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technologies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Développement
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Développement
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../creer-un-module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Créer un module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Brancher un module
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Brancher un module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#declarer-le-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Déclarer le module
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#declarer-les-routes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Déclarer les routes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enregistrer-le-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enregistrer le module
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ajouter-des-entrees-au-menu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ajouter des entrées au menu
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ajouter-un-onglet-aux-parametres" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ajouter un onglet aux Paramètres
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ajouter-un-widget-au-tableau-de-bord" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ajouter un widget au tableau de bord
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gerer-les-droits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gérer les droits
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Gérer les droits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#autorites-et-portees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Autorités et portées
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#proteger-une-route" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protéger une route
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adapter-laffichage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adapter l'affichage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#libelles-et-traductions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Libellés et traductions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checklist-finale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checklist finale
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../communication-backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Communication avec le backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#declarer-le-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Déclarer le module
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#declarer-les-routes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Déclarer les routes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enregistrer-le-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enregistrer le module
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ajouter-des-entrees-au-menu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ajouter des entrées au menu
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ajouter-un-onglet-aux-parametres" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ajouter un onglet aux Paramètres
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ajouter-un-widget-au-tableau-de-bord" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ajouter un widget au tableau de bord
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gerer-les-droits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gérer les droits
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Gérer les droits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#autorites-et-portees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Autorités et portées
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#proteger-une-route" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protéger une route
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adapter-laffichage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adapter l'affichage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#libelles-et-traductions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Libellés et traductions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checklist-finale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checklist finale
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="brancher-un-module">Brancher un module<a class="headerlink" href="#brancher-un-module" title="Permanent link">&para;</a></h1>
+<p>Ce guide explique comment rendre un module accessible dans l'application : routes, registre, menu, Paramètres, tableau de bord et droits. Il suppose que les pages et les services du module existent déjà ; sinon, commencez par le tutoriel <a href="../creer-un-module/">Créer un module</a>.</p>
+<h2 id="declarer-le-module">Déclarer le module<a class="headerlink" href="#declarer-le-module" title="Permanent link">&para;</a></h2>
+<p>Chaque module exporte un objet <code>AppFeature</code> dans <code>features/&lt;module&gt;/&lt;module&gt;.feature.ts</code>. Cet objet décrit tout ce que le module apporte à l'application. Le reste du code lit cette déclaration : vous n'avez pas à modifier le menu, le shell des Paramètres ni le tableau de bord.</p>
+<p>Exemple réel, le module Planification :</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/scheduling.feature.ts (lignes 14 à 72, commentaires retirés)</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">schedulingFeature</span><span class="o">:</span><span class="w"> </span><span class="kt">AppFeature</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">key</span><span class="o">:</span><span class="w"> </span><span class="s1">'scheduling'</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Planification'</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">order</span><span class="o">:</span><span class="w"> </span><span class="kt">18</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">route</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">'scheduling'</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">loadChildren</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">import</span><span class="p">(</span><span class="s1">'./timetable/routes'</span><span class="p">)</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nx">menu</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Planification'</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">order</span><span class="o">:</span><span class="w"> </span><span class="kt">18</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Horaires'</span><span class="p">,</span>
+<span class="w">                    </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="s1">'pi pi-fw pi-calendar'</span><span class="p">,</span>
+<span class="w">                    </span><span class="nx">routerLink</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">'/scheduling/timetable'</span><span class="p">],</span>
+<span class="w">                    </span><span class="nx">permissions</span><span class="o">:</span><span class="w"> </span><span class="kt">MANAGE_TIMETABLES</span><span class="p">,</span>
+<span class="w">                    </span><span class="nx">mode</span><span class="o">:</span><span class="w"> </span><span class="s1">'any'</span><span class="p">,</span>
+<span class="w">                    </span><span class="nx">order</span><span class="o">:</span><span class="w"> </span><span class="kt">10</span>
+<span class="w">                </span><span class="p">},</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Mon horaire'</span><span class="p">,</span>
+<span class="w">                    </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="s1">'pi pi-fw pi-calendar-clock'</span><span class="p">,</span>
+<span class="w">                    </span><span class="nx">routerLink</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">'/scheduling/my-timetable'</span><span class="p">],</span>
+<span class="w">                    </span><span class="nx">permissions</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">SchedulingPermission</span><span class="p">.</span><span class="nx">TimetableEntryReadOwn</span><span class="p">],</span>
+<span class="w">                    </span><span class="nx">hiddenWhenPermissions</span><span class="o">:</span><span class="w"> </span><span class="kt">MANAGE_TIMETABLES</span><span class="p">,</span>
+<span class="w">                    </span><span class="nx">hiddenWhenMode</span><span class="o">:</span><span class="w"> </span><span class="s1">'any'</span><span class="p">,</span>
+<span class="w">                    </span><span class="nx">order</span><span class="o">:</span><span class="w"> </span><span class="kt">20</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">]</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="nx">settingsTab</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">key</span><span class="o">:</span><span class="w"> </span><span class="s1">'scheduling'</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Planification'</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">order</span><span class="o">:</span><span class="w"> </span><span class="kt">28</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">routerLink</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">'/settings/scheduling/rooms'</span><span class="p">],</span>
+<span class="w">        </span><span class="nx">permissions</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">SchedulingPermission</span><span class="p">.</span><span class="nx">RoomUpdateAll</span><span class="p">],</span>
+<span class="w">        </span><span class="nx">mode</span><span class="o">:</span><span class="w"> </span><span class="s1">'any'</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Salles'</span><span class="p">,</span>
+<span class="w">                </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="s1">'pi pi-map-marker'</span><span class="p">,</span>
+<span class="w">                </span><span class="nx">routerLink</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">'/settings/scheduling/rooms'</span><span class="p">],</span>
+<span class="w">                </span><span class="nx">permissions</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">SchedulingPermission</span><span class="p">.</span><span class="nx">RoomUpdateAll</span><span class="p">],</span>
+<span class="w">                </span><span class="nx">order</span><span class="o">:</span><span class="w"> </span><span class="kt">10</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nx">settingsRoute</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">'scheduling'</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">loadChildren</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">import</span><span class="p">(</span><span class="s1">'./settings/routes'</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">};</span>
+</code></pre></div>
+<p>Toutes les propriétés sont facultatives, sauf <code>key</code> et <code>label</code>. Un module sans entrée de menu déclare <code>menu: []</code>, comme le module Identité, dont l'administration vit uniquement dans les Paramètres.</p>
+<h2 id="declarer-les-routes">Déclarer les routes<a class="headerlink" href="#declarer-les-routes" title="Permanent link">&para;</a></h2>
+<p>Un module peut avoir deux familles de routes.</p>
+<table>
+<thead>
+<tr>
+<th>Propriété</th>
+<th>Montage</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>route</code></td>
+<td>À la racine du shell : <code>/&lt;path&gt;</code></td>
+<td>Données d'exploitation, accessibles par le menu latéral</td>
+</tr>
+<tr>
+<td><code>settingsRoute</code></td>
+<td>Sous les Paramètres : <code>/settings/&lt;path&gt;</code></td>
+<td>Données de référence et configuration, réservées aux administrateurs</td>
+</tr>
+</tbody>
+</table>
+<p>Pour déclarer les routes d'un module :</p>
+<ol>
+<li>Créez un fichier de routes qui exporte un tableau par défaut, par exemple <code>features/&lt;module&gt;/routes.ts</code>.</li>
+<li>Chargez chaque page à la demande, avec <code>loadComponent</code> ou <code>loadChildren</code>.</li>
+<li>
+<p>Protégez chaque page avec <code>permissionGuard</code> et ses autorités dans <code>data</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/settings/routes.ts (lignes 12 à 20)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">'rooms'</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">loadComponent</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">import</span><span class="p">(</span><span class="s1">'./pages/rooms/rooms'</span><span class="p">).</span><span class="nx">then</span><span class="p">((</span><span class="nx">m</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">m</span><span class="p">.</span><span class="nx">RoomsPage</span><span class="p">),</span>
+<span class="w">    </span><span class="nx">canActivate</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">permissionGuard</span><span class="p">],</span>
+<span class="w">    </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">permissions</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">SchedulingPermission</span><span class="p">.</span><span class="nx">RoomUpdateAll</span><span class="p">],</span>
+<span class="w">        </span><span class="nx">mode</span><span class="o">:</span><span class="w"> </span><span class="s1">'any'</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">},</span>
+</code></pre></div>
+</li>
+<li>
+<p>Ajoutez une route vide qui redirige vers la page par défaut.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">''</span><span class="p">,</span><span class="w"> </span><span class="nx">redirectTo</span><span class="o">:</span><span class="w"> </span><span class="s1">'rooms'</span><span class="p">,</span><span class="w"> </span><span class="nx">pathMatch</span><span class="o">:</span><span class="w"> </span><span class="s1">'full'</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+</li>
+<li>
+<p>Référencez le fichier dans <code>route</code> ou <code>settingsRoute</code> de la déclaration du module, avec <code>loadChildren</code>.</p>
+</li>
+</ol>
+<p>Toutes les routes des modules sont des enfants du shell applicatif, protégé par <code>authGuard</code> (<code>src/app.routes.ts</code>). Une page de module exige donc toujours une session ouverte. Une page publique, comme <code>/apply</code>, se déclare directement dans <code>src/app.routes.ts</code>, en dehors du shell.</p>
+<h2 id="enregistrer-le-module">Enregistrer le module<a class="headerlink" href="#enregistrer-le-module" title="Permanent link">&para;</a></h2>
+<p>Ajoutez la déclaration au tableau <code>appFeatures</code> :</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/core/modules/app-feature.registry.ts (lignes 11 à 17)</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">appFeatures</span><span class="o">:</span><span class="w"> </span><span class="kt">AppFeature</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="nx">coreSystemFeature</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">identityFeature</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">academicFeature</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">schedulingFeature</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">admissionFeature</span>
+<span class="p">].</span><span class="nx">sort</span><span class="p">(</span><span class="nx">byOrder</span><span class="p">);</span>
+</code></pre></div>
+<ol>
+<li>Importez l'objet <code>&lt;module&gt;Feature</code> en haut du fichier.</li>
+<li>Ajoutez-le au tableau.</li>
+</ol>
+<p>Résultat attendu : les routes, les entrées de menu, l'onglet des Paramètres et les widgets du module apparaissent, selon les droits de l'utilisateur connecté.</p>
+<p>Le tableau est trié par <code>order</code>. Choisissez une valeur qui place le module au bon endroit parmi les modules existants :</p>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th><code>order</code> du module</th>
+<th><code>order</code> du groupe de menu</th>
+<th><code>order</code> de l'onglet de Paramètres</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Système</td>
+<td>5</td>
+<td>—</td>
+<td>10</td>
+</tr>
+<tr>
+<td>Identité</td>
+<td>10</td>
+<td>—</td>
+<td>20</td>
+</tr>
+<tr>
+<td>Académique</td>
+<td>15</td>
+<td>15</td>
+<td>25</td>
+</tr>
+<tr>
+<td>Planification</td>
+<td>18</td>
+<td>18</td>
+<td>28</td>
+</tr>
+<tr>
+<td>Admission</td>
+<td>20</td>
+<td>20</td>
+<td>30</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ajouter-des-entrees-au-menu">Ajouter des entrées au menu<a class="headerlink" href="#ajouter-des-entrees-au-menu" title="Permanent link">&para;</a></h2>
+<p>La propriété <code>menu</code> contient un ou plusieurs groupes. Chaque groupe porte un <code>label</code> et des <code>items</code>. Chaque entrée accepte les propriétés suivantes, en plus de celles de <code>MenuItem</code> de PrimeNG :</p>
+<table>
+<thead>
+<tr>
+<th>Propriété</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>permissions</code></td>
+<td>L'entrée est visible si l'utilisateur détient ces autorités</td>
+</tr>
+<tr>
+<td><code>mode</code></td>
+<td><code>'any'</code> (au moins une, valeur par défaut) ou <code>'all'</code> (toutes)</td>
+</tr>
+<tr>
+<td><code>hiddenWhenPermissions</code></td>
+<td>L'entrée est masquée si l'utilisateur détient ces autorités</td>
+</tr>
+<tr>
+<td><code>hiddenWhenMode</code></td>
+<td>Mode de calcul de <code>hiddenWhenPermissions</code></td>
+</tr>
+<tr>
+<td><code>order</code></td>
+<td>Position dans le groupe</td>
+</tr>
+</tbody>
+</table>
+<p><code>hiddenWhenPermissions</code> sert à masquer une vue personnelle aux gestionnaires. Par exemple, « Mon horaire » est visible pour un étudiant, mais masqué pour qui gère les horaires, qui dispose déjà de la vue complète.</p>
+<h2 id="ajouter-un-onglet-aux-parametres">Ajouter un onglet aux Paramètres<a class="headerlink" href="#ajouter-un-onglet-aux-parametres" title="Permanent link">&para;</a></h2>
+<p>La propriété <code>settingsTab</code> crée un onglet dans <code>/settings</code>. Ses <code>items</code> sont les liens secondaires affichés dans l'onglet. L'onglet et chaque lien sont filtrés par leurs <code>permissions</code> (<code>core/settings/pages/settings-shell/settings-shell.ts</code>).</p>
+<p>L'entrée « Paramètres » du menu latéral n'apparaît que si l'utilisateur peut ouvrir au moins un onglet.</p>
+<h2 id="ajouter-un-widget-au-tableau-de-bord">Ajouter un widget au tableau de bord<a class="headerlink" href="#ajouter-un-widget-au-tableau-de-bord" title="Permanent link">&para;</a></h2>
+<p>La propriété <code>dashboardWidgets</code> ajoute des composants au tableau de bord. Le tableau de bord n'affiche que les widgets dont l'utilisateur détient les autorités (<code>pages/dashboard/dashboard.ts</code>).</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/admission/dashboard/dashboard.widgets.ts (lignes 5 à 16)</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">admissionDashboardWidgets</span><span class="o">:</span><span class="w"> </span><span class="kt">DashboardWidget</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">key</span><span class="o">:</span><span class="w"> </span><span class="s1">'admission-candidate-stats'</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="s1">'Candidatures'</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">module</span><span class="o">:</span><span class="w"> </span><span class="s1">'admission'</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">component</span><span class="o">:</span><span class="w"> </span><span class="kt">CandidateStatsWidget</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">permissions</span><span class="o">:</span><span class="w"> </span><span class="kt">AdmissionManage.Candidate</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">mode</span><span class="o">:</span><span class="w"> </span><span class="s1">'any'</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">size</span><span class="o">:</span><span class="w"> </span><span class="s1">'sm'</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">order</span><span class="o">:</span><span class="w"> </span><span class="kt">16</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">];</span>
+</code></pre></div>
+<p><code>size</code> accepte <code>'sm'</code>, <code>'md'</code>, <code>'lg'</code>, <code>'xl'</code> ou <code>'full'</code>. Construisez le widget avec <code>DashboardCard</code> ou <code>DashboardStatCard</code> de <code>shared/ui/dashboard/</code>.</p>
+<h2 id="gerer-les-droits">Gérer les droits<a class="headerlink" href="#gerer-les-droits" title="Permanent link">&para;</a></h2>
+<h3 id="autorites-et-portees">Autorités et portées<a class="headerlink" href="#autorites-et-portees" title="Permanent link">&para;</a></h3>
+<p>L'utilisateur connecté reçoit ses autorités de l'API, dans <code>authorities</code>. Une autorité a la forme <code>module:ressource:action:portée</code>. Les portées, de la plus étroite à la plus large, sont <code>own</code>, <code>promotion</code>, <code>program</code>, <code>faculty</code> et <code>all</code> (<code>core/permissions/permission-scope.ts</code>).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Le front-end se sert des autorités uniquement pour afficher ou masquer. C'est l'API qui restreint les données renvoyées à la faculté, au programme ou à la promotion de l'utilisateur.</p>
+</div>
+<h3 id="proteger-une-route">Protéger une route<a class="headerlink" href="#proteger-une-route" title="Permanent link">&para;</a></h3>
+<p><code>permissionGuard</code> (<code>core/permissions/permission.guard.ts</code>) lit <code>permissions</code>, <code>mode</code>, <code>hiddenWhenPermissions</code> et <code>hiddenWhenMode</code> dans <code>data</code>. Si l'accès est refusé, il redirige vers <code>/access-denied</code>.</p>
+<h3 id="adapter-laffichage">Adapter l'affichage<a class="headerlink" href="#adapter-laffichage" title="Permanent link">&para;</a></h3>
+<p>Dans un composant, injectez <code>PermissionService</code> et exposez les droits par des <code>computed</code>, que le template lit :</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/settings/pages/rooms/rooms.ts (lignes 79 à 81)</span>
+<span class="k">readonly</span><span class="w"> </span><span class="nx">canUpdate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">computed</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span>
+<span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">permissionService</span><span class="p">.</span><span class="nx">hasAnyPermission</span><span class="p">([</span><span class="nx">SchedulingPermission</span><span class="p">.</span><span class="nx">RoomUpdateAll</span><span class="p">])</span>
+<span class="p">);</span>
+</code></pre></div>
+<p><code>PermissionService</code> propose les méthodes suivantes :</p>
+<table>
+<thead>
+<tr>
+<th>Méthode</th>
+<th>Retourne vrai si l'utilisateur…</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hasPermission(autorité)</code></td>
+<td>détient cette autorité exacte</td>
+</tr>
+<tr>
+<td><code>hasAnyPermission(liste)</code></td>
+<td>détient au moins une autorité de la liste, ou si la liste est vide</td>
+</tr>
+<tr>
+<td><code>hasAllPermissions(liste)</code></td>
+<td>détient toutes les autorités de la liste, ou si la liste est vide</td>
+</tr>
+<tr>
+<td><code>canAccess({ permissions, mode })</code></td>
+<td>satisfait la vérification, selon le mode</td>
+</tr>
+<tr>
+<td><code>hasScope(autorité, minimum)</code></td>
+<td>détient l'autorité à une portée au moins égale à <code>minimum</code></td>
+</tr>
+<tr>
+<td><code>canWrite(autorité)</code></td>
+<td>peut exercer l'autorité au-delà de lui-même</td>
+</tr>
+<tr>
+<td><code>canManage(ressource)</code></td>
+<td>doit voir l'écran de gestion de la ressource</td>
+</tr>
+</tbody>
+</table>
+<p><code>scopeOf(autorité)</code> renvoie la portée la plus large détenue, ou <code>null</code>.</p>
+<p>Pour une ressource gérée à plusieurs portées, calculez la liste des autorités de gestion avec <code>manageAuthorities</code> plutôt que de l'écrire à la main :</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/features/scheduling/permissions/permission.model.ts (lignes 36 à 44)</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">SchedulingResource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Timetable</span><span class="o">:</span><span class="w"> </span><span class="s1">'scheduling:timetable'</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">TimetableEntry</span><span class="o">:</span><span class="w"> </span><span class="s1">'scheduling:timetable-entry'</span>
+<span class="p">}</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="kd">const</span><span class="p">;</span>
+
+<span class="cm">/** Gestion des horaires : créer, modifier ou supprimer un horaire (faculté ou tout), ou tout lire. */</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">SchedulingManage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Timetable</span><span class="o">:</span><span class="w"> </span><span class="kt">manageAuthorities</span><span class="p">(</span><span class="nx">SchedulingResource</span><span class="p">.</span><span class="nx">Timetable</span><span class="p">)</span>
+<span class="p">}</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="kd">const</span><span class="p">;</span>
+</code></pre></div>
+<p>Les actions de <code>ContentSubtopbar</code> acceptent aussi <code>permissions</code> et <code>mode</code> : une action non autorisée n'est pas affichée.</p>
+<h2 id="libelles-et-traductions">Libellés et traductions<a class="headerlink" href="#libelles-et-traductions" title="Permanent link">&para;</a></h2>
+<p>Le projet n'utilise aucun système de traduction. L'interface est en français, et les libellés sont écrits directement dans les templates et les déclarations de modules.</p>
+<p>Pour les dates :</p>
+<ul>
+<li>Formatez-les avec <code>Intl.DateTimeFormat('fr-FR', …)</code>, comme dans <code>features/admission/utils/candidate-format.ts</code>.</li>
+<li>Le pipe <code>date</code> d'Angular n'est utilisé qu'avec des formats numériques, comme <code>'dd/MM/yyyy'</code>. Aucune locale française n'est enregistrée dans l'application : un format avec des noms de mois les afficherait en anglais.</li>
+<li>Pour un texte reçu de l'API, <code>readableApiText</code> convertit les dates ISO en dates françaises (<code>shared/http/readable-api-text.ts</code>).</li>
+</ul>
+<p>N'affichez jamais un code technique, comme une valeur d'énumération ou un identifiant : passez par une fonction de libellé, comme <code>roomTypeLabel</code> dans <code>features/scheduling/models/room.model.ts</code>.</p>
+<h2 id="checklist-finale">Checklist finale<a class="headerlink" href="#checklist-finale" title="Permanent link">&para;</a></h2>
+<p>Avant d'ouvrir une demande de fusion, vérifiez chaque point.</p>
+<p><strong>Routes</strong></p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Chaque page est chargée à la demande (<code>loadComponent</code> ou <code>loadChildren</code>).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Chaque page porte <code>canActivate: [permissionGuard]</code> et ses autorités dans <code>data</code>.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Le fichier de routes contient une redirection pour le chemin vide.</li>
+</ul>
+<p><strong>Registre et navigation</strong></p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> La déclaration <code>&lt;module&gt;Feature</code> est ajoutée au tableau <code>appFeatures</code>.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Les valeurs <code>order</code> placent le module au bon endroit.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Les entrées de menu, l'onglet de Paramètres et les widgets portent leurs autorités.</li>
+</ul>
+<p><strong>Droits</strong></p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Les autorités utilisées existent côté backend.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Les boutons d'action sont masqués sans l'autorité correspondante.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Un utilisateur sans droit est redirigé vers <code>/access-denied</code>.</li>
+</ul>
+<p><strong>Affichage</strong></p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Les erreurs de saisie s'affichent sous le champ concerné.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Les erreurs de l'API s'affichent dans un toast, avec <code>apiErrorMessage</code> ou <code>readableApiText</code>.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Aucun identifiant technique ni code d'énumération n'est affiché.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Les dates sont en français.</li>
+</ul>
+<p><strong>Contrôles</strong></p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Les tests du module passent : <code>npm test</code> ou <code>npm run test:ci</code>.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>npm run lint</code> ne signale aucune erreur.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>npm run build:prod</code> réussit, sans dépasser les budgets de <code>angular.json</code>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Retour en haut de la page
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

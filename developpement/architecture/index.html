@@ -1,0 +1,1135 @@
+
+<!doctype html>
+<html lang="fr" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation technique du front-end Angular de Smart Campus (Université Nouveaux Horizons)">
+      
+      
+      
+      
+        <link rel="prev" href="../../technologies/">
+      
+      
+        <link rel="next" href="../creer-un-module/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Architecture - Smart Campus — Documentation front-end</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture" class="md-skip">
+          Aller au contenu
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="En-tête">
+    <a href="../.." title="Smart Campus — Documentation front-end" class="md-header__button md-logo" aria-label="Smart Campus — Documentation front-end" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Smart Campus — Documentation front-end
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Recherche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initialisation de la recherche
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Smart Campus — Documentation front-end" class="md-nav__button md-logo" aria-label="Smart Campus — Documentation front-end" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Smart Campus — Documentation front-end
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accueil
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technologies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technologies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Développement
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Développement
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#arborescence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Arborescence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Arborescence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#structure-dun-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structure d'un module
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#principes-appliques" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Principes appliqués
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flux-dun-appel-a-lapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flux d'un appel à l'API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#registre-des-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Registre des modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conventions-de-nommage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conventions de nommage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#elements-partages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Éléments partagés
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../creer-un-module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Créer un module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../brancher-un-module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Brancher un module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../communication-backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Communication avec le backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#arborescence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Arborescence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Arborescence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#structure-dun-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structure d'un module
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#principes-appliques" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Principes appliqués
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flux-dun-appel-a-lapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flux d'un appel à l'API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#registre-des-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Registre des modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conventions-de-nommage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conventions de nommage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#elements-partages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Éléments partagés
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
+<p>Cette page explique comment le code du front-end est organisé et pourquoi. Elle s'adresse aux développeurs qui vont modifier un module existant ou en créer un.</p>
+<h2 id="arborescence">Arborescence<a class="headerlink" href="#arborescence" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>src/
+├── main.ts                  Démarrage de l'application
+├── app.config.ts            Fournisseurs globaux : routeur, client HTTP, thème PrimeNG
+├── app.routes.ts            Routes racines : /apply, /auth, shell applicatif
+├── environments/            Configuration par environnement (voir Installation)
+└── app/
+    ├── core/                Services et mécanismes globaux
+    │   ├── auth/            Connexion, session, intercepteur HTTP, guards
+    │   ├── config/          Identité visuelle (app-brand.ts)
+    │   ├── modules/         Registre des modules (AppFeature)
+    │   ├── navigation/      Page « introuvable »
+    │   ├── permissions/     Autorités, portées, guard et service de permissions
+    │   ├── services/        Pipe FirstCharPipe
+    │   └── settings/        Shell des Paramètres et paramètres système
+    ├── shared/              Éléments réutilisables sans logique métier
+    │   ├── http/            Erreurs d'API, paramètres de requête, textes lisibles
+    │   ├── models/          Forme paginée commune (PagedResponse)
+    │   ├── navigation/      Retour arrière, navigation entre fiches
+    │   ├── ui/              En-tête de page, cartes du tableau de bord, styles partagés
+    │   └── utils/           URL d'avatar, URL signées
+    ├── features/            Modules métier
+    │   ├── academic/
+    │   ├── admission/
+    │   ├── identity/
+    │   └── scheduling/
+    ├── layout/              Shell applicatif : barre supérieure, menu latéral, pied de page
+    └── pages/
+        └── dashboard/       Tableau de bord, alimenté par les widgets des modules
+</code></pre></div>
+<p>Le registre des modules se trouve dans <code>core/modules</code>.</p>
+<h3 id="structure-dun-module">Structure d'un module<a class="headerlink" href="#structure-dun-module" title="Permanent link">&para;</a></h3>
+<p>Exemple avec le module Planification :</p>
+<div class="highlight"><pre><span></span><code>features/scheduling/
+├── scheduling.feature.ts      Déclaration AppFeature : routes, menu, onglet de Paramètres
+├── scheduling.public-api.ts   Éléments exposés aux autres modules
+├── models/                    Types de l'API et fonctions d'affichage
+├── services/                  Services HTTP
+├── permissions/               Autorités du module
+├── settings/                  Pages et routes montées sous /settings/scheduling
+│   ├── routes.ts
+│   └── pages/rooms/
+└── timetable/                 Sous-domaine Horaires, avec ses propres pages, services et routes
+</code></pre></div>
+<p>Les autres modules ajoutent, selon leurs besoins, des dossiers <code>components/</code>, <code>pages/</code>, <code>dashboard/</code> ou <code>utils/</code>.</p>
+<h2 id="principes-appliques">Principes appliqués<a class="headerlink" href="#principes-appliques" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Principe</th>
+<th>Application dans le code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Découpage par fonctionnalité</td>
+<td>Chaque domaine métier vit dans <code>features/&lt;module&gt;/</code> et se déclare dans le registre.</td>
+</tr>
+<tr>
+<td>Composants standalone</td>
+<td>Les 79 composants sont standalone ; le projet ne contient aucun <code>NgModule</code>.</td>
+</tr>
+<tr>
+<td>Injection par <code>inject()</code></td>
+<td>Aucun service n'est injecté par le constructeur.</td>
+</tr>
+<tr>
+<td>État par signals</td>
+<td>L'état local et partagé repose sur <code>signal()</code> et <code>computed()</code>. Le projet n'utilise pas <code>BehaviorSubject</code>. RxJS sert aux appels HTTP.</td>
+</tr>
+<tr>
+<td>Entrées par signals</td>
+<td>Les composants déclarent leurs entrées avec <code>input()</code>, jamais avec <code>@Input</code>.</td>
+</tr>
+<tr>
+<td>Sans Zone.js</td>
+<td><code>provideZonelessChangeDetection()</code> dans <code>src/app.config.ts</code>. Une vue se met à jour quand un signal qu'elle lit change.</td>
+</tr>
+<tr>
+<td>Chargement différé</td>
+<td>Chaque module charge ses routes avec <code>loadChildren</code> ou <code>loadComponent</code>. Les bibliothèques d'export sont importées au premier usage.</td>
+</tr>
+<tr>
+<td>Droits déclaratifs</td>
+<td>Routes, entrées de menu, onglets, widgets et actions portent leurs <code>permissions</code> ; le code central les filtre.</td>
+</tr>
+<tr>
+<td>Frontières entre modules</td>
+<td>Un module qui utilise une ressource d'un autre module importe son fichier <code>*.public-api.ts</code>, pas un chemin interne.</td>
+</tr>
+</tbody>
+</table>
+<p><code>ChangeDetectionStrategy.OnPush</code> est déclaré dans 15 composants sur 79, par exemple <code>features/scheduling/settings/pages/rooms/rooms.ts</code>.</p>
+<p>L'alias <code>@/</code> désigne le dossier <code>src/</code> (<code>tsconfig.json</code>). Écrivez par exemple <code>@/app/shared/http/api-error</code>.</p>
+<h2 id="flux-dun-appel-a-lapi">Flux d'un appel à l'API<a class="headerlink" href="#flux-dun-appel-a-lapi" title="Permanent link">&para;</a></h2>
+<p>Le schéma suivant montre le trajet d'une donnée, de l'écran à l'API.</p>
+<pre class="mermaid"><code>flowchart LR
+    C["Composant de page&lt;br/&gt;signals : liste, chargement"] --&gt;|appelle| S["Service HTTP&lt;br/&gt;features/*/services"]
+    C -. lit les droits .-&gt; P["PermissionService&lt;br/&gt;core/permissions"]
+    S --&gt;|HttpClient| I["authInterceptor&lt;br/&gt;core/auth/interceptors"]
+    I --&gt;|"ajoute le jeton Bearer"| X["Proxy de développement&lt;br/&gt;proxy.conf.json"]
+    X --&gt; A["API REST&lt;br/&gt;localhost:8085"]
+    I -. "401 : rafraîchit le jeton puis rejoue" .-&gt; AS["AuthService&lt;br/&gt;core/auth/services"]
+    S --&gt;|"Observable"| C
+    C --&gt;|"erreur"| T["Toast&lt;br/&gt;apiErrorMessage"]</code></pre>
+<ol>
+<li>Le composant appelle une méthode du service et s'abonne au résultat.</li>
+<li>Le service construit la requête avec <code>HttpClient</code> et l'URL <code>${environment.apiBaseUrl}/api/v1/&lt;ressource&gt;</code>.</li>
+<li>L'intercepteur ajoute le jeton d'accès. Sur une réponse 401, il rafraîchit la session puis rejoue la requête.</li>
+<li>Le composant range la réponse dans un signal ; la vue se met à jour.</li>
+<li>En cas d'erreur, le composant affiche un toast.</li>
+</ol>
+<p>Le détail de chaque étape est dans <a href="../communication-backend/">Communication avec le backend</a>.</p>
+<h2 id="registre-des-modules">Registre des modules<a class="headerlink" href="#registre-des-modules" title="Permanent link">&para;</a></h2>
+<p>Le registre relie les modules au reste de l'application. Il se compose de deux fichiers.</p>
+<p><code>core/modules/app-feature.model.ts</code> définit l'interface <code>AppFeature</code>. Un module y déclare :</p>
+<table>
+<thead>
+<tr>
+<th>Propriété</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>key</code>, <code>label</code>, <code>order</code></td>
+<td>Identité du module et ordre d'affichage</td>
+</tr>
+<tr>
+<td><code>route</code></td>
+<td>Routes opérationnelles, montées à la racine du shell (<code>/scheduling</code>)</td>
+</tr>
+<tr>
+<td><code>menu</code></td>
+<td>Entrées du menu latéral, avec leurs autorités</td>
+</tr>
+<tr>
+<td><code>settingsTab</code></td>
+<td>Onglet du module dans les Paramètres, avec ses liens secondaires</td>
+</tr>
+<tr>
+<td><code>settingsRoute</code></td>
+<td>Routes montées sous <code>/settings/&lt;path&gt;</code></td>
+</tr>
+<tr>
+<td><code>dashboardWidgets</code></td>
+<td>Widgets ajoutés au tableau de bord</td>
+</tr>
+</tbody>
+</table>
+<p><code>core/modules/app-feature.registry.ts</code> liste les modules et en dérive ce que consomme le reste de l'application :</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/app/core/modules/app-feature.registry.ts</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">appFeatures</span><span class="o">:</span><span class="w"> </span><span class="kt">AppFeature</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="nx">coreSystemFeature</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">identityFeature</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">academicFeature</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">schedulingFeature</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">admissionFeature</span>
+<span class="p">].</span><span class="nx">sort</span><span class="p">(</span><span class="nx">byOrder</span><span class="p">);</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Consommé par</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>appFeatureRoutes</code></td>
+<td><code>src/app.routes.ts</code>, enfants du shell applicatif</td>
+</tr>
+<tr>
+<td><code>appMenuItems</code></td>
+<td><code>layout/component/app.menu.ts</code></td>
+</tr>
+<tr>
+<td><code>appSettingsTabs</code></td>
+<td><code>core/settings/pages/settings-shell/settings-shell.ts</code> et le menu</td>
+</tr>
+<tr>
+<td><code>appSettingsChildRoutes</code></td>
+<td><code>core/settings/routes.ts</code></td>
+</tr>
+<tr>
+<td><code>appDashboardWidgets</code></td>
+<td><code>pages/dashboard/dashboard.widgets.ts</code></td>
+</tr>
+</tbody>
+</table>
+<p>Ajouter un module revient donc à écrire son <code>*.feature.ts</code> et à l'ajouter au tableau <code>appFeatures</code>. La procédure est décrite dans <a href="../brancher-un-module/">Brancher un module</a>.</p>
+<h2 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">&para;</a></h2>
+<p>Le menu latéral est construit dans <code>layout/component/app.menu.ts</code>. Il contient, dans l'ordre :</p>
+<ol>
+<li>l'entrée « Tableau de bord » ;</li>
+<li>les entrées <code>menu</code> de chaque module, triées par <code>order</code> ;</li>
+<li>l'entrée « Paramètres », seulement si l'utilisateur peut ouvrir au moins un onglet de Paramètres.</li>
+</ol>
+<p>Le menu masque toute entrée dont l'utilisateur n'a pas les <code>permissions</code>, ou dont il détient les <code>hiddenWhenPermissions</code>. Ce second mécanisme sert à masquer une vue personnelle pour un gestionnaire, par exemple « Mon horaire » pour qui gère les horaires (<code>features/scheduling/scheduling.feature.ts</code>).</p>
+<p>Les Paramètres (<code>/settings</code>) sont un shell à onglets (<code>core/settings/pages/settings-shell/</code>). Chaque module y fournit son onglet et ses routes. La route <code>/settings</code> redirige vers <code>/settings/identity</code>.</p>
+<h2 id="conventions-de-nommage">Conventions de nommage<a class="headerlink" href="#conventions-de-nommage" title="Permanent link">&para;</a></h2>
+<p>Le code applique les règles suivantes.</p>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>Règle</th>
+<th>Exemple</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fichiers</td>
+<td>kebab-case, sans suffixe <code>.component</code></td>
+<td><code>rooms.ts</code>, <code>room.service.ts</code></td>
+</tr>
+<tr>
+<td>Composant</td>
+<td>Classe en PascalCase ; le suffixe <code>Page</code> est présent sur certaines pages seulement</td>
+<td><code>RoomsPage</code>, <code>UserDetail</code></td>
+</tr>
+<tr>
+<td>Sélecteur</td>
+<td>Préfixe <code>app-</code></td>
+<td><code>app-scheduling-rooms</code>, <code>app-content-subtopbar</code></td>
+</tr>
+<tr>
+<td>Directive</td>
+<td>Préfixe <code>app</code>, en camelCase (règle ESLint)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Service</td>
+<td>Suffixe <code>Service</code></td>
+<td><code>RoomService</code></td>
+</tr>
+<tr>
+<td>Déclaration de module</td>
+<td><code>&lt;module&gt;Feature</code></td>
+<td><code>schedulingFeature</code></td>
+</tr>
+<tr>
+<td>Autorités</td>
+<td>Objet <code>&lt;Module&gt;Permission</code> en <code>as const</code></td>
+<td><code>SchedulingPermission.RoomUpdateAll</code></td>
+</tr>
+<tr>
+<td>Routes</td>
+<td>Export par défaut d'un fichier <code>routes.ts</code>, ou tableau nommé</td>
+<td><code>export default [...]</code>, <code>identityAdminRoutes</code></td>
+</tr>
+<tr>
+<td>Tests</td>
+<td>Fichier <code>.spec.ts</code> à côté du fichier testé</td>
+<td><code>room.service.spec.ts</code></td>
+</tr>
+<tr>
+<td>API publique d'un module</td>
+<td><code>&lt;module&gt;.public-api.ts</code></td>
+<td><code>scheduling.public-api.ts</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="elements-partages">Éléments partagés<a class="headerlink" href="#elements-partages" title="Permanent link">&para;</a></h2>
+<p>Réutilisez ces éléments avant d'en écrire de nouveaux.</p>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>Rôle</th>
+<th>Exemple d'utilisation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>shared/ui/content-subtopbar/</code> (<code>ContentSubtopbar</code>)</td>
+<td>En-tête de page : surtitre, titre, actions. Une action porteuse de <code>permissions</code> est masquée si l'utilisateur ne les a pas.</td>
+<td><code>features/scheduling/settings/pages/rooms/rooms.html</code></td>
+</tr>
+<tr>
+<td><code>shared/ui/dashboard/dashboard-card/</code> (<code>DashboardCard</code>)</td>
+<td>Cadre d'un widget du tableau de bord</td>
+<td><code>features/identity/dashboard/components/repartition_users.ts</code></td>
+</tr>
+<tr>
+<td><code>shared/ui/dashboard/dashboard-stat-card/</code> (<code>DashboardStatCard</code>)</td>
+<td>Carte de statistique du tableau de bord</td>
+<td><code>features/academic/dashboard/components/faculty-stats-widget.ts</code></td>
+</tr>
+<tr>
+<td><code>shared/ui/styles/_stacked-table.scss</code></td>
+<td>Affichage des tableaux en cartes empilées sur petit écran, avec la classe <code>stack-table</code></td>
+<td><code>features/academic/pages/course-list/course-list.scss</code></td>
+</tr>
+<tr>
+<td><code>shared/http/api-error.ts</code></td>
+<td><code>apiErrorMessage</code> : message d'erreur lisible pour un toast. <code>apiInvalidFields</code> : erreurs de validation par champ.</td>
+<td><code>features/scheduling/settings/pages/rooms/rooms.ts</code></td>
+</tr>
+<tr>
+<td><code>shared/http/api-params.ts</code> (<code>toApiParams</code>)</td>
+<td>Paramètres de requête en snake_case, valeurs vides omises</td>
+<td><code>features/academic/services/course.service.ts</code></td>
+</tr>
+<tr>
+<td><code>shared/http/readable-api-text.ts</code> (<code>readableApiText</code>)</td>
+<td>Retire les identifiants techniques d'un texte et écrit les dates en français</td>
+<td><code>features/scheduling/settings/pages/rooms/rooms.ts</code></td>
+</tr>
+<tr>
+<td><code>shared/models/paged-response.model.ts</code> (<code>PagedResponse&lt;T&gt;</code>)</td>
+<td>Forme d'une réponse paginée</td>
+<td>Recommandé pour tout nouveau module</td>
+</tr>
+<tr>
+<td><code>shared/navigation/go-back.ts</code> (<code>goBack</code>)</td>
+<td>Retour à l'écran précédent, avec une route de repli</td>
+<td><code>core/settings/pages/system-settings/system-settings.ts</code></td>
+</tr>
+<tr>
+<td><code>shared/navigation/detail-navigation.service.ts</code> (<code>DetailNavigationService</code>)</td>
+<td>Fiche précédente ou suivante depuis une fiche de détail, à partir de la liste d'origine</td>
+<td><code>features/academic/pages/course-detail/course-detail.ts</code></td>
+</tr>
+<tr>
+<td><code>shared/utils/avatar-url.ts</code></td>
+<td>URL complète d'un avatar</td>
+<td><code>layout/component/app.topbar.ts</code></td>
+</tr>
+<tr>
+<td><code>shared/utils/signed-url.ts</code></td>
+<td>Détecte une URL signée expirée ou proche de l'expiration</td>
+<td><code>features/admission/components/candidate-dossier/dossier-document-urls.ts</code></td>
+</tr>
+<tr>
+<td><code>core/services/Pipes.ts</code> (<code>FirstCharPipe</code>)</td>
+<td>Première lettre en majuscule</td>
+<td>Aucun usage actuel</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>apiInvalidFields</code> n'est utilisé par aucun écran pour l'instant. Le module Académique déclare sa propre copie de <code>PagedResponse</code> dans <code>features/academic/models/academic-reference.model.ts</code>. Pour un nouveau module, utilisez la version de <code>shared/models/</code>.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Retour en haut de la page
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

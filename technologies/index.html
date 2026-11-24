@@ -1,0 +1,982 @@
+
+<!doctype html>
+<html lang="fr" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation technique du front-end Angular de Smart Campus (Université Nouveaux Horizons)">
+      
+      
+      
+      
+        <link rel="prev" href="../installation/">
+      
+      
+        <link rel="next" href="../developpement/architecture/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Technologies - Smart Campus — Documentation front-end</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#technologies" class="md-skip">
+          Aller au contenu
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="En-tête">
+    <a href=".." title="Smart Campus — Documentation front-end" class="md-header__button md-logo" aria-label="Smart Campus — Documentation front-end" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Smart Campus — Documentation front-end
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Technologies
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Recherche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initialisation de la recherche
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Smart Campus — Documentation front-end" class="md-nav__button md-logo" aria-label="Smart Campus — Documentation front-end" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Smart Campus — Documentation front-end
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accueil
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technologies
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technologies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#framework-et-langage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Framework et langage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interface
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#donnees-et-formulaires" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Données et formulaires
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Export
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qualite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Qualité
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conteneurs-et-deploiement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conteneurs et déploiement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependances-a-retirer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dépendances à retirer
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Développement
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Développement
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developpement/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developpement/creer-un-module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Créer un module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developpement/brancher-un-module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Brancher un module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developpement/communication-backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Communication avec le backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#framework-et-langage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Framework et langage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interface
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#donnees-et-formulaires" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Données et formulaires
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Export
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qualite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Qualité
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conteneurs-et-deploiement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conteneurs et déploiement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependances-a-retirer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dépendances à retirer
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="technologies">Technologies<a class="headerlink" href="#technologies" title="Permanent link">&para;</a></h1>
+<p>Cette page de référence liste les technologies du front-end, leur version et leur usage dans le projet. Consultez-la avant d'ajouter une dépendance ou pour savoir quelle bibliothèque utiliser pour un besoin donné.</p>
+<p>La colonne « Version déclarée » reprend <code>package.json</code>. La colonne « Version installée » reprend <code>package-lock.json</code>, qui fait foi après <code>npm install</code>.</p>
+<h2 id="framework-et-langage">Framework et langage<a class="headerlink" href="#framework-et-langage" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Technologie</th>
+<th>Version déclarée</th>
+<th>Version installée</th>
+<th>Usage dans le projet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Angular (<code>@angular/core</code>, <code>common</code>, <code>forms</code>, <code>router</code>, <code>platform-browser</code>)</td>
+<td><code>^21</code></td>
+<td>21.2.8</td>
+<td>Framework de l'application. Composants standalone, signals, détection des changements sans Zone.js (<code>provideZonelessChangeDetection</code> dans <code>src/app.config.ts</code>).</td>
+</tr>
+<tr>
+<td>Angular CLI et build (<code>@angular/cli</code>, <code>@angular-devkit/build-angular</code>)</td>
+<td><code>^21</code></td>
+<td>21.2.7</td>
+<td>Commandes <code>ng serve</code>, <code>ng build</code>, <code>ng test</code>, <code>ng lint</code>. Le build utilise le builder <code>application</code> (<code>angular.json</code>).</td>
+</tr>
+<tr>
+<td>TypeScript</td>
+<td><code>~5.9.3</code></td>
+<td>5.9.3</td>
+<td>Langage. Mode strict activé, ainsi que <code>strictTemplates</code> (<code>tsconfig.json</code>).</td>
+</tr>
+<tr>
+<td>RxJS</td>
+<td><code>~7.8.0</code></td>
+<td>7.8.2</td>
+<td>Appels HTTP et leur composition (<code>map</code>, <code>expand</code>, <code>catchError</code>). L'état des écrans repose sur les signals, pas sur RxJS (voir <a href="../developpement/architecture/">Architecture</a>).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="interface">Interface<a class="headerlink" href="#interface" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Technologie</th>
+<th>Version déclarée</th>
+<th>Version installée</th>
+<th>Usage dans le projet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PrimeNG</td>
+<td><code>^21.0.2</code></td>
+<td>21.1.6</td>
+<td>Bibliothèque de composants : tableaux (<code>p-table</code>), formulaires, fenêtres, toasts, confirmations.</td>
+</tr>
+<tr>
+<td><code>@primeuix/themes</code></td>
+<td><code>^2.0.0</code></td>
+<td>2.0.3</td>
+<td>Thème Aura, adapté aux couleurs de l'UNH par <code>definePreset</code> dans <code>src/app.config.ts</code>. Le mode sombre s'active avec la classe <code>.app-dark</code>.</td>
+</tr>
+<tr>
+<td>PrimeIcons</td>
+<td><code>^7.0.0</code></td>
+<td>7.0.0</td>
+<td>Icônes <code>pi pi-*</code>, importées dans <code>public/styles.scss</code>.</td>
+</tr>
+<tr>
+<td>Tailwind CSS (<code>tailwindcss</code>, <code>@tailwindcss/postcss</code>)</td>
+<td><code>^4.1.11</code></td>
+<td>4.2.2</td>
+<td>Classes utilitaires de mise en page. Configuration dans <code>public/tailwind.css</code>.</td>
+</tr>
+<tr>
+<td><code>tailwindcss-primeui</code></td>
+<td><code>^0.6.1</code></td>
+<td>0.6.1</td>
+<td>Extension Tailwind qui expose les couleurs du thème PrimeNG, déclarée dans <code>public/tailwind.css</code>.</td>
+</tr>
+<tr>
+<td>Chart.js</td>
+<td><code>4.4.2</code></td>
+<td>4.4.2</td>
+<td>Graphiques du tableau de bord, utilisés à travers <code>primeng/chart</code> (par exemple <code>features/identity/dashboard/components/repartition_users.ts</code>).</td>
+</tr>
+<tr>
+<td>FullCalendar (<code>@fullcalendar/angular</code>, <code>core</code>, <code>daygrid</code>, <code>timegrid</code>, <code>list</code>, <code>interaction</code>)</td>
+<td><code>^6.1.21</code></td>
+<td>6.1.21</td>
+<td>Calendrier des horaires : <code>features/scheduling/timetable/components/timetable-calendar/</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="donnees-et-formulaires">Données et formulaires<a class="headerlink" href="#donnees-et-formulaires" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Technologie</th>
+<th>Version déclarée</th>
+<th>Version installée</th>
+<th>Usage dans le projet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Client HTTP Angular</td>
+<td>inclus dans Angular</td>
+<td>21.2.8</td>
+<td>Appels à l'API, avec <code>withFetch()</code> et l'intercepteur <code>authInterceptor</code> (<code>src/app.config.ts</code>).</td>
+</tr>
+<tr>
+<td>Formulaires Angular</td>
+<td>inclus dans Angular</td>
+<td>21.2.8</td>
+<td>Formulaires réactifs pour l'édition, par exemple <code>features/scheduling/settings/pages/rooms/rooms.ts</code> ; formulaire template-driven (<code>ngModel</code>) pour la connexion, dans <code>core/auth/login.html</code>.</td>
+</tr>
+<tr>
+<td><code>libphonenumber-js</code></td>
+<td><code>^1.13.7</code></td>
+<td>1.13.7</td>
+<td>Liste des pays avec leur indicatif et validation des numéros de téléphone du formulaire de candidature (<code>features/admission/pages/candidate-create/candidate-create.ts</code>).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="export">Export<a class="headerlink" href="#export" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Technologie</th>
+<th>Version déclarée</th>
+<th>Version installée</th>
+<th>Usage dans le projet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pdfmake</td>
+<td><code>^0.3.11</code></td>
+<td>0.3.11</td>
+<td>Export et impression des horaires en PDF (<code>features/scheduling/timetable/utils/timetable-pdf.ts</code>).</td>
+</tr>
+<tr>
+<td>ExcelJS</td>
+<td><code>^4.4.0</code></td>
+<td>4.4.0</td>
+<td>Export des horaires au format Excel (<code>features/scheduling/timetable/utils/timetable-excel.ts</code>).</td>
+</tr>
+</tbody>
+</table>
+<p>pdfmake et ExcelJS sont chargés à la demande, au premier export : ils ne font pas partie du bundle initial (<code>features/scheduling/timetable/services/timetable-export.service.ts</code>). Ce sont des modules CommonJS, déclarés dans <code>allowedCommonJsDependencies</code> (<code>angular.json</code>).</p>
+<h2 id="qualite">Qualité<a class="headerlink" href="#qualite" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Technologie</th>
+<th>Version déclarée</th>
+<th>Version installée</th>
+<th>Usage dans le projet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Jasmine (<code>jasmine-core</code>)</td>
+<td><code>~5.4.0</code></td>
+<td>5.4.0</td>
+<td>Framework des tests unitaires (<code>*.spec.ts</code>).</td>
+</tr>
+<tr>
+<td>Karma (<code>karma</code>, <code>karma-chrome-launcher</code>, <code>karma-coverage</code>, <code>karma-jasmine</code>)</td>
+<td><code>~6.4.0</code></td>
+<td>6.4.4</td>
+<td>Exécution des tests dans Chrome. Aucun fichier <code>karma.conf.js</code> : la configuration par défaut du builder Angular s'applique.</td>
+</tr>
+<tr>
+<td>ESLint (<code>eslint</code>, <code>@eslint/js</code>)</td>
+<td><code>^9.39.2</code></td>
+<td>9.39.4</td>
+<td>Analyse statique, configurée dans <code>eslint.config.js</code>.</td>
+</tr>
+<tr>
+<td><code>angular-eslint</code></td>
+<td><code>21.3.1</code></td>
+<td>21.3.1</td>
+<td>Règles propres à Angular, pour le TypeScript et les templates.</td>
+</tr>
+<tr>
+<td><code>typescript-eslint</code></td>
+<td><code>8.56.1</code></td>
+<td>8.56.1</td>
+<td>Règles TypeScript.</td>
+</tr>
+<tr>
+<td>Prettier</td>
+<td><code>^3.0.0</code></td>
+<td>3.8.3</td>
+<td>Formatage, configuré dans <code>.prettierrc.json</code> : 4 espaces, guillemets simples, largeur de ligne 250.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="conteneurs-et-deploiement">Conteneurs et déploiement<a class="headerlink" href="#conteneurs-et-deploiement" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>Fichier</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Image de build Node.js</td>
+<td><code>Dockerfile</code>, <code>Dockerfile.dev</code></td>
+<td><code>node:22-alpine</code>, avec npm 11.9.0</td>
+</tr>
+<tr>
+<td>Serveur web Nginx</td>
+<td><code>Dockerfile</code>, <code>nginx.conf</code></td>
+<td><code>nginx:1.27-alpine</code> sert les fichiers construits et renvoie toute route vers <code>index.html</code></td>
+</tr>
+<tr>
+<td>Vercel</td>
+<td><code>vercel.json</code></td>
+<td>Réécrit toute route vers <code>index.html</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="dependances-a-retirer">Dépendances à retirer<a class="headerlink" href="#dependances-a-retirer" title="Permanent link">&para;</a></h2>
+<p>Les paquets <code>quill</code> (<code>^2.0.3</code>) et <code>primeclt</code> (<code>^0.1.5</code>) sont déclarés dans <code>package.json</code>, mais aucun fichier de <code>src/</code> ne les importe. Ils sont à retirer des dépendances. N'en ajoutez aucun usage.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Retour en haut de la page
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "content.code.copy", "search.highlight"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>
