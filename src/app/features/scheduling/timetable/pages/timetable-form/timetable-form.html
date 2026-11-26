@@ -90,7 +90,12 @@
                 <tr>
                     <td class="stack-hidden">{{ i + 1 }}</td>
                     <td data-label="Cours">
-                        <div>{{ courseLabel(row) }}</div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span>{{ courseLabel(row) }}</span>
+                            @if (isRejected(i)) {
+                                <p-tag value="À corriger" severity="danger" />
+                            }
+                        </div>
                         @if (sharedLabel(row); as shared) {
                             <div class="text-sm text-muted-color"><i class="pi pi-share-alt text-xs mr-1"></i>{{ shared }}</div>
                         }
@@ -121,7 +126,7 @@
                         }
                     </td>
                 </tr>
-                @let issues = lineIssues(row, i);
+                @let issues = lineIssues(row);
                 @if (issues.length > 0) {
                     <tr class="timetable-line-issues">
                         <td class="stack-hidden"></td>
@@ -223,6 +228,8 @@
             />
             @if (errors.course) {
                 <small class="field-error" role="alert">{{ errors.course }}</small>
+            } @else if (serverNote('course'); as note) {
+                <small class="field-error" role="alert">{{ note }}</small>
             }
         </div>
         <div>
@@ -245,6 +252,8 @@
             </div>
             @if (errors.time) {
                 <small class="field-error" role="alert">{{ errors.time }}</small>
+            } @else if (serverNote('time'); as note) {
+                <small class="field-error" role="alert">{{ note }}</small>
             }
         </div>
         <div>
@@ -264,6 +273,8 @@
             />
             @if (errors.days) {
                 <small class="field-error" role="alert">{{ errors.days }}</small>
+            } @else if (serverNote('days'); as note) {
+                <small class="field-error" role="alert">{{ note }}</small>
             }
         </div>
         <div class="session-form-pair">
@@ -284,6 +295,8 @@
                 />
                 @if (errors.room) {
                     <small class="field-error" role="alert">{{ errors.room }}</small>
+                } @else if (serverNote('room'); as note) {
+                    <small class="field-error" role="alert">{{ note }}</small>
                 }
             </div>
             <div>
@@ -329,6 +342,9 @@
                 [emptyMessage]="sessionForm.controls.course_id.value ? 'Ce cours n’est donné dans aucune autre promotion' : 'Choisissez d’abord un cours'"
                 class="w-full"
             />
+            @if (serverNote('shared'); as note) {
+                <small class="field-error" role="alert">{{ note }}</small>
+            }
         </div>
 
         <button type="submit" hidden></button>

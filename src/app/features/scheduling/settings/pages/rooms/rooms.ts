@@ -20,6 +20,29 @@ import { SchedulingPermission } from '../../../permissions/permission.model';
 import { ROOM_TYPE_OPTIONS, Room, RoomType, roomTypeLabel } from '../../../models/room.model';
 import { RoomService } from '../../../services/room.service';
 import { readableApiText } from '@/app/shared/http/readable-api-text';
+import { firstValueFrom } from 'rxjs';
+import { ColumnDef } from '@/app/shared/data-table/column.model';
+import { DataFilter } from '@/app/shared/data-table/data-filter/data-filter';
+import { TableToolbar } from '@/app/shared/data-table/table-toolbar/table-toolbar';
+import { EMPTY_QUERY, TableQuery, applyQuery } from '@/app/shared/data-table/table-query';
+import { ImportConfig } from '@/app/shared/import/import.model';
+
+/** Les colonnes des salles, déclarées une fois : affichage, recherche, filtres, export et import. */
+export const ROOM_COLUMNS: ColumnDef<Room>[] = [
+    { key: 'name', label: 'Nom', type: 'text', value: (row) => row.name, searchable: true, import: { required: true, example: '402 A' } },
+    { key: 'location', label: 'Localisation', type: 'text', value: (row) => row.location, searchable: true, import: { required: true, example: 'Bâtiment UNH 1' } },
+    { key: 'capacity', label: 'Capacité', type: 'number', value: (row) => row.capacity, import: { required: true, example: '60' } },
+    {
+        key: 'type',
+        label: 'Type',
+        type: 'enum',
+        value: (row) => row.type,
+        options: ROOM_TYPE_OPTIONS.map((option) => ({ label: option.label, value: option.value })),
+        import: { example: 'Standard' }
+    },
+    { key: 'coordinates', label: 'Coordonnées', type: 'text', value: (row) => row.coordinates, import: { example: 'Étage 2, aile Est' } },
+    { key: 'link', label: 'Lien de visioconférence', type: 'text', value: (row) => row.link, filterable: false, import: { example: '' } }
+];
 
 /**
  * Gestion des salles — onglet « Planification » des Paramètres, sur le modèle de
@@ -44,7 +67,9 @@ import { readableApiText } from '@/app/shared/http/readable-api-text';
         SelectModule,
         IconFieldModule,
         InputIconModule,
-        ContentSubtopbar
+        ContentSubtopbar,
+        DataFilter,
+        TableToolbar
     ],
     templateUrl: './rooms.html',
     styleUrl: './rooms.scss',
@@ -69,12 +94,42 @@ export class RoomsPage implements OnInit {
 
     readonly dialogTitle = computed(() => (this.editingId() ? 'Modifier la salle' : 'Nouvelle salle'));
 
-    /** Filtrage client-side : `GET /api/v1/rooms` n'expose aucun paramètre de requête. */
+    readonly columns = ROOM_COLUMNS;
+    readonly query = signal<TableQuery>(EMPTY_QUERY);
+
+    /**
+     * Filtrage dans le navigateur : `GET /api/v1/rooms` n'expose aucun paramètre de requête. Ce
+     * sont aussi les lignes imprimées et exportées.
+     */
     readonly filteredRooms = computed(() => {
         const type = this.typeFilter();
         const rooms = this.rooms();
-        return type ? rooms.filter((room) => room.type === type) : rooms;
+        return applyQuery(type ? rooms.filter((room) => room.type === type) : rooms, this.columns, this.query());
     });
+
+    readonly canCreate = computed(() => this.permissionService.hasAnyPermission([SchedulingPermission.RoomCreateAll]));
+
+    /** Import Excel des salles, pour qui peut en créer : une salle par ligne du modèle. */
+    readonly importConfig = computed<ImportConfig<Room> | null>(() =>
+        this.canCreate()
+            ? {
+                  title: 'Importer des salles',
+                  templateName: 'salles',
+                  columns: this.columns,
+                  save: (record) =>
+                      firstValueFrom(
+                          this.roomService.create({
+                              name: String(record['name']),
+                              location: String(record['location']),
+                              capacity: Number(record['capacity']),
+                              type: (record['type'] as RoomType | undefined) ?? 'NORMAL',
+                              coordinates: (record['coordinates'] as string | undefined) ?? null,
+                              link: (record['link'] as string | undefined) ?? null
+                          })
+                      )
+              }
+            : null
+    );
 
     readonly canUpdate = computed(() =>
         this.permissionService.hasAnyPermission([SchedulingPermission.RoomUpdateAll])
@@ -226,7 +281,7 @@ export class RoomsPage implements OnInit {
         });
     }
 
-    private load(): void {
+    load(): void {
         this.loading.set(true);
 
         this.roomService.getAll().subscribe({

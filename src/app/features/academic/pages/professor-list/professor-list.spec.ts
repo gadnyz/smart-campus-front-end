@@ -44,6 +44,8 @@ describe('ProfessorListPage', () => {
     ];
 
     beforeEach(async () => {
+        // La faculté de travail est gardée dans la session : un autre test ne doit pas filtrer celui-ci.
+        sessionStorage.removeItem('smartcampus.working-faculty');
         professorService = jasmine.createSpyObj<ProfessorService>('ProfessorService', [
             'getAll',
             'getByFaculty',

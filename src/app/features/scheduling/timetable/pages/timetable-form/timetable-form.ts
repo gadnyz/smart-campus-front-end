@@ -102,6 +102,43 @@ export interface SaveFailure {
     line: number | null;
     day?: WeekDay;
     message: string;
+    /** Code d'erreur de l'API (`ROOM_CONFLICT`…), quand il est donné. */
+    code?: string;
+}
+
+/** Une séance refusée par le serveur : la raison, et le champ à corriger quand on le sait. */
+export interface LineRejection {
+    field: SessionField | null;
+    message: string;
+}
+
+/**
+ * Le champ à corriger pour une erreur du serveur, d'après son code ou, à défaut, ses mots :
+ * la salle, les heures, l'enseignant (le cours) ou les promotions invitées.
+ */
+export function failureField(failure: Pick<SaveFailure, 'code' | 'message'>): SessionField | null {
+    const code = (failure.code ?? '').toUpperCase();
+    const message = failure.message.toLocaleLowerCase('fr-FR');
+    if (code.includes('ROOM') || message.includes('salle')) return 'room';
+    if (code.includes('PROFESSOR') || code.includes('TEACHER') || code.includes('ASSIGNMENT') || message.includes('enseignant') || message.includes('professeur')) return 'course';
+    if (code.includes('PROGRAM_LEVEL') || code.includes('AUDIENCE') || code.includes('SHARED') || message.includes('niveau de parcours') || message.includes('promotion')) return 'shared';
+    if (code.includes('TIME') || code.includes('HOUR') || code.includes('OVERLAP') || code.includes('SLOT') || message.includes('heure') || message.includes('créneau')) return 'time';
+    return null;
+}
+
+/** Ce que l'utilisateur peut faire, selon le champ en cause. */
+const FIELD_ADVICE: Record<SessionField, string> = {
+    room: 'Choisissez une autre salle ou un autre créneau.',
+    time: 'Choisissez un autre créneau.',
+    course: 'Choisissez un autre créneau : l’enseignant n’est pas disponible.',
+    days: 'Vérifiez les jours de la séance.',
+    shared: 'Vérifiez les promotions de « Partagée avec ».'
+};
+
+/** « Salle occupée. » → « salle occupée », pour l'insérer dans une phrase (sigles gardés). */
+function inSentence(message: string): string {
+    const trimmed = message.trim().replace(/[.\s]+$/, '');
+    return /^[A-ZÀ-Ý][a-zà-ÿ]/.test(trimmed) ? trimmed.charAt(0).toLocaleLowerCase('fr-FR') + trimmed.slice(1) : trimmed;
 }
 
 const HEADER_SYNC_DELAY_MS = 400;
@@ -112,7 +149,7 @@ const LAST_MINUTE_OF_DAY = 23 * 60 + 59;
 const MAX_ERROR_TOASTS = 4;
 
 /** Champs de la fenêtre de session qui portent une erreur, affichée sous le champ. */
-export type SessionField = 'course' | 'time' | 'days' | 'room';
+export type SessionField = 'course' | 'time' | 'days' | 'room' | 'shared';
 
 /** Une promotion de la faculté : un niveau d'un programme. */
 interface Promotion {
@@ -134,24 +171,26 @@ export function joinNames(names: readonly string[]): string {
 
 /**
  * Un message par ligne et par erreur, avec les jours concernés, au lieu d'un message par jour :
- * « Ligne 2 · Audit Informatique — lundi, mardi : La salle 402 A est déjà réservée… ».
+ * « Audit Informatique (ligne 2) n’a pas été enregistrée le lundi et le mardi : la salle 402 A est
+ * déjà réservée sur ce créneau. Choisissez une autre salle ou un autre créneau. »
  */
 export function groupFailures(failures: readonly SaveFailure[], courseOf: (line: number) => string): string[] {
-    const groups = new Map<string, { line: number | null; message: string; days: WeekDay[] }>();
+    const groups = new Map<string, { line: number | null; message: string; days: WeekDay[]; field: SessionField | null }>();
     for (const failure of failures) {
         const key = `${failure.line ?? '-'}|${failure.message}`;
-        const group = groups.get(key) ?? { line: failure.line, message: failure.message, days: [] };
+        const group = groups.get(key) ?? { line: failure.line, message: failure.message, days: [], field: failureField(failure) };
         if (failure.day && !group.days.includes(failure.day)) {
             group.days.push(failure.day);
         }
         groups.set(key, group);
     }
-    return [...groups.values()].map(({ line, message, days }) => {
+    return [...groups.values()].map(({ line, message, days, field }) => {
         if (line === null) {
             return message;
         }
-        const when = days.length ? ` — ${joinNames([...days].sort((a, b) => a - b).map((day) => weekDayLabel(day).toLocaleLowerCase('fr-FR')))}` : '';
-        return `Ligne ${line + 1} · ${courseOf(line)}${when} : ${message}`;
+        const when = days.length ? ` le ${joinNames([...days].sort((a, b) => a - b).map((day) => weekDayLabel(day).toLocaleLowerCase('fr-FR')))}` : '';
+        const advice = field ? ` ${FIELD_ADVICE[field]}` : '';
+        return `${courseOf(line)} (ligne ${line + 1}) n’a pas été enregistrée${when} : ${inSentence(message)}.${advice}`;
     });
 }
 
@@ -317,8 +356,11 @@ export class TimetableFormPage implements LeaveConfirmable {
     readonly existingTimetableId = signal<string | null>(null);
     readonly saving = signal(false);
     readonly statusChanging = signal(false);
-    /** Lignes refusées par le serveur au dernier enregistrement ; le détail est dans un toast. */
-    readonly rejectedLines = signal<ReadonlySet<number>>(new Set());
+    /**
+     * Séances refusées par le serveur au dernier enregistrement : la ligne porte l'étiquette
+     * « À corriger », et la raison s'affiche sous le champ concerné quand on rouvre la séance.
+     */
+    readonly rejectedLines = signal<ReadonlyMap<number, LineRejection[]>>(new Map());
     readonly submitted = signal(false);
     readonly programsLoading = signal(true);
     readonly roomsLoading = signal(false);
@@ -560,7 +602,7 @@ export class TimetableFormPage implements LeaveConfirmable {
             line.setValue({ ...value, entry_ids: line.controls.entry_ids.value });
         }
         this.lines.markAsDirty();
-        this.rejectedLines.set(new Set());
+        this.rejectedLines.set(new Map());
         this.refreshRows();
         this.dialogVisible.set(false);
     }
@@ -568,7 +610,7 @@ export class TimetableFormPage implements LeaveConfirmable {
     removeLine(index: number): void {
         this.lines.removeAt(index);
         this.lines.markAsDirty();
-        this.rejectedLines.set(new Set());
+        this.rejectedLines.set(new Map());
         this.refreshRows();
     }
 
@@ -614,12 +656,25 @@ export class TimetableFormPage implements LeaveConfirmable {
         return Object.values(this.sessionErrors());
     }
 
+    /** La ligne a été refusée par le serveur : elle porte l'étiquette « À corriger ». */
+    isRejected(index: number): boolean {
+        return this.rejectedLines().has(index);
+    }
+
+    /**
+     * Raison d'un refus du serveur pour la séance rouverte, sous le champ concerné (sous « Cours »
+     * quand on ne sait pas lequel). Elle n'empêche pas de valider : c'est au serveur de juger.
+     */
+    serverNote(field: SessionField): string | null {
+        const index = this.editingIndex();
+        const rejections = index === null ? [] : (this.rejectedLines().get(index) ?? []);
+        const notes = rejections.filter((rejection) => (rejection.field ?? 'course') === field).map((rejection) => rejection.message);
+        return notes.length ? notes.join(' ') : null;
+    }
+
     /** Erreurs d'une ligne de la liste, connues seulement après « Enregistrer ». */
-    lineIssues(line: LineForm, index: number): string[] {
-        return [
-            ...(this.submitted() && line.invalid ? ['Session incomplète : modifiez-la pour la compléter.'] : []),
-            ...(this.rejectedLines().has(index) ? ['Séance refusée : voir le message affiché.'] : [])
-        ];
+    lineIssues(line: LineForm): string[] {
+        return this.submitted() && line.invalid ? ['Session incomplète : modifiez-la pour la compléter.'] : [];
     }
 
     /** « Merlec Mpyana » : l'API donne le prénom et le nom séparément. */
@@ -681,7 +736,7 @@ export class TimetableFormPage implements LeaveConfirmable {
 
     save(): void {
         this.submitted.set(true);
-        this.rejectedLines.set(new Set());
+        this.rejectedLines.set(new Map());
 
         const timetable = this.timetable();
         if (!timetable) {
@@ -704,7 +759,9 @@ export class TimetableFormPage implements LeaveConfirmable {
         const values = this.lineValues();
         const overlaps = findOverlappingLines(values);
         if (overlaps.size > 0) {
-            this.rejectedLines.set(new Set(overlaps.keys()));
+            this.rejectedLines.set(
+                new Map([...overlaps].map(([index, others]) => [index, [{ field: 'time' as const, message: `Chevauche la ligne ${others.map((other) => other + 1).join(', ')} sur un même jour.` }]]))
+            );
             this.notifyErrors(
                 'Sessions en même temps',
                 [...overlaps].map(([index, others]) => `Ligne ${index + 1} : chevauche la ligne ${others.map((other) => other + 1).join(', ')} sur un même jour.`)
@@ -1275,7 +1332,7 @@ export class TimetableFormPage implements LeaveConfirmable {
         if (error instanceof HttpErrorResponse && error.status === 422) {
             const failures = readBatchErrors(error).flatMap((item) => {
                 const origin = planned[item.index];
-                return origin ? [{ line: origin.line, day: origin.day, message: readableApiText(item.message, this.idLabels()) || item.code }] : [];
+                return origin ? [{ line: origin.line, day: origin.day, code: item.code, message: readableApiText(item.message, this.idLabels()) || item.code }] : [];
             });
             if (failures.length > 0) {
                 return failures;
@@ -1297,7 +1354,14 @@ export class TimetableFormPage implements LeaveConfirmable {
             return;
         }
 
-        this.rejectedLines.set(new Set(failures.flatMap((failure) => (failure.line === null ? [] : [failure.line]))));
+        const rejections = new Map<number, LineRejection[]>();
+        for (const failure of failures) {
+            if (failure.line !== null) {
+                const day = failure.day ? `${weekDayLabel(failure.day)} : ` : '';
+                rejections.set(failure.line, [...(rejections.get(failure.line) ?? []), { field: failureField(failure), message: `${day}${failure.message}` }]);
+            }
+        }
+        this.rejectedLines.set(rejections);
         this.notifyErrors('Sessions non enregistrées', groupFailures(failures, (index) => this.courseLabel(this.lines.at(index))));
     }
 

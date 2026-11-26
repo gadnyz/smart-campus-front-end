@@ -21,6 +21,14 @@
             [documents]="exportDocuments()"
             [disabledReason]="exportDocuments().length ? null : 'Choisissez une promotion qui a un horaire validé sur la période affichée.'"
         />
+        @if (exportFacultyId()) {
+        <app-timetable-export-menu
+            timetableActions
+            label="Toute la faculté"
+            [documents]="facultyDocuments()"
+            [disabledReason]="facultyDocuments().length ? null : 'Aucun horaire validé dans la faculté sur la période affichée.'"
+        />
+        }
         <div timetableFilters class="timetable-filters">
             @if (facultyChoice) {
             <p-select

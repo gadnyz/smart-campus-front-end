@@ -23,14 +23,14 @@ type ExportKind = 'print' | 'pdf' | 'excel';
         <p-toast />
         <span [attr.title]="disabledReason()">
         <p-button
-            label="Exporter"
+            [label]="label()"
             icon="pi pi-download"
             severity="secondary"
             [outlined]="true"
             size="small"
             [loading]="busy() !== null"
             [disabled]="unavailable()"
-            [ariaLabel]="unavailable() ? 'Exporter : aucune séance à exporter' : 'Exporter l’horaire'"
+            [ariaLabel]="unavailable() ? label() + ' : aucune séance à exporter' : label() + ' : imprimer ou exporter l’horaire'"
             (onClick)="menu.toggle($event)"
         />
         </span>
@@ -42,6 +42,8 @@ export class TimetableExportMenu {
     private readonly messageService = inject(MessageService);
 
     readonly documents = input<readonly PrintableTimetable[]>([]);
+    /** « Exporter », ou « Toute la faculté » pour l'horaire d'ensemble. */
+    readonly label = input('Exporter');
     /** Raison de l'indisponibilité, affichée au survol (sessions non enregistrées…). */
     readonly disabledReason = input<string | null>(null);
 

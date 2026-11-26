@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, model, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, computed, inject, input, model, output, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -25,7 +25,12 @@ type Step = 'file' | 'preview' | 'done';
     templateUrl: './import-dialog.html'
 })
 export class ImportDialog<T> {
-    private readonly spreadsheet = inject(SPREADSHEET_IO);
+    private readonly injector = inject(Injector);
+
+    /** Lu au premier usage : la fenêtre fermée ne dépend pas de la librairie Excel. */
+    private get spreadsheet() {
+        return this.injector.get(SPREADSHEET_IO);
+    }
 
     readonly config = input.required<ImportConfig<T>>();
     readonly visible = model(false);

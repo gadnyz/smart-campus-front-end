@@ -47,7 +47,11 @@ describe('StudentListPage', () => {
         }
     ];
 
+    afterEach(() => sessionStorage.removeItem('smartcampus.working-faculty'));
+
     beforeEach(async () => {
+        sessionStorage.removeItem('smartcampus.working-faculty');
+        exporter = jasmine.createSpyObj<ExportService>('ExportService', ['print', 'downloadPdf', 'downloadExcel']);
         studentService = jasmine.createSpyObj<StudentService>('StudentService', ['getAll']);
         catalog = jasmine.createSpyObj<AcademicCatalogService>('AcademicCatalogService', [
             'getFaculties',
@@ -88,7 +92,7 @@ describe('StudentListPage', () => {
                 DetailNavigationService,
                 { provide: StudentService, useValue: studentService },
                 { provide: AcademicCatalogService, useValue: catalog },
-                { provide: EXPORT_SERVICE, useFactory: () => (exporter = jasmine.createSpyObj<ExportService>('ExportService', ['print', 'downloadPdf', 'downloadExcel'])) },
+                { provide: EXPORT_SERVICE, useFactory: () => exporter },
                 {
                     provide: AuthService,
                     useValue: {

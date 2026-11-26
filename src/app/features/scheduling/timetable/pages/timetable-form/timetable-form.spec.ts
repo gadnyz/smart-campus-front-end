@@ -350,7 +350,7 @@ describe('TimetableFormPage', () => {
             expect(line.controls.room_id.value).toBe('room-1');
 
             component.save();
-            expect(component.lineIssues(line, 0)).toEqual(['Session incomplète : modifiez-la pour la compléter.']);
+            expect(component.lineIssues(line)).toEqual(['Session incomplète : modifiez-la pour la compléter.']);
         });
     });
 
@@ -387,8 +387,13 @@ describe('TimetableFormPage', () => {
             fillHeader();
             jasmine.clock().tick(400);
 
+            // Les cours sont proposés tout de suite ; leurs enseignants arrivent à l'ouverture de la fenêtre.
+            expect(component.schedulableCourses().length).toBe(1);
+            component.openSessionDialog();
+
             expect(component.courses().length).toBe(1);
             expect(component.schedulableCourses()).toEqual([]);
+            expect(component.teachersLoading()).toBeFalse();
         });
 
         it('should take the first assistant added when the course has no lead instructor', () => {
@@ -544,9 +549,16 @@ describe('TimetableFormPage', () => {
             component.save();
 
             expect(router.navigate).not.toHaveBeenCalled();
-            expect(component.lineIssues(component.lines.at(1), 1)).toEqual(['Séance refusée : voir le message affiché.']);
-            expect(component.lineIssues(component.lines.at(0), 0)).toEqual([]);
-            expect(errorToasts()).toEqual(['Ligne 2 · Algèbre — mardi : Salle occupée']);
+            expect(component.isRejected(1)).toBeTrue();
+            expect(component.isRejected(0)).toBeFalse();
+            expect(errorToasts()).toEqual(['Algèbre (ligne 2) n’a pas été enregistrée le mardi : salle occupée. Choisissez une autre salle ou un autre créneau.']);
+
+            // Rouverte, la séance montre la raison sous la salle, sans empêcher de la valider.
+            component.openSessionDialog(1);
+            expect(component.serverNote('room')).toBe('Mardi : Salle occupée');
+            expect(component.serverNote('time')).toBeNull();
+            component.submitSession();
+            expect(component.isRejected(1)).toBeFalse();
         });
     });
 
@@ -627,8 +639,11 @@ describe('TimetableFormPage', () => {
             component.save();
 
             expect(router.navigate).not.toHaveBeenCalled();
-            expect(errorToasts()).toEqual(['Une séance n’a pas pu être supprimée : Panne', 'Ligne 2 · Algèbre — vendredi : Salle occupée']);
-            expect(component.lineIssues(component.lines.at(1), 1)).toEqual(['Séance refusée : voir le message affiché.']);
+            expect(errorToasts()).toEqual([
+                'Une séance n’a pas pu être supprimée : Panne',
+                'Algèbre (ligne 2) n’a pas été enregistrée le vendredi : salle occupée. Choisissez une autre salle ou un autre créneau.'
+            ]);
+            expect(component.isRejected(1)).toBeTrue();
             // Le mardi créé est rattaché à sa ligne : un nouvel essai ne le recréera pas.
             expect(component.lines.at(0).controls.entry_ids.value[2]).toBe('new-0');
             expect(component.persisted().map((item) => item.id)).toContain('e-wed');

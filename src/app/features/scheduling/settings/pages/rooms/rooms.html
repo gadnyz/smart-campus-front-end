@@ -1,7 +1,7 @@
 <p-toast />
 <p-confirmdialog [style]="{ width: '450px' }" />
 
-<app-content-subtopbar kicker="" title="Salles" [actions]="actions()" />
+<app-content-subtopbar kicker="Paramètres" title="Salles" [actions]="actions()" />
 
 <div class="card">
     <p-table styleClass="stack-table"
@@ -20,9 +20,13 @@
         [tableStyle]="{ 'min-width': '44rem' }"
     >
         <ng-template pTemplate="caption">
-            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-3">
                 <div class="font-semibold text-xl">Liste des salles</div>
-                <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                <app-table-toolbar title="Liste des salles" [columns]="columns" [rows]="filteredRooms()" [query]="query()" [refreshing]="loading()"
+                    [importConfig]="importConfig()" (refresh)="load()" />
+            </div>
+                <div class="flex flex-col gap-3 md:flex-row md:items-start">
                     <p-select
                         [options]="typeOptions"
                         optionLabel="label"
@@ -35,10 +39,7 @@
                         appendTo="body"
                         class="w-full md:w-14rem"
                     />
-                    <p-iconfield>
-                        <p-inputicon styleClass="pi pi-search" />
-                        <input pInputText type="text" placeholder="Rechercher..." aria-label="Rechercher une salle" (input)="onGlobalFilter(dt, $event)" />
-                    </p-iconfield>
+                    <app-data-filter class="flex-1" [columns]="columns" [rows]="rooms()" [(query)]="query" searchPlaceholder="Nom ou localisation…" />
                 </div>
             </div>
         </ng-template>
@@ -50,7 +51,7 @@
                 <th pSortableColumn="capacity">Capacité <p-sortIcon field="capacity" /></th>
                 <th pSortableColumn="type">Type <p-sortIcon field="type" /></th>
                 <th>Lien</th>
-                <th style="width: 8rem">Actions</th>
+                <th class="row-actions-cell"><span class="sr-only">Actions</span></th>
             </tr>
         </ng-template>
 
@@ -67,15 +68,16 @@
                     —
                     }
                 </td>
-                <td class="stack-actions">
-                    <div class="flex gap-2">
+                <td class="row-actions-cell">
+                    <div class="row-actions">
                         @if (canUpdate()) {
                         <button
                             pButton
                             type="button"
                             icon="pi pi-pencil"
-                            rounded
-                            outlined
+                            [rounded]="true"
+                            [text]="true"
+                            size="small"
                             [attr.aria-label]="'Modifier ' + room.name"
                             (click)="openEditDialog(room)"
                         ></button>
@@ -85,8 +87,9 @@
                             pButton
                             type="button"
                             icon="pi pi-trash"
-                            rounded
-                            outlined
+                            [rounded]="true"
+                            [text]="true"
+                            size="small"
                             severity="danger"
                             [attr.aria-label]="'Supprimer ' + room.name"
                             (click)="confirmDelete(room)"

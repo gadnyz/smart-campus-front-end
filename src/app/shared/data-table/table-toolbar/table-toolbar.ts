@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, inject, input, output, signal } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
@@ -46,7 +46,7 @@ type Busy = 'print' | 'excel' | null;
     ]
 })
 export class TableToolbar<T> {
-    private readonly exporter = inject(EXPORT_SERVICE);
+    private readonly injector = inject(Injector);
     private readonly messages = inject(MessageService, { optional: true });
 
     readonly title = input.required<string>();
@@ -65,11 +65,16 @@ export class TableToolbar<T> {
 
     print(): void {
         // Appel direct depuis le clic : l'onglet d'impression s'ouvre avant tout traitement.
-        void this.run('print', this.exporter.print(this.document()));
+        void this.run('print', this.exporter().print(this.document()));
     }
 
     excel(): void {
-        void this.run('excel', this.exporter.downloadExcel(this.document()));
+        void this.run('excel', this.exporter().downloadExcel(this.document()));
+    }
+
+    /** Lu au clic : un tableau qui n'exporte rien ne dépend pas du module d'export. */
+    private exporter() {
+        return this.injector.get(EXPORT_SERVICE);
     }
 
     private document() {

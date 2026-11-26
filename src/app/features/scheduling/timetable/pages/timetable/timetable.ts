@@ -76,6 +76,25 @@ export class TimetablePage implements OnInit {
     readonly weeks = signal<LoadedWeek[]>([]);
     readonly events = computed<EventInput[]>(() => this.weeks().flatMap((week) => week.sessions.map(toCalendarEvent)));
     /** Semaines affichées, au format « Horaire Faculté » pour l'impression et les exports. */
+    /** Horaires validés de toute la faculté sur la période affichée, pour l'impression d'ensemble. */
+    readonly facultyWeeks = signal<LoadedWeek[]>([]);
+    /** La faculté de l'horaire d'ensemble : celle du compte, sinon celle choisie. */
+    readonly exportFacultyId = computed(() => this.facultyId ?? this.selectedFacultyId());
+    /**
+     * Un seul document pour la faculté : semaine par semaine, ses promotions dans l'ordre des
+     * niveaux (L1, L2…) puis des programmes, en forme longue sur le document.
+     */
+    readonly facultyDocuments = computed<PrintableTimetable[]>(() => {
+        const order = new Map(this.programs().flatMap((program) => (program.levels ?? []).map((level) => [level.id, level.level.level_order ?? 0] as const)));
+        return [...this.facultyWeeks()]
+            .sort(
+                (a, b) =>
+                    a.timetable.week_start.localeCompare(b.timetable.week_start) ||
+                    (order.get(a.timetable.program_level_id) ?? 0) - (order.get(b.timetable.program_level_id) ?? 0) ||
+                    a.timetable.program_name.localeCompare(b.timetable.program_name, 'fr')
+            )
+            .map((week) => printableFromTimetable(week.timetable, week.sessions, this.programs()));
+    });
     readonly exportDocuments = computed<PrintableTimetable[]>(() =>
         this.weeks().map((week) => printableFromTimetable(week.timetable, week.sessions, this.programs()))
     );
@@ -146,6 +165,17 @@ export class TimetablePage implements OnInit {
                 takeUntilDestroyed()
             )
             .subscribe((weeks) => this.weeks.set(weeks));
+
+        // L'horaire de la faculté est préparé en arrière-plan : l'impression peut ainsi ouvrir son
+        // onglet dans le geste de l'utilisateur, sans attente visible.
+        toObservable(computed(() => ({ facultyId: this.exportFacultyId(), range: this.visibleRange() })))
+            .pipe(
+                switchMap(({ facultyId, range }) =>
+                    facultyId && range ? this.professorLabels.labels().pipe(switchMap((labels) => this.loadWeeks({ facultyId }, range, labels))) : of([] as LoadedWeek[])
+                ),
+                takeUntilDestroyed()
+            )
+            .subscribe((weeks) => this.facultyWeeks.set(weeks));
     }
 
     ngOnInit(): void {
@@ -206,15 +236,16 @@ export class TimetablePage implements OnInit {
      * VALIDÉ de la promotion puis ses séances. Une semaine en échec reste simplement vide.
      */
     private loadEvents(levelId: string, range: TimetableCalendarRange): Observable<LoadedWeek[]> {
-        return this.professorLabels.labels().pipe(switchMap((labels) => this.loadWeeks(levelId, range, labels)));
+        return this.professorLabels.labels().pipe(switchMap((labels) => this.loadWeeks({ programLevelId: levelId }, range, labels)));
     }
 
-    private loadWeeks(levelId: string, range: TimetableCalendarRange, labels: ReadonlyMap<string, string>): Observable<LoadedWeek[]> {
+    /** Horaires validés d'une promotion ou de toute une faculté, avec leurs séances, sur la période. */
+    private loadWeeks(filter: { programLevelId?: string; facultyId?: string }, range: TimetableCalendarRange, labels: ReadonlyMap<string, string>): Observable<LoadedWeek[]> {
         // Pas de filtre `week` : le backend renvoie 500 dès qu'il est fourni (paramètre date non typé
         // côté PostgreSQL dans TimetableRepository.findAllByFilters). On liste les horaires VALIDÉS
         // de la promotion et on garde ceux des semaines affichées.
         const weeks = new Set(weeksInRange(range.start, range.end));
-        return this.timetableService.list({ programLevelId: levelId, status: 'VALIDATED', page: 0, size: VALIDATED_PAGE_SIZE }).pipe(
+        return this.timetableService.list({ ...filter, status: 'VALIDATED', page: 0, size: VALIDATED_PAGE_SIZE }).pipe(
             switchMap((page) => {
                 const timetables = page.content.filter((timetable) => weeks.has(timetable.week_start));
                 if (timetables.length === 0) {

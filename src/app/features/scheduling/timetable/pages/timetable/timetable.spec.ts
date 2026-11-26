@@ -183,6 +183,29 @@ describe('TimetablePage (calendrier)', () => {
         expect(component.loadError()).toContain('rattaché à aucune faculté');
     });
 
+    it('should prepare the whole faculty in one document, week by week and level by level', () => {
+        sessionStorage.removeItem('smartcampus.working-faculty');
+        createComponent(['scheduling:timetable:read:all']);
+        const l2 = { ...validated, id: 'tt-l2', program_level_id: 'pl-2', program_level_name: 'Licence 2' };
+        timetableService.list.and.callFake((query: TimetableListQuery = {}) =>
+            of(
+                query.facultyId
+                    ? { content: [l2, validated, { ...validated, id: 'tt-far', week_start: '2026-11-30' }], page: 0, size: 100, total_elements: 3, total_pages: 1 }
+                    : { content: [], page: 0, size: 1, total_elements: 0, total_pages: 0 }
+            )
+        );
+        component.programs.set([{ ...program, levels: [...program.levels!, { id: 'pl-2', is_common: true, level: { id: 'l2', code: 'L2', name: 'Licence 2', level_order: 2 } }] }]);
+
+        component.onFacultyChange('fac-1');
+        component.onRangeChange({ start: new Date(2026, 9, 5), end: new Date(2026, 9, 12), viewType: 'timeGridWeek' });
+        fixture.detectChanges();
+
+        expect(timetableService.list).toHaveBeenCalledWith({ facultyId: 'fac-1', status: 'VALIDATED', page: 0, size: 100 });
+        // Les promotions de la semaine, L1 avant L2, en forme longue : c'est un document officiel.
+        expect(component.facultyDocuments().map((document) => document.heading)).toEqual(['Licence 1 Informatique', 'Licence 2 Informatique']);
+        sessionStorage.removeItem('smartcampus.working-faculty');
+    });
+
     it('should let the all scope choose a faculty first, and remember it', () => {
         sessionStorage.removeItem('smartcampus.working-faculty');
         createComponent(['scheduling:timetable:read:all']);
