@@ -1,8 +1,9 @@
-site_name: Smart Campus — Documentation front-end
-site_description: Documentation technique du front-end Angular de Smart Campus (Université Nouveaux Horizons)
+site_name: Smart Campus — Documentation
+site_description: Guide utilisateur et documentation technique du front-end de Smart Campus (Université Nouveaux Horizons)
 docs_dir: docs
 exclude_docs: |
   DONNEES_REFERENCE.md
+copyright: Documentation version 1.0.0 — 26 novembre 2026
 
 theme:
   name: material
@@ -30,10 +31,19 @@ markdown_extensions:
 
 nav:
   - Accueil: index.md
-  - Installation: installation.md
-  - Technologies: technologies.md
+  - Guide utilisateur:
+      - Prise en main: guide-utilisateur/prise-en-main.md
+      - Parcours du candidat et de l'étudiant: guide-utilisateur/parcours-candidat-etudiant.md
+      - Candidatures et étudiants: guide-utilisateur/candidatures-etudiants.md
+      - Gestion académique: guide-utilisateur/gestion-academique.md
+      - Professeurs: guide-utilisateur/professeurs.md
+      - Emplois du temps: guide-utilisateur/emplois-du-temps.md
+      - Utilisateurs, profils et droits: guide-utilisateur/utilisateurs-droits.md
+      - Configuration: guide-utilisateur/configuration.md
   - Développement:
+      - Installation: developpement/installation.md
+      - Technologies: developpement/technologies.md
       - Architecture: developpement/architecture.md
-      - Créer un module: developpement/creer-un-module.md
+      - "Démarrage rapide : créer un module": developpement/creer-un-module.md
       - Brancher un module: developpement/brancher-un-module.md
       - Communication avec le backend: developpement/communication-backend.md

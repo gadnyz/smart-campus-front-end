@@ -1,6 +1,10 @@
 @use '../../../../shared/ui/styles/stacked-table' as stacked;
 
+@use '../../../../shared/ui/styles/row-actions' as rows;
+
 @include stacked.stacked-table('.stack-table');
+@include rows.row-actions('.stack-table');
+@include rows.clickable-rows('.stack-table');
 :host {
     display: block;
 }

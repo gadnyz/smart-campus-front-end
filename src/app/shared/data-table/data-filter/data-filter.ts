@@ -9,7 +9,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { PopoverModule } from 'primeng/popover';
 import { SelectModule } from 'primeng/select';
-import { ColumnDef } from '../column.model';
+import { ColumnDef, isAdvancedFilter } from '../column.model';
 import { FilterOperator, FilterRule, OPERATOR_LABELS, TableQuery, describeRule, describeSort, distinctValues, normalize, operatorsFor } from '../table-query';
 
 /**
@@ -19,9 +19,11 @@ import { FilterOperator, FilterRule, OPERATOR_LABELS, TableQuery, describeRule, 
  * - Filtres avancés, comme le filtre de Google Sheets : on choisit une colonne, puis une condition
  *   selon son type (valeurs exactes à cocher, contient, ne contient pas, commence par, vide, avant,
  *   après, entre…). Les filtres se combinent (ET).
- * - Tri croissant ou décroissant sur n'importe quelle colonne.
+ * - Les listes de l'API (faculté, programme, statut…) se placent sur la même ligne (contenu
+ *   projeté) ; leurs colonnes, comme celles de la recherche, ne sont pas reprises dans les filtres.
  *
- * Les filtres actifs restent visibles en pastilles, qu'on retire une à une ou toutes d'un coup.
+ * Le tri n'est pas proposé à l'écran (`query.sort` reste disponible pour une page qui en aurait
+ * besoin). Les filtres actifs restent visibles en pastilles, qu'on retire un à un ou tous d'un coup.
  * Le composant ne filtre rien lui-même : il tient la `query`, que la page applique (côté
  * navigateur avec `applyQuery`, ou en partie par l'API).
  */
@@ -50,7 +52,8 @@ export class DataFilter<T> {
     readonly draftValues = signal<string[]>([]);
     readonly valueSearch = signal('');
 
-    readonly filterableColumns = computed(() => this.columns().filter((column) => column.filterable !== false));
+    /** Ni les colonnes de la recherche, ni celles des listes de l'API : chaque critère à un seul endroit. */
+    readonly filterableColumns = computed(() => this.columns().filter((column) => isAdvancedFilter(column)));
     readonly sortableColumns = computed(() => this.columns().filter((column) => column.sortable !== false));
     readonly columnOptions = computed(() => this.filterableColumns().map((column) => ({ label: column.label, value: column.key })));
     readonly sortOptions = computed(() => this.sortableColumns().map((column) => ({ label: column.label, value: column.key })));

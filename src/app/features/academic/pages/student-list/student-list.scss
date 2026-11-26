@@ -23,21 +23,10 @@
     font-weight: 600;
 }
 
-/* Le périmètre chargé depuis l'API : faculté, programme, promotion. */
-.scope-filters {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-}
-
 @media (max-width: 900px) {
     .list-header {
         align-items: stretch;
         flex-direction: column;
     }
 
-    .scope-filters {
-        grid-template-columns: 1fr;
-    }
 }

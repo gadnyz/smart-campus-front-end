@@ -74,3 +74,14 @@
     justify-content: flex-end;
     gap: 0.5rem;
 }
+
+/* Listes de l'API projetées par la page, sur la ligne de la recherche. */
+:host ::ng-deep .scope-select {
+    flex: 0 1 14rem;
+    min-width: 10rem;
+}
+
+:host ::ng-deep .scope-select--short {
+    flex-basis: 9rem;
+    min-width: 8rem;
+}

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { writeAuthorities } from '@/app/core/permissions/permission-scope';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -34,11 +34,27 @@ import { ProfessorService } from '../../services/professor.service';
 import { blankToNull, toApiDate } from '../../utils/academic-date';
 import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
 import { readableApiText } from '@/app/shared/http/readable-api-text';
+import { ColumnDef } from '@/app/shared/data-table/column.model';
+import { DataFilter } from '@/app/shared/data-table/data-filter/data-filter';
+import { TableToolbar } from '@/app/shared/data-table/table-toolbar/table-toolbar';
+import { listState } from '@/app/shared/data-table/list-state';
+import { resetPageOnChange } from '@/app/shared/data-table/reset-page';
 
 export interface ProfessorRow extends Professor {
     display_name: string;
     grade_label: string;
 }
+
+/** Les colonnes des professeurs : affichage, recherche, filtres, impression et export. */
+export const PROFESSOR_COLUMNS: ColumnDef<ProfessorRow>[] = [
+    { key: 'name', label: 'Nom', type: 'text', value: (row) => row.display_name, searchable: true, hideable: false, exportWidth: 2 },
+    // Le grade regroupe le tableau : on le filtre par valeurs à cocher.
+    { key: 'grade', label: 'Grade', type: 'text', value: (row) => row.grade_label },
+    { key: 'email', label: 'E-mail', type: 'text', value: (row) => row.email, searchable: true, exportWidth: 2 },
+    { key: 'faculty', label: 'Faculté', type: 'text', value: (row) => row.faculty_name, apiKey: 'faculty_id', exportWidth: 2 },
+    { key: 'matricule', label: 'Matricule', type: 'text', value: (row) => row.matricule, searchable: true },
+    { key: 'phone', label: 'Téléphone', type: 'text', value: (row) => row.phone, visible: false }
+];
 
 @Component({
     selector: 'app-professor-list',
@@ -56,7 +72,9 @@ export interface ProfessorRow extends Professor {
         InputIconModule,
         SelectModule,
         DatePicker,
-        ContentSubtopbar
+        ContentSubtopbar,
+        DataFilter,
+        TableToolbar
     ],
     templateUrl: './professor-list.html',
     styleUrl: './professor-list.scss',
@@ -231,12 +249,21 @@ export class ProfessorListPage implements OnInit {
         this.dialogVisible.set(true);
     }
 
+    /** Recherche, filtres et colonnes affichées ; `list.rows()` est aussi ce qu'on imprime. */
+    readonly list = listState(PROFESSOR_COLUMNS, this.rows);
+    private readonly table = viewChild(Table);
+
+    constructor() {
+        resetPageOnChange(this.list.query, this.table);
+    }
+
     ngOnInit(): void {
         this.load();
     }
 
-    onGlobalFilter(table: Table, event: Event): void {
-        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+    /** Actualiser : recharge les professeurs. */
+    reload(): void {
+        this.load();
     }
 
     openDetail(professor: ProfessorRow): void {

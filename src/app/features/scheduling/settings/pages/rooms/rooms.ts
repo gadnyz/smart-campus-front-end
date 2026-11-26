@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -21,15 +21,16 @@ import { ROOM_TYPE_OPTIONS, Room, RoomType, roomTypeLabel } from '../../../model
 import { RoomService } from '../../../services/room.service';
 import { readableApiText } from '@/app/shared/http/readable-api-text';
 import { firstValueFrom } from 'rxjs';
-import { ColumnDef } from '@/app/shared/data-table/column.model';
+import { ColumnDef, cellText, defaultVisibleKeys, shownColumns } from '@/app/shared/data-table/column.model';
 import { DataFilter } from '@/app/shared/data-table/data-filter/data-filter';
 import { TableToolbar } from '@/app/shared/data-table/table-toolbar/table-toolbar';
 import { EMPTY_QUERY, TableQuery, applyQuery } from '@/app/shared/data-table/table-query';
 import { ImportConfig } from '@/app/shared/import/import.model';
+import { resetPageOnChange } from '@/app/shared/data-table/reset-page';
 
 /** Les colonnes des salles, déclarées une fois : affichage, recherche, filtres, export et import. */
 export const ROOM_COLUMNS: ColumnDef<Room>[] = [
-    { key: 'name', label: 'Nom', type: 'text', value: (row) => row.name, searchable: true, import: { required: true, example: '402 A' } },
+    { key: 'name', label: 'Nom', type: 'text', value: (row) => row.name, searchable: true, hideable: false, import: { required: true, example: '402 A' } },
     { key: 'location', label: 'Localisation', type: 'text', value: (row) => row.location, searchable: true, import: { required: true, example: 'Bâtiment UNH 1' } },
     { key: 'capacity', label: 'Capacité', type: 'number', value: (row) => row.capacity, import: { required: true, example: '60' } },
     {
@@ -40,8 +41,8 @@ export const ROOM_COLUMNS: ColumnDef<Room>[] = [
         options: ROOM_TYPE_OPTIONS.map((option) => ({ label: option.label, value: option.value })),
         import: { example: 'Standard' }
     },
-    { key: 'coordinates', label: 'Coordonnées', type: 'text', value: (row) => row.coordinates, import: { example: 'Étage 2, aile Est' } },
-    { key: 'link', label: 'Lien de visioconférence', type: 'text', value: (row) => row.link, filterable: false, import: { example: '' } }
+    { key: 'coordinates', label: 'Coordonnées', type: 'text', value: (row) => row.coordinates, visible: false, import: { example: 'Étage 2, aile Est' } },
+    { key: 'link', label: 'Lien', type: 'text', value: (row) => row.link, filterable: false, import: { example: '' } }
 ];
 
 /**
@@ -87,7 +88,6 @@ export class RoomsPage implements OnInit {
     readonly saving = signal(false);
     readonly dialogVisible = signal(false);
     readonly editingId = signal<string | null>(null);
-    readonly typeFilter = signal<RoomType | null>(null);
 
     readonly typeOptions = ROOM_TYPE_OPTIONS;
     readonly roomTypeLabel = roomTypeLabel;
@@ -95,17 +95,22 @@ export class RoomsPage implements OnInit {
     readonly dialogTitle = computed(() => (this.editingId() ? 'Modifier la salle' : 'Nouvelle salle'));
 
     readonly columns = ROOM_COLUMNS;
+    /** Colonnes affichées, choisies avec la barre d'outils ; aussi celles imprimées. */
+    readonly visibleKeys = signal<string[]>(defaultVisibleKeys(ROOM_COLUMNS));
+    readonly shownList = computed(() => shownColumns(this.columns, this.visibleKeys()));
+    readonly cellText = cellText;
     readonly query = signal<TableQuery>(EMPTY_QUERY);
 
     /**
      * Filtrage dans le navigateur : `GET /api/v1/rooms` n'expose aucun paramètre de requête. Ce
      * sont aussi les lignes imprimées et exportées.
      */
-    readonly filteredRooms = computed(() => {
-        const type = this.typeFilter();
-        const rooms = this.rooms();
-        return applyQuery(type ? rooms.filter((room) => room.type === type) : rooms, this.columns, this.query());
-    });
+    readonly filteredRooms = computed(() => applyQuery(this.rooms(), this.columns, this.query()));
+    private readonly table = viewChild(Table);
+
+    constructor() {
+        resetPageOnChange(this.query, this.table);
+    }
 
     readonly canCreate = computed(() => this.permissionService.hasAnyPermission([SchedulingPermission.RoomCreateAll]));
 
@@ -162,22 +167,6 @@ export class RoomsPage implements OnInit {
 
     ngOnInit(): void {
         this.load();
-    }
-
-    onGlobalFilter(table: Table, event: Event): void {
-        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
-    }
-
-    /**
-     * `table.first` doit être remis à zéro : sans cela, un filtrage effectué depuis la page 2+
-     * laisse le tableau sur un offset désormais vide.
-     */
-    onTypeFilterChange(type: RoomType | null, table?: Table): void {
-        this.typeFilter.set(type);
-
-        if (table) {
-            table.first = 0;
-        }
     }
 
     openCreateDialog(): void {

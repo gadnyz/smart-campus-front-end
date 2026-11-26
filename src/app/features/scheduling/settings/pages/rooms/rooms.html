@@ -23,51 +23,38 @@
             <div class="flex flex-col gap-3">
             <div class="flex items-center justify-between gap-3">
                 <div class="font-semibold text-xl">Liste des salles</div>
-                <app-table-toolbar title="Liste des salles" [columns]="columns" [rows]="filteredRooms()" [query]="query()" [refreshing]="loading()"
-                    [importConfig]="importConfig()" (refresh)="load()" />
+                <app-table-toolbar title="Liste des salles" storageKey="scheduling.rooms" [columns]="columns" [rows]="filteredRooms()" [query]="query()"
+                    [refreshing]="loading()" [importConfig]="importConfig()" [(visibleKeys)]="visibleKeys" (refresh)="load()" />
             </div>
-                <div class="flex flex-col gap-3 md:flex-row md:items-start">
-                    <p-select
-                        [options]="typeOptions"
-                        optionLabel="label"
-                        optionValue="value"
-                        [ngModel]="typeFilter()"
-                        (ngModelChange)="onTypeFilterChange($event, dt)"
-                        [showClear]="true"
-                        placeholder="Type de salle"
-                        ariaLabel="Filtrer les salles par type"
-                        appendTo="body"
-                        class="w-full md:w-14rem"
-                    />
-                    <app-data-filter class="flex-1" [columns]="columns" [rows]="rooms()" [(query)]="query" searchPlaceholder="Nom ou localisation…" />
-                </div>
+                <!-- L'API des salles ne filtre rien : le type se choisit dans les filtres, comme le reste. -->
+                <app-data-filter [columns]="columns" [rows]="rooms()" [(query)]="query" searchPlaceholder="Nom ou localisation…" />
             </div>
         </ng-template>
 
         <ng-template pTemplate="header">
             <tr>
-                <th pSortableColumn="name">Nom <p-sortIcon field="name" /></th>
-                <th pSortableColumn="location">Localisation <p-sortIcon field="location" /></th>
-                <th pSortableColumn="capacity">Capacité <p-sortIcon field="capacity" /></th>
-                <th pSortableColumn="type">Type <p-sortIcon field="type" /></th>
-                <th>Lien</th>
+                @for (column of shownList(); track column.key) {
+                <th>{{ column.label }}</th>
+                }
                 <th class="row-actions-cell"><span class="sr-only">Actions</span></th>
             </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-room>
             <tr>
-                <td data-label="Nom">{{ room.name }}</td>
-                <td data-label="Localisation">{{ room.location }}</td>
-                <td data-label="Capacité">{{ room.capacity }}</td>
-                <td data-label="Type">{{ roomTypeLabel(room.type) }}</td>
-                <td data-label="Lien">
+                @for (column of shownList(); track column.key) {
+                <td [attr.data-label]="column.label">
+                    @if (column.key === 'link') {
                     @if (room.link) {
                     <a pButton [href]="room.link" target="_blank" rel="noopener noreferrer" icon="pi pi-external-link" iconPos="right" label="Rejoindre" [text]="true" size="small" [attr.aria-label]="'Rejoindre la salle ' + room.name + ' (nouvel onglet)'"></a>
                     } @else {
                     —
                     }
+                    } @else {
+                    {{ cellText(column, room) || '—' }}
+                    }
                 </td>
+                }
                 <td class="row-actions-cell">
                     <div class="row-actions">
                         @if (canUpdate()) {
@@ -102,7 +89,7 @@
 
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="6">Aucune salle.</td>
+                <td [attr.colspan]="shownList().length + 1">Aucune salle.</td>
             </tr>
         </ng-template>
     </p-table>

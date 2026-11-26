@@ -11,20 +11,15 @@
         <div>
             <h3 class="list-title">Liste des candidats</h3>
             <span class="text-color-secondary">
-                {{ totalElements() }} candidature(s)
+                {{ list.rows().length }} candidature(s)@if (list.rows().length !== candidates().length) { sur {{ candidates().length }} }
             </span>
         </div>
+        <app-table-toolbar title="Liste des candidatures" storageKey="admission.candidates" [columns]="list.columns" [rows]="list.rows()"
+            [query]="list.query()" [refreshing]="loading()" [(visibleKeys)]="list.visibleKeys" (refresh)="loadCandidates()" />
+    </div>
 
-        <div class="list-filters">
-            <p-iconfield>
-                <p-inputicon styleClass="pi pi-search" />
-                <input
-                    pInputText
-                    type="text"
-                    placeholder="Rechercher..."
-                    (input)="onGlobalFilter(dt, $event)"
-                />
-            </p-iconfield>
+    <!-- Recherche, puis les listes de l'API (faculté, statut), puis les filtres. -->
+    <app-data-filter class="block mb-3" [columns]="list.columns" [rows]="candidates()" [(query)]="list.query" searchPlaceholder="Nom, e-mail ou téléphone…">
 
             @if (!facultyLocked()) {
             <p-select
@@ -38,6 +33,8 @@
                 [ngModel]="facultyFilter()"
                 (ngModelChange)="onFacultyChange($event)"
                 ariaLabel="Filtrer par faculté"
+                size="small"
+                class="scope-select"
             />
             }
 
@@ -49,81 +46,62 @@
                 [showClear]="true"
                 [ngModel]="statusFilter()"
                 (ngModelChange)="onStatusChange($event)"
+                ariaLabel="Filtrer par statut"
+                size="small"
+                class="scope-select scope-select--short"
             />
-        </div>
-    </div>
+    </app-data-filter>
 
     <p-table styleClass="stack-table"
         #dt
-        [value]="candidates()"
+        [value]="list.rows()"
         [loading]="loading()"
         dataKey="id"
         [rowHover]="true"
-        [globalFilterFields]="[
-            'first_name',
-            'middle_name',
-            'last_name',
-            'email',
-            'phone'
-        ]"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="{first} à {last} sur {totalRecords}"
         responsiveLayout="scroll"
         [tableStyle]="{ 'min-width': '64rem' }"
     >
         <ng-template pTemplate="header">
             <tr>
-                <th>Candidat</th>
-                <th>Email</th>
-                <th>Téléphone</th>
-                <th>Soumise le</th>
-                <th>Statut</th>
-                <th class="actions-column">Actions</th>
+                @for (column of list.shownColumns(); track column.key) {
+                <th>{{ column.label }}</th>
+                }
+                <th class="row-actions-cell"><span class="sr-only">Actions</span></th>
             </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-candidate>
-            <tr>
-                <td data-label="Candidat">
-                    <div class="font-medium">
-                        {{ fullName(candidate) }}
-                    </div>
-                    <div class="text-sm text-color-secondary">
-                        {{ genderLabel(candidate) }}
-                    </div>
+            <tr class="clickable-row" (click)="openCandidate(candidate)">
+                @for (column of list.shownColumns(); track column.key) {
+                <td [attr.data-label]="column.label">
+                    @if (column.key === 'name') {
+                    <span class="font-medium">{{ fullName(candidate) }}</span>
+                    } @else if (column.key === 'status') {
+                    <p-tag [value]="statusLabel(candidate.status)" [severity]="statusSeverity(candidate.status)" />
+                    } @else {
+                    {{ list.cellText(column, candidate) || '—' }}
+                    }
                 </td>
-
-                <td data-label="Email">{{ candidate.email }}</td>
-                <td data-label="Téléphone">{{ candidate.phone }}</td>
-                <td data-label="Soumise le">{{ submittedLabel(candidate) }}</td>
-
-                <td data-label="Statut">
-                    <p-tag
-                        [value]="statusLabel(candidate.status)"
-                        [severity]="statusSeverity(candidate.status)"
-                    />
-                </td>
-
-                <td class="stack-actions actions-column">
-                    <button pButton type="button" icon="pi pi-arrow-right" rounded outlined
-                        [attr.aria-label]="'Ouvrir la candidature de ' + fullName(candidate)" (click)="openCandidate(candidate)"></button>
+                }
+                <td class="row-actions-cell">
+                    <div class="row-actions">
+                        <button pButton type="button" icon="pi pi-arrow-right" [rounded]="true" [text]="true" size="small"
+                            [attr.aria-label]="'Ouvrir la candidature de ' + fullName(candidate)" (click)="openCandidate(candidate); $event.stopPropagation()"></button>
+                    </div>
                 </td>
             </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="6">
-                    Aucune candidature trouvée.
-                </td>
+                <td [attr.colspan]="list.shownColumns().length + 1">Aucune candidature trouvée.</td>
             </tr>
         </ng-template>
     </p-table>
 
-    <p-paginator
-        [first]="page() * size()"
-        [rows]="size()"
-        [totalRecords]="totalElements()"
-        [rowsPerPageOptions]="[10, 25, 50]"
-        [alwaysShow]="false"
-        (onPageChange)="onPageChange($event)"
-    />
 </p-card>

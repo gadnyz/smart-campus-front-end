@@ -98,20 +98,30 @@ describe('RoomsPage (Paramètres › Planification)', () => {
 
     it('should filter by type without a new HTTP call', async () => {
         await createComponent(['scheduling:room:update:all']);
-        component.onTypeFilterChange('LABORATORY');
+        // Le type se filtre avec les filtres avancés : l'API des salles n'a aucun paramètre.
+        component.query.set({ search: '', filters: [{ key: 'type', operator: 'in', values: ['Laboratoire'] }], sort: null });
 
         expect(component.filteredRooms().map((room) => room.id)).toEqual(['room-2']);
         expect(roomService.getAll).toHaveBeenCalledTimes(1);
     });
 
-    it('should reset the table pagination when the type filter changes', async () => {
+    it('should reset the table pagination when the filters change', async () => {
         await createComponent(['scheduling:room:update:all']);
         const table = fixture.debugElement.query(By.directive(Table)).componentInstance as Table;
         table.first = 10;
 
-        component.onTypeFilterChange('LABORATORY', table);
+        component.query.set({ search: 'A1', filters: [], sort: null });
+        fixture.detectChanges();
 
         expect(table.first).toBe(0);
+    });
+
+    it('should print only the columns shown on screen', async () => {
+        await createComponent(['scheduling:room:update:all']);
+        expect(component.shownList().map((column) => column.key)).not.toContain('coordinates');
+
+        component.visibleKeys.set(['name', 'coordinates']);
+        expect(component.shownList().map((column) => column.label)).toEqual(['Nom', 'Coordonnées']);
     });
 
     it('should not render the create action without scheduling:room:create:all', async () => {

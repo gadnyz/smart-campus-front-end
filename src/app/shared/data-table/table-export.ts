@@ -10,7 +10,10 @@ import { TableQuery, describeQuery } from './table-query';
 export function toTableDocument<T>(options: {
     title: string;
     subtitle?: string;
+    /** Les colonnes affichées : les seules imprimées et exportées. */
     columns: readonly ColumnDef<T>[];
+    /** Toutes les colonnes du tableau, pour nommer un filtre posé sur une colonne masquée. */
+    allColumns?: readonly ColumnDef<T>[];
     rows: readonly T[];
     query?: TableQuery;
     today?: Date;
@@ -22,7 +25,7 @@ export function toTableDocument<T>(options: {
         kind: 'table',
         title: options.title,
         subtitle: options.subtitle,
-        filters: options.query ? describeQuery(options.query, options.columns) : [],
+        filters: options.query ? describeQuery(options.query, options.allColumns ?? options.columns) : [],
         columns: columns.map((column) => ({ label: column.label, width: column.exportWidth })),
         rows: options.rows.map((row) => columns.map((column) => cellText(column, row))),
         fileName: exportSlug(options.title, options.subtitle ?? '', day)

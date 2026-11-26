@@ -3,64 +3,66 @@
 <app-content-subtopbar kicker="Académique" title="Cours" [actions]="actions()" />
 
 <div class="card">
-    <p-table styleClass="stack-table" #dt [value]="courses()" [loading]="loading()" [paginator]="true" [rows]="10"
-        [rowsPerPageOptions]="[10, 20, 50]" [globalFilterFields]="['code', 'name']" [rowHover]="true" dataKey="id"
+    <p-table styleClass="stack-table" #dt [value]="list.rows()" [loading]="loading()" [paginator]="true" [rows]="10"
+        [rowsPerPageOptions]="[10, 20, 50]" [rowHover]="true" dataKey="id"
         responsiveLayout="scroll" currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} cours"
         [showCurrentPageReport]="true" [tableStyle]="{ 'min-width': '40rem' }">
         <ng-template pTemplate="caption">
-            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div class="font-semibold text-xl">Liste des cours</div>
-                <div class="flex flex-col gap-3 md:flex-row md:items-center">
+            <div class="flex flex-col gap-3">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="font-semibold text-xl">Liste des cours</div>
+                    <app-table-toolbar title="Liste des cours" storageKey="academic.courses" [columns]="list.columns" [rows]="list.rows()"
+                        [query]="list.query()" [refreshing]="loading()" [(visibleKeys)]="list.visibleKeys" (refresh)="reload()" />
+                </div>
+                <!-- Recherche, puis les listes de l'API (faculté, programme, niveau), puis les filtres. -->
+                <app-data-filter [columns]="list.columns" [rows]="courses()" [(query)]="list.query" searchPlaceholder="Code ou nom du cours…">
 
                     @if (!facultyLocked()) {
                     <p-select [options]="facultyOptions()" optionLabel="label" optionValue="value"
                         [ngModel]="selectedFacultyId()" (ngModelChange)="onFacultyFilterChange($event)"
                         [showClear]="true" placeholder="Choisir une faculté" [filter]="true"
-                        appendTo="body" class="w-full md:w-14rem" />
+                        appendTo="body" size="small" class="scope-select" />
                     } @else {
                     <span class="text-sm text-color-secondary whitespace-nowrap"><i class="pi pi-building-columns mr-1"></i>{{ facultyOptions()[0]?.label }}</span>
                     }
                     <p-select [options]="programOptions()" optionLabel="label" optionValue="value"
                         [ngModel]="selectedProgramId()" (ngModelChange)="onProgramFilterChange($event)"
-                        placeholder="Programme" appendTo="body" class="w-full md:w-14rem"
+                        placeholder="Programme" appendTo="body" size="small" class="scope-select"
                         [disabled]="!selectedFacultyId()" />
                     <p-select [options]="programLevelOptions()" optionLabel="label" optionValue="value"
                         [ngModel]="selectedProgramLevelId()" (ngModelChange)="onProgramLevelFilterChange($event)"
-                        placeholder="Niveau" appendTo="body" class="w-full md:w-12rem"
+                        placeholder="Niveau" appendTo="body" size="small" class="scope-select scope-select--short"
                         [disabled]="!selectedProgramId()" />
-                    <p-iconfield>
-                        <p-inputicon styleClass="pi pi-search" />
-                        <input pInputText type="text" placeholder="Rechercher..."
-                            (input)="onGlobalFilter(dt, $event)" />
-                    </p-iconfield>
-                </div>
+                </app-data-filter>
             </div>
         </ng-template>
 
         <ng-template pTemplate="header">
             <tr>
-                <th pSortableColumn="code">Code <p-sortIcon field="code" /></th>
-                <th pSortableColumn="name">Nom <p-sortIcon field="name" /></th>
-                <th pSortableColumn="credits">Crédits <p-sortIcon field="credits" /></th>
-                <th style="width: 6rem">Actions</th>
+                @for (column of list.shownColumns(); track column.key) {
+                <th>{{ column.label }}</th>
+                }
+                <th class="row-actions-cell"><span class="sr-only">Actions</span></th>
             </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-course>
-            <tr>
-                <td data-label="Code">{{ course.code }}</td>
-                <td data-label="Nom">{{ course.name }}</td>
-                <td data-label="Crédits">{{ course.credits }}</td>
-                <td class="stack-actions">
-                    <button pButton type="button" icon="pi pi-arrow-right" rounded outlined
-                        [attr.aria-label]="'Détail ' + course.code" (click)="openDetail(course)"></button>
+            <tr class="clickable-row" (click)="openDetail(course)">
+                @for (column of list.shownColumns(); track column.key) {
+                <td [attr.data-label]="column.label">{{ list.cellText(column, course) || '—' }}</td>
+                }
+                <td class="row-actions-cell">
+                    <div class="row-actions">
+                        <button pButton type="button" icon="pi pi-arrow-right" [rounded]="true" [text]="true" size="small"
+                            [attr.aria-label]="'Ouvrir le cours ' + course.code" (click)="openDetail(course); $event.stopPropagation()"></button>
+                    </div>
                 </td>
             </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="4">{{ selectedProgramLevelId() || (canReadAll() && !selectedFacultyId()) ? 'Aucun cours.' :
+                <td [attr.colspan]="list.shownColumns().length + 1">{{ selectedProgramLevelId() || (canReadAll() && !selectedFacultyId()) ? 'Aucun cours.' :
                     'Choisissez un niveau de programme.' }}</td>
             </tr>
         </ng-template>

@@ -11,7 +11,7 @@ La colonne « Version déclarée » reprend `package.json`. La colonne « Versio
 | Angular (`@angular/core`, `common`, `forms`, `router`, `platform-browser`) | `^21` | 21.2.8 | Framework de l'application. Composants standalone, signals, détection des changements sans Zone.js (`provideZonelessChangeDetection` dans `src/app.config.ts`). |
 | Angular CLI et build (`@angular/cli`, `@angular-devkit/build-angular`) | `^21` | 21.2.7 | Commandes `ng serve`, `ng build`, `ng test`, `ng lint`. Le build utilise le builder `application` (`angular.json`). |
 | TypeScript | `~5.9.3` | 5.9.3 | Langage. Mode strict activé, ainsi que `strictTemplates` (`tsconfig.json`). |
-| RxJS | `~7.8.0` | 7.8.2 | Appels HTTP et leur composition (`map`, `expand`, `catchError`). L'état des écrans repose sur les signals, pas sur RxJS (voir [Architecture](developpement/architecture.md)). |
+| RxJS | `~7.8.0` | 7.8.2 | Appels HTTP et leur composition (`map`, `expand`, `catchError`). L'état des écrans repose sur les signals, pas sur RxJS (voir [Architecture](architecture.md)). |
 
 ## Interface
 
@@ -37,10 +37,10 @@ La colonne « Version déclarée » reprend `package.json`. La colonne « Versio
 
 | Technologie | Version déclarée | Version installée | Usage dans le projet |
 |---|---|---|---|
-| pdfmake | `^0.3.11` | 0.3.11 | Export et impression des horaires en PDF (`features/scheduling/timetable/utils/timetable-pdf.ts`). |
-| ExcelJS | `^4.4.0` | 4.4.0 | Export des horaires au format Excel (`features/scheduling/timetable/utils/timetable-excel.ts`). |
+| pdfmake | `^0.3.11` | 0.3.11 | Export et impression en PDF des listes et des horaires (`shared/export/library/pdfmake/`). |
+| ExcelJS | `^4.4.0` | 4.4.0 | Export Excel des listes et des horaires (`shared/export/library/exceljs/`), lecture des fichiers importés (`shared/import/library/exceljs-spreadsheet.service.ts`). |
 
-pdfmake et ExcelJS sont chargés à la demande, au premier export : ils ne font pas partie du bundle initial (`features/scheduling/timetable/services/timetable-export.service.ts`). Ce sont des modules CommonJS, déclarés dans `allowedCommonJsDependencies` (`angular.json`).
+pdfmake et ExcelJS sont chargés à la demande, au premier export : ils ne font pas partie du bundle initial (`shared/export/library/library-export.service.ts`). Ce sont des modules CommonJS, déclarés dans `allowedCommonJsDependencies` (`angular.json`).
 
 ## Qualité
 

@@ -27,8 +27,15 @@ export interface ColumnDef<T> {
     options?: ColumnOption[];
     /** Prise en compte par la recherche simple. */
     searchable?: boolean;
-    /** `false` pour exclure des filtres avancés (par défaut : oui). */
+    /**
+     * Proposée dans les filtres avancés. Par défaut, oui, sauf pour les colonnes déjà couvertes
+     * par la recherche (`searchable`) ou par une liste de l'API (`apiKey`) : pas de doublon.
+     */
     filterable?: boolean;
+    /** `false` : masquée par défaut, l'utilisateur peut l'ajouter (choix des colonnes). */
+    visible?: boolean;
+    /** `false` : toujours affichée (la colonne principale du tableau). */
+    hideable?: boolean;
     /** `false` pour exclure du tri (par défaut : oui). */
     sortable?: boolean;
     /** `false` pour exclure de l'export (par défaut : oui). */
@@ -47,6 +54,22 @@ export interface ColumnDef<T> {
         example?: string;
         parse?: ImportParse;
     };
+}
+
+/** Colonnes affichées par défaut. */
+export function defaultVisibleKeys<T>(columns: readonly ColumnDef<T>[]): string[] {
+    return columns.filter((column) => column.visible !== false).map((column) => column.key);
+}
+
+/** Les colonnes affichées, dans l'ordre du tableau ; une colonne non masquable reste toujours. */
+export function shownColumns<T>(columns: readonly ColumnDef<T>[], visibleKeys: readonly string[]): ColumnDef<T>[] {
+    const keys = new Set(visibleKeys);
+    return columns.filter((column) => column.hideable === false || keys.has(column.key));
+}
+
+/** Proposée dans les filtres avancés : ni déjà dans la recherche, ni déjà une liste de l'API. */
+export function isAdvancedFilter<T>(column: ColumnDef<T>): boolean {
+    return column.filterable ?? (!column.searchable && !column.apiKey);
 }
 
 const DATE_FORMAT = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { writeAuthorities } from '@/app/core/permissions/permission-scope';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -30,6 +30,19 @@ import { FacultyService } from '../../services/faculty.service';
 import { ProgramService } from '../../services/program.service';
 import { FacultyScopeService } from '@/app/core/auth/services/faculty-scope.service';
 import { levelLabel } from '../../utils/promotion-label';
+import { ColumnDef } from '@/app/shared/data-table/column.model';
+import { DataFilter } from '@/app/shared/data-table/data-filter/data-filter';
+import { TableToolbar } from '@/app/shared/data-table/table-toolbar/table-toolbar';
+import { listState } from '@/app/shared/data-table/list-state';
+import { resetPageOnChange } from '@/app/shared/data-table/reset-page';
+
+/** Les colonnes des cours : affichage, recherche, filtres, impression et export. */
+export const COURSE_COLUMNS: ColumnDef<Course>[] = [
+    { key: 'code', label: 'Code', type: 'text', value: (row) => row.code, searchable: true },
+    { key: 'name', label: 'Nom', type: 'text', value: (row) => row.name, searchable: true, hideable: false, exportWidth: 3 },
+    { key: 'credits', label: 'Crédits', type: 'number', value: (row) => row.credits },
+    { key: 'description', label: 'Description', type: 'text', value: (row) => row.description, visible: false, exportWidth: 3 }
+];
 
 @Component({
     selector: 'app-course-list',
@@ -48,7 +61,9 @@ import { levelLabel } from '../../utils/promotion-label';
         SelectModule,
         IconFieldModule,
         InputIconModule,
-        ContentSubtopbar
+        ContentSubtopbar,
+        DataFilter,
+        TableToolbar
     ],
     templateUrl: './course-list.html',
     styleUrl: './course-list.scss',
@@ -67,6 +82,9 @@ export class CourseListPage implements OnInit {
     private readonly navigationScope = 'academic.courses';
 
     readonly courses = signal<Course[]>([]);
+    /** Recherche, filtres et colonnes affichées ; `list.rows()` est aussi ce qu'on imprime. */
+    readonly list = listState(COURSE_COLUMNS, this.courses);
+    private readonly table = viewChild(Table);
     readonly faculties = signal<Faculty[]>([]);
     readonly programs = signal<Program[]>([]);
     readonly units = signal<CourseUnit[]>([]);
@@ -134,6 +152,15 @@ export class CourseListPage implements OnInit {
     private readonly facultyScope = inject(FacultyScopeService);
     readonly facultyLocked = computed(() => this.facultyScope.isScopedFor('academic:course:read'));
 
+    constructor() {
+        resetPageOnChange(this.list.query, this.table);
+    }
+
+    /** Actualiser : recharge les cours du périmètre choisi. */
+    reload(): void {
+        this.load();
+    }
+
     ngOnInit(): void {
         this.form.controls.faculty_id.valueChanges.subscribe((facultyId) => {
             this.form.controls.program_id.setValue(null);
@@ -184,9 +211,6 @@ export class CourseListPage implements OnInit {
         this.load();
     }
 
-    onGlobalFilter(table: Table, event: Event): void {
-        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
-    }
 
     onFacultyFilterChange(facultyId: string | null): void {
         if (!this.facultyLocked()) {

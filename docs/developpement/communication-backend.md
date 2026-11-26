@@ -15,12 +15,12 @@ Toutes les URL de l'API suivent le même modèle :
 | Développement (`npm start`) | `''` | URL relative `/api/v1/...`, relayée par `proxy.conf.json` vers `http://localhost:8085` |
 | Production (`npm run build:prod`) | `'http://localhost:8085'` | URL absolue, appelée directement par le navigateur |
 
-La configuration détaillée est dans [Installation](../installation.md#configuration).
+La configuration détaillée est dans [Installation](installation.md#configuration).
 
 Le client HTTP est configuré une seule fois, dans `src/app.config.ts` :
 
 ```ts
-// src/app.config.ts (ligne 51)
+// src/app.config.ts (fournisseurs de appConfig)
 provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
 ```
 
@@ -88,7 +88,7 @@ La session est partagée entre les onglets du navigateur : une connexion ou une 
 
 ## Écrire un service API
 
-Le tutoriel [Créer un module](creer-un-module.md#etape-3-ecrire-le-service-api) détaille un service complet, `RoomService`. Les services existants appliquent les règles suivantes :
+Le [démarrage rapide](creer-un-module.md#etape-3-ecrire-un-service-de-donnees-sans-backend) montre un service complet, avec son contrat et son implémentation HTTP. Les services existants appliquent les règles suivantes :
 
 - Déclarez le service avec `@Injectable({ providedIn: 'root' })`.
 - Injectez `HttpClient` avec `inject()`.
@@ -121,7 +121,7 @@ L'application applique quatre règles d'affichage.
 
 | Règle | Mise en œuvre |
 |---|---|
-| Une erreur de saisie s'affiche sous le champ concerné. | Validators Angular et message conditionnel sous le champ (voir `rooms.html`, lignes 117 à 123). |
+| Une erreur de saisie s'affiche sous le champ concerné. | Validators Angular et message conditionnel sous le champ (voir le champ « Nom » de `rooms.html`). |
 | Une erreur de l'API s'affiche dans un toast. | `MessageService` de PrimeNG, avec un message lisible. |
 | Aucun identifiant technique n'est affiché. | `readableApiText` retire les UUID d'un message. |
 | Les dates sont en français. | `readableApiText` convertit les dates ISO, par exemple en « 23 novembre 2026 ». |
@@ -154,7 +154,7 @@ export function apiErrorMessage(error: unknown, fallback: string): string {
 Utilisation dans une page :
 
 ```ts
-// src/app/features/scheduling/settings/pages/rooms/rooms.ts (ligne 240)
+// src/app/features/scheduling/settings/pages/rooms/rooms.ts (méthode load)
 this.showError(apiErrorMessage(error, 'Impossible de charger les salles.'));
 ```
 
@@ -174,7 +174,7 @@ Chaque page déclare des signals d'état, lus par le template :
 - `loading` pendant le chargement d'une liste, passé à `[loading]` de `p-table` ;
 - `saving` pendant un enregistrement, pour désactiver le bouton et afficher son indicateur.
 
-Remettez toujours ces signals à `false`, aussi dans la branche `error` de l'abonnement (voir `rooms.ts`, lignes 229 à 243).
+Remettez toujours ces signals à `false`, aussi dans la branche `error` de l'abonnement (voir la méthode `load` de `rooms.ts`).
 
 ## Pagination, filtres et recherche
 
@@ -225,9 +225,9 @@ Les documents des candidats sont envoyés en trois étapes (`features/admission/
 
 `getDocumentDownloadUrl()` demande une URL de téléchargement signée et temporaire : `GET /api/v1/candidates/{id}/documents/{documentId}/download-url`. `isSignedUrlExpiredOrExpiring` (`shared/utils/signed-url.ts`) indique si une URL signée a expiré ou expire dans la minute.
 
-### Exporter en PDF et en Excel
+### Imprimer et exporter en PDF et en Excel
 
-Les exports des horaires sont produits dans le navigateur, sans appel à l'API (`features/scheduling/timetable/services/timetable-export.service.ts`) :
+Les impressions et les exports sont produits dans le navigateur, sans appel à l'API. Les écrans injectent le jeton `EXPORT_SERVICE` (`shared/export/export.service.ts`), qui définit trois méthodes :
 
 | Méthode | Effet |
 |---|---|
@@ -235,8 +235,16 @@ Les exports des horaires sont produits dans le navigateur, sans appel à l'API (
 | `downloadPdf()` | Télécharge le PDF |
 | `downloadExcel()` | Télécharge le classeur Excel |
 
-pdfmake et ExcelJS ne sont chargés qu'au premier export.
+`provideExport()` (`shared/export/provide-export.ts`), appelé dans `src/app.config.ts`, choisit l'implémentation : `LibraryExportService`, qui utilise pdfmake et ExcelJS. Ces deux bibliothèques ne sont chargées qu'au premier export.
+
+Pour une liste, vous n'avez pas à appeler ce service : `TableToolbar` (`shared/data-table/table-toolbar/`) propose déjà l'impression et l'export Excel des lignes affichées (voir le [démarrage rapide](creer-un-module.md#la-liste)). Les horaires utilisent leur propre service, `TimetableExportService`, qui s'appuie sur `EXPORT_SERVICE`.
+
+L'import Excel d'une liste suit le même principe : `TableToolbar` affiche le bouton « Importer » quand l'écran lui passe un `importConfig`, comme la gestion des salles.
 
 ## Développer sans backend
 
-Le dépôt ne fournit ni serveur simulé, ni données locales de remplacement : l'application a besoin de l'API pour afficher des données. Seuls les tests unitaires fonctionnent sans backend. Ils remplacent les appels par `HttpTestingController` ou par des services espionnés (voir [Créer un module](creer-un-module.md#etape-7-ecrire-les-tests)).
+Le dépôt ne fournit pas de serveur simulé : les modules existants ont besoin de l'API pour afficher des données.
+
+Pour développer un module dont l'API n'existe pas encore, séparez le contrat des données de leur source : une classe abstraite pour le contrat, une implémentation en mémoire aujourd'hui, une implémentation HTTP ensuite. Le [démarrage rapide](creer-un-module.md#etape-3-ecrire-un-service-de-donnees-sans-backend) détaille cette méthode.
+
+Les tests unitaires fonctionnent sans backend. Ils remplacent les appels par `HttpTestingController` ou par des services espionnés (voir le [démarrage rapide](creer-un-module.md#etape-9-ecrire-les-tests)).

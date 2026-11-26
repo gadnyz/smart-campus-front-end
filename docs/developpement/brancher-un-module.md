@@ -1,6 +1,6 @@
 # Brancher un module
 
-Ce guide explique comment rendre un module accessible dans l'application : routes, registre, menu, Paramètres, tableau de bord et droits. Il suppose que les pages et les services du module existent déjà ; sinon, commencez par le tutoriel [Créer un module](creer-un-module.md).
+Ce guide explique comment rendre un module accessible dans l'application : routes, registre, menu, Paramètres, tableau de bord et droits. Il sert de référence pour chaque propriété. Pour construire un module de bout en bout, suivez d'abord le [démarrage rapide](creer-un-module.md), qui applique toutes ces étapes à un exemple complet.
 
 ## Déclarer le module
 
@@ -197,7 +197,7 @@ L'utilisateur connecté reçoit ses autorités de l'API, dans `authorities`. Une
 Dans un composant, injectez `PermissionService` et exposez les droits par des `computed`, que le template lit :
 
 ```ts
-// src/app/features/scheduling/settings/pages/rooms/rooms.ts (lignes 79 à 81)
+// src/app/features/scheduling/settings/pages/rooms/rooms.ts (propriété canUpdate)
 readonly canUpdate = computed(() =>
     this.permissionService.hasAnyPermission([SchedulingPermission.RoomUpdateAll])
 );

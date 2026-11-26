@@ -6,27 +6,19 @@
                 [attr.aria-label]="searchPlaceholder()" class="w-full" />
         </p-iconfield>
 
+        <!-- Les listes de la page qui interrogent l'API (faculté, programme, statut…), sur la même ligne. -->
+        <ng-content />
+
+        @if (filterableColumns().length) {
         <p-button icon="pi pi-filter" label="Filtres" severity="secondary" [outlined]="true" size="small" (onClick)="panel.toggle($event)"
             [badge]="activeCount() ? '' + activeCount() : undefined" ariaLabel="Filtres avancés" />
-
-        <div class="data-filter-sort">
-            <p-select [options]="sortOptions()" optionLabel="label" optionValue="value" [ngModel]="query().sort?.key ?? null"
-                (ngModelChange)="setSort($event)" placeholder="Trier par" [showClear]="true" appendTo="body" size="small" ariaLabel="Trier par" />
-            @if (query().sort; as sort) {
-            <p-button [icon]="sort.direction === 'asc' ? 'pi pi-sort-amount-up-alt' : 'pi pi-sort-amount-down'" severity="secondary" [text]="true"
-                size="small" (onClick)="toggleDirection()"
-                [ariaLabel]="sort.direction === 'asc' ? 'Tri croissant : passer en décroissant' : 'Tri décroissant : passer en croissant'" />
-            }
-        </div>
+        }
     </div>
 
-    @if (chips().length || sortLabel()) {
+    @if (chips().length) {
     <div class="data-filter-chips" aria-label="Filtres actifs">
         @for (chip of chips(); track chip.index) {
         <p-chip [label]="chip.label" [removable]="true" (onRemove)="removeFilter(chip.index)" />
-        }
-        @if (sortLabel(); as label) {
-        <p-chip [label]="label" icon="pi pi-sort-alt" [removable]="true" (onRemove)="clearSort()" />
         }
         <p-button label="Tout effacer" [text]="true" size="small" (onClick)="clearAll()" />
     </div>

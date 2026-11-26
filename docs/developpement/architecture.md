@@ -20,6 +20,9 @@ src/
     │   ├── services/        Pipe FirstCharPipe
     │   └── settings/        Shell des Paramètres et paramètres système
     ├── shared/              Éléments réutilisables sans logique métier
+    │   ├── data-table/      Colonnes, recherche, filtres et barre d'outils des listes
+    │   ├── export/          Impression et export PDF et Excel
+    │   ├── import/          Import d'une liste depuis un classeur Excel
     │   ├── http/            Erreurs d'API, paramètres de requête, textes lisibles
     │   ├── models/          Forme paginée commune (PagedResponse)
     │   ├── navigation/      Retour arrière, navigation entre fiches
@@ -61,7 +64,7 @@ Les autres modules ajoutent, selon leurs besoins, des dossiers `components/`, `p
 | Principe | Application dans le code |
 |---|---|
 | Découpage par fonctionnalité | Chaque domaine métier vit dans `features/<module>/` et se déclare dans le registre. |
-| Composants standalone | Les 79 composants sont standalone ; le projet ne contient aucun `NgModule`. |
+| Composants standalone | Tous les composants sont standalone ; le projet ne contient aucun `NgModule`. |
 | Injection par `inject()` | Aucun service n'est injecté par le constructeur. |
 | État par signals | L'état local et partagé repose sur `signal()` et `computed()`. Le projet n'utilise pas `BehaviorSubject`. RxJS sert aux appels HTTP. |
 | Entrées par signals | Les composants déclarent leurs entrées avec `input()`, jamais avec `@Input`. |
@@ -70,7 +73,7 @@ Les autres modules ajoutent, selon leurs besoins, des dossiers `components/`, `p
 | Droits déclaratifs | Routes, entrées de menu, onglets, widgets et actions portent leurs `permissions` ; le code central les filtre. |
 | Frontières entre modules | Un module qui utilise une ressource d'un autre module importe son fichier `*.public-api.ts`, pas un chemin interne. |
 
-`ChangeDetectionStrategy.OnPush` est déclaré dans 15 composants sur 79, par exemple `features/scheduling/settings/pages/rooms/rooms.ts`.
+`ChangeDetectionStrategy.OnPush` est déclaré dans une partie des composants, par exemple `features/scheduling/settings/pages/rooms/rooms.ts`. Déclarez-le dans tout nouveau composant.
 
 L'alias `@/` désigne le dossier `src/` (`tsconfig.json`). Écrivez par exemple `@/app/shared/http/api-error`.
 
@@ -134,7 +137,7 @@ export const appFeatures: AppFeature[] = [
 | `appSettingsChildRoutes` | `core/settings/routes.ts` |
 | `appDashboardWidgets` | `pages/dashboard/dashboard.widgets.ts` |
 
-Ajouter un module revient donc à écrire son `*.feature.ts` et à l'ajouter au tableau `appFeatures`. La procédure est décrite dans [Brancher un module](brancher-un-module.md).
+Ajouter un module revient donc à écrire son `*.feature.ts` et à l'ajouter au tableau `appFeatures`. Le [démarrage rapide](creer-un-module.md) construit un module complet de cette façon ; [Brancher un module](brancher-un-module.md) détaille chaque propriété.
 
 ## Navigation
 
@@ -174,6 +177,12 @@ Réutilisez ces éléments avant d'en écrire de nouveaux.
 | `shared/ui/content-subtopbar/` (`ContentSubtopbar`) | En-tête de page : surtitre, titre, actions. Une action porteuse de `permissions` est masquée si l'utilisateur ne les a pas. | `features/scheduling/settings/pages/rooms/rooms.html` |
 | `shared/ui/dashboard/dashboard-card/` (`DashboardCard`) | Cadre d'un widget du tableau de bord | `features/identity/dashboard/components/repartition_users.ts` |
 | `shared/ui/dashboard/dashboard-stat-card/` (`DashboardStatCard`) | Carte de statistique du tableau de bord | `features/academic/dashboard/components/faculty-stats-widget.ts` |
+| `shared/data-table/column.model.ts` (`ColumnDef<T>`) | Description des colonnes d'une liste, déclarée une seule fois : affichage, recherche, filtres, export et import la lisent | `features/scheduling/settings/pages/rooms/rooms.ts` (`ROOM_COLUMNS`) |
+| `shared/data-table/data-filter/` (`DataFilter`) | Recherche, filtres avancés et tri d'une liste | `features/scheduling/settings/pages/rooms/rooms.html` |
+| `shared/data-table/table-toolbar/` (`TableToolbar`) | Boutons « Imprimer », « Exporter en Excel », « Actualiser » et, si l'écran fournit un `importConfig`, « Importer » | `features/scheduling/settings/pages/rooms/rooms.html` |
+| `shared/data-table/table-query.ts` (`applyQuery`) | Applique la recherche, les filtres et le tri aux lignes chargées | `features/scheduling/settings/pages/rooms/rooms.ts` |
+| `shared/export/` (`EXPORT_SERVICE`, `provideExport`) | Impression et export PDF et Excel, indépendants de la bibliothèque utilisée | `features/scheduling/timetable/services/timetable-export.service.ts` |
+| `shared/import/` (`ImportConfig`, `ImportDialog`) | Import d'une liste depuis un classeur Excel, avec un modèle à télécharger | `features/scheduling/settings/pages/rooms/rooms.ts` |
 | `shared/ui/styles/_stacked-table.scss` | Affichage des tableaux en cartes empilées sur petit écran, avec la classe `stack-table` | `features/academic/pages/course-list/course-list.scss` |
 | `shared/http/api-error.ts` | `apiErrorMessage` : message d'erreur lisible pour un toast. `apiInvalidFields` : erreurs de validation par champ. | `features/scheduling/settings/pages/rooms/rooms.ts` |
 | `shared/http/api-params.ts` (`toApiParams`) | Paramètres de requête en snake_case, valeurs vides omises | `features/academic/services/course.service.ts` |

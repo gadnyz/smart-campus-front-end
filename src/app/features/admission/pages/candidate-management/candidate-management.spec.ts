@@ -30,7 +30,11 @@ describe('CandidateManagement', () => {
         }
     ];
 
+    // La faculté choisie est gardée dans la session : un test ne doit pas en filtrer un autre.
+    afterEach(() => sessionStorage.removeItem('smartcampus.working-faculty'));
+
     beforeEach(async () => {
+        sessionStorage.removeItem('smartcampus.working-faculty');
         candidateService = jasmine.createSpyObj<CandidateService>(
             'CandidateService',
             ['getAll']
@@ -78,6 +82,15 @@ describe('CandidateManagement', () => {
         expect(candidateService.getAll).toHaveBeenCalled();
         expect(component.candidates()).toEqual(candidates);
         expect(component.totalElements()).toBe(1);
+    });
+
+    it('should load the candidatures of the scope at once, then search them in the browser', () => {
+        expect(candidateService.getAll).toHaveBeenCalledWith(jasmine.objectContaining({ page: 0, size: 1000 }));
+
+        component.list.query.set({ search: 'lovelace', filters: [], sort: null });
+        expect(component.list.rows().map((candidate) => candidate.id)).toEqual(['c1']);
+        component.list.query.set({ search: 'inconnu', filters: [], sort: null });
+        expect(component.list.rows()).toEqual([]);
     });
 
     it('should reload with status filter', () => {

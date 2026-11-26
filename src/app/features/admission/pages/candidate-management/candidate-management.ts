@@ -5,8 +5,10 @@ import {
     Component,
     OnInit,
     computed,
+    effect,
     inject,
-    signal
+    signal,
+    viewChild
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -17,12 +19,36 @@ import { CardModule } from 'primeng/card';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import {
-    PaginatorModule,
-    PaginatorState
-} from 'primeng/paginator';
+import { PaginatorModule } from 'primeng/paginator';
 import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
+import { ColumnDef } from '@/app/shared/data-table/column.model';
+import { DataFilter } from '@/app/shared/data-table/data-filter/data-filter';
+import { TableToolbar } from '@/app/shared/data-table/table-toolbar/table-toolbar';
+import { listState } from '@/app/shared/data-table/list-state';
+import { resetPageOnChange } from '@/app/shared/data-table/reset-page';
+
+/** Candidatures chargées en une fois pour la faculté et le statut choisis. */
+export const CANDIDATE_LOAD_LIMIT = 1000;
+
+const fullNameOf = (candidate: CandidateListItem) => [candidate.first_name, candidate.middle_name, candidate.last_name].filter(Boolean).join(' ');
+
+/** Les colonnes des candidatures : affichage, recherche, filtres, impression et export. */
+export const CANDIDATE_COLUMNS: ColumnDef<CandidateListItem>[] = [
+    { key: 'name', label: 'Candidat', type: 'text', value: (row) => fullNameOf(row), searchable: true, hideable: false, exportWidth: 2 },
+    { key: 'email', label: 'E-mail', type: 'text', value: (row) => row.email, searchable: true, exportWidth: 2 },
+    { key: 'phone', label: 'Téléphone', type: 'text', value: (row) => row.phone, searchable: true },
+    {
+        key: 'submitted',
+        label: 'Soumise le',
+        type: 'date',
+        value: (row) => (row.status === 'DRAFT' ? null : row.submitted_at),
+        format: (row) => (row.status === 'DRAFT' || !row.submitted_at ? '' : formatCandidateDateTime(row.submitted_at))
+    },
+    // Le statut est une liste de l'API, au-dessus du tableau : pas repris dans les filtres.
+    { key: 'status', label: 'Statut', type: 'text', value: (row) => formatCandidatureStatus(row.status), apiKey: 'status' },
+    { key: 'gender', label: 'Genre', type: 'text', value: (row) => formatCandidateGender(row.gender), visible: false }
+];
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 
@@ -36,8 +62,7 @@ import {
 
 import {
     CandidateListItem,
-    CandidatureStatus,
-    PagedResponse
+    CandidatureStatus
 } from '../../models/candidate.model';
 import { AdmissionAcademicReferenceService } from '../../services/admission-academic-reference.service';
 import { CandidateService } from '../../services/candidate.service';
@@ -72,7 +97,9 @@ type FacultyOption = {
         TableModule,
         TagModule,
         ToastModule,
-        ContentSubtopbar
+        ContentSubtopbar,
+        DataFilter,
+        TableToolbar
     ],
     templateUrl: './candidate-management.html',
     styleUrl: './candidate-management.scss',
@@ -102,6 +129,9 @@ export class CandidateManagement implements OnInit {
     readonly loading = signal(false);
     readonly loadingFaculties = signal(false);
     readonly candidates = signal<CandidateListItem[]>([]);
+    /** Recherche, filtres et colonnes affichées ; `list.rows()` est aussi ce qu'on imprime. */
+    readonly list = listState(CANDIDATE_COLUMNS, this.candidates);
+    private readonly table = viewChild(Table);
     readonly page = signal(0);
     readonly size = signal(10);
     readonly totalElements = signal(0);
@@ -139,9 +169,15 @@ export class CandidateManagement implements OnInit {
             loading: this.loading(),
             disabled: this.loading(),
             command: () =>
-                this.loadCandidates(this.page())
+                this.loadCandidates()
         }
     ]);
+
+    constructor() {
+        resetPageOnChange(this.list.query, this.table);
+        // Fiche précédente / suivante : dans l'ordre affiché, filtres compris.
+        effect(() => this.registerNavigationContext(this.list.rows()));
+    }
 
 
     private readonly facultyScope = inject(FacultyScopeService);
@@ -157,7 +193,7 @@ export class CandidateManagement implements OnInit {
             this.facultyFilter.set(this.facultyScope.workingFacultyId());
         }
         this.loadFaculties();
-        this.loadCandidates(0);
+        this.loadCandidates();
     }
     private loadFaculties(): void {
         this.loadingFaculties.set(true);
@@ -210,12 +246,14 @@ export class CandidateManagement implements OnInit {
         }
     }
 
-    loadCandidates(page: number): void {
+    loadCandidates(): void {
         this.loading.set(true);
         this.candidateService
             .getAll({
-                page,
-                size: this.size(),
+                // Fonctionnement mixte : la faculté et le statut passent par l'API, le reste
+                // (recherche, filtres, pagination) se fait sur les candidatures chargées.
+                page: 0,
+                size: CANDIDATE_LOAD_LIMIT,
                 status: this.statusFilter() ?? undefined,
                 facultyId: this.facultyScope.scopedIdFor('admission:candidate:read') ?? this.facultyFilter() ?? undefined
             })
@@ -228,7 +266,6 @@ export class CandidateManagement implements OnInit {
                         response.total_elements
                     );
 
-                    this.registerNavigationContext(response);
                     this.loading.set(false);
                 },
                 error: (error: unknown) => {
@@ -259,7 +296,7 @@ export class CandidateManagement implements OnInit {
             },
             queryParamsHandling: 'merge'
         });
-        this.loadCandidates(0);
+        this.loadCandidates();
     }
 
     onFacultyChange(facultyId: string | null): void {
@@ -274,21 +311,7 @@ export class CandidateManagement implements OnInit {
             },
             queryParamsHandling: 'merge'
         });
-        this.loadCandidates(0);
-    }
-
-    onPageChange(event: PaginatorState): void {
-        const nextSize = event.rows ?? this.size();
-        const nextPage = event.page ?? 0;
-
-        this.size.set(nextSize);
-        this.loadCandidates(nextPage);
-    }
-
-    onGlobalFilter(table: Table, event: Event): void {
-        const value =
-            (event.target as HTMLInputElement).value ?? '';
-        table.filterGlobal(value, 'contains');
+        this.loadCandidates();
     }
 
     openCandidate(candidate: CandidateListItem): void {
@@ -336,17 +359,15 @@ export class CandidateManagement implements OnInit {
 
 
 
-    private registerNavigationContext(
-        response: PagedResponse<CandidateListItem>
-    ): void {
+    private registerNavigationContext(candidates: readonly CandidateListItem[]): void {
         this.detailNavigation.setContext({
             scope: this.navigationScope,
             listRoute: ['/admission/candidates'],
-            page: response.page,
-            size: response.size,
-            totalElements: response.total_elements,
-            totalPages: response.total_pages,
-            items: response.content.map((candidate) => ({
+            page: 0,
+            size: Math.max(candidates.length, 1),
+            totalElements: candidates.length,
+            totalPages: 1,
+            items: candidates.map((candidate) => ({
                 id: candidate.id,
                 label: this.fullName(candidate)
             })),

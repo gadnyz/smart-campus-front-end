@@ -1,19 +1,20 @@
 import { CommonModule } from '@angular/common';
 import { apiErrorMessage } from '@/app/shared/http/api-error';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { SelectModule } from 'primeng/select';
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
+import { resetPageOnChange } from '@/app/shared/data-table/reset-page';
 import { ToastModule } from 'primeng/toast';
 import { map } from 'rxjs';
 import { DetailNavigationService } from '@/app/shared/navigation/detail-navigation.service';
 import { ContentSubtopbar } from '@/app/shared/ui/content-subtopbar/content-subtopbar';
-import { ColumnDef } from '@/app/shared/data-table/column.model';
+import { ColumnDef, cellText, defaultVisibleKeys, shownColumns } from '@/app/shared/data-table/column.model';
 import { DataFilter } from '@/app/shared/data-table/data-filter/data-filter';
 import { TableToolbar } from '@/app/shared/data-table/table-toolbar/table-toolbar';
 import { EMPTY_QUERY, TableQuery, applyQuery } from '@/app/shared/data-table/table-query';
@@ -37,13 +38,22 @@ export function studentPromotion(student: Student): string {
 
 /** Les colonnes de la liste, déclarées une fois : affichage, recherche, filtres, tri et export. */
 export const STUDENT_COLUMNS: ColumnDef<Student>[] = [
-    { key: 'name', label: 'Étudiant', type: 'text', value: (row) => studentDisplayName(row), searchable: true, exportWidth: 2 },
+    { key: 'name', label: 'Étudiant', type: 'text', value: (row) => studentDisplayName(row), searchable: true, hideable: false, exportWidth: 2 },
     { key: 'matricule', label: 'Matricule', type: 'text', value: (row) => row.matricule, searchable: true },
-    { key: 'promotion', label: 'Promotion', type: 'text', value: (row) => studentPromotion(row), searchable: true, exportWidth: 2 },
-    { key: 'faculty', label: 'Faculté', type: 'text', value: (row) => row.faculty_name, exportWidth: 2 },
-    { key: 'gender', label: 'Genre', type: 'enum', value: (row) => row.gender, options: STUDENT_GENDER_OPTIONS.map((option) => ({ label: option.label, value: option.value })) },
-    { key: 'nationality', label: 'Nationalité', type: 'text', value: (row) => row.nationality },
-    { key: 'email', label: 'E-mail', type: 'text', value: (row) => row.email, exportWidth: 2 }
+    // Promotion et faculté : déjà des listes de l'API au-dessus du tableau, pas reprises en filtre.
+    { key: 'promotion', label: 'Promotion', type: 'text', value: (row) => studentPromotion(row), searchable: true, apiKey: 'program_level_id', exportWidth: 2 },
+    { key: 'faculty', label: 'Faculté', type: 'text', value: (row) => row.faculty_name, apiKey: 'faculty_id', exportWidth: 2 },
+    { key: 'email', label: 'E-mail', type: 'text', value: (row) => row.email, exportWidth: 2 },
+    {
+        key: 'gender',
+        label: 'Genre',
+        type: 'enum',
+        value: (row) => row.gender,
+        options: STUDENT_GENDER_OPTIONS.map((option) => ({ label: option.label, value: option.value })),
+        visible: false
+    },
+    { key: 'nationality', label: 'Nationalité', type: 'text', value: (row) => row.nationality, visible: false },
+    { key: 'phone', label: 'Téléphone', type: 'text', value: (row) => row.phone, visible: false }
 ];
 
 /**
@@ -75,6 +85,10 @@ export class StudentListPage implements OnInit {
     private readonly navigationScope = 'academic.students';
 
     readonly columns = STUDENT_COLUMNS;
+    /** Colonnes affichées, choisies avec la barre d'outils ; aussi celles imprimées. */
+    readonly visibleKeys = signal<string[]>(defaultVisibleKeys(STUDENT_COLUMNS));
+    readonly shownList = computed(() => shownColumns(this.columns, this.visibleKeys()));
+    readonly cellText = cellText;
     readonly loading = signal(false);
     readonly loadingCatalog = signal(false);
     readonly students = signal<Student[]>([]);
@@ -105,7 +119,10 @@ export class StudentListPage implements OnInit {
         return [faculty, level && program ? `${level} ${program}` : program].filter(Boolean).join(' · ') || undefined;
     });
 
+    private readonly table = viewChild(Table);
+
     constructor() {
+        resetPageOnChange(this.query, this.table);
         // Fiche précédente / suivante : dans l'ordre affiché, filtres compris.
         effect(() => this.registerNavigation(this.visibleStudents()));
     }
@@ -162,6 +179,11 @@ export class StudentListPage implements OnInit {
 
     promotion(student: Student): string {
         return studentPromotion(student);
+    }
+
+    /** La colonne est-elle affichée ? */
+    shown(key: string): boolean {
+        return this.visibleKeys().includes(key);
     }
 
     private scopeQuery(): StudentQuery {

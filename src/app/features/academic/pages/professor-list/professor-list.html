@@ -3,36 +3,36 @@
 <app-content-subtopbar kicker="Académique" title="Professeurs" [actions]="actions()" />
 
 <div class="card">
-    <p-table styleClass="stack-table" #dt [value]="rows()" [loading]="loading()" [paginator]="true" [rows]="10"
+    <p-table styleClass="stack-table" #dt [value]="list.rows()" [loading]="loading()" [paginator]="true" [rows]="10"
         [rowsPerPageOptions]="[10, 20, 50]"
-        [globalFilterFields]="['display_name', 'email', 'matricule', 'faculty_name', 'grade_label']" [rowHover]="true"
+        [rowHover]="true"
         dataKey="id" sortField="grade_label" [sortOrder]="1" rowGroupMode="subheader" groupRowsBy="grade_label"
         responsiveLayout="scroll"
         currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} professeurs"
         [showCurrentPageReport]="true" [tableStyle]="{ 'min-width': '48rem' }">
         <ng-template pTemplate="caption">
-            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div class="font-semibold text-xl">Corps enseignant par grade</div>
-                <div class="flex flex-col gap-3 md:flex-row md:items-center">
+            <div class="flex flex-col gap-3">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="font-semibold text-xl">Corps enseignant par grade</div>
+                    <app-table-toolbar title="Corps enseignant" storageKey="academic.professors" [columns]="list.columns" [rows]="list.rows()"
+                        [query]="list.query()" [refreshing]="loading()" [(visibleKeys)]="list.visibleKeys" (refresh)="reload()" />
+                </div>
+                <app-data-filter [columns]="list.columns" [rows]="rows()" [(query)]="list.query" searchPlaceholder="Nom, e-mail ou matricule…">
                     @if (!facultyLocked()) {
                     <p-select [options]="facultyOptions()" optionLabel="label" optionValue="value"
                         [ngModel]="selectedFacultyId()" (ngModelChange)="onFacultyFilterChange($event)"
                         [showClear]="true" [filter]="true" placeholder="Toutes les facultés" appendTo="body"
-                        class="w-full md:w-16rem" ariaLabel="Filtrer par faculté" />
+                        size="small" class="scope-select" ariaLabel="Filtrer par faculté" />
                     } @else {
                     <span class="text-sm text-color-secondary whitespace-nowrap"><i class="pi pi-building-columns mr-1"></i>{{ facultyOptions()[0]?.label }}</span>
                     }
-                    <p-iconfield>
-                        <p-inputicon styleClass="pi pi-search" />
-                        <input pInputText type="text" placeholder="Rechercher..." (input)="onGlobalFilter(dt, $event)" />
-                    </p-iconfield>
-                </div>
+                </app-data-filter>
             </div>
         </ng-template>
 
         <ng-template pTemplate="groupheader" let-row>
             <tr pRowGroupHeader>
-                <td colspan="5">
+                <td [attr.colspan]="list.shownColumns().length + 1">
                     <span class="font-semibold">{{ row.grade_label }}</span>
                 </td>
             </tr>
@@ -40,30 +40,30 @@
 
         <ng-template pTemplate="header">
             <tr>
-                <th pSortableColumn="display_name">Nom <p-sortIcon field="display_name" /></th>
-                <th pSortableColumn="email">E-mail <p-sortIcon field="email" /></th>
-                <th pSortableColumn="faculty_name">Faculté <p-sortIcon field="faculty_name" /></th>
-                <th pSortableColumn="matricule">Matricule <p-sortIcon field="matricule" /></th>
-                <th style="width: 6rem">Actions</th>
+                @for (column of list.shownColumns(); track column.key) {
+                <th>{{ column.label }}</th>
+                }
+                <th class="row-actions-cell"><span class="sr-only">Actions</span></th>
             </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-row>
-            <tr>
-                <td data-label="Nom">{{ row.display_name }}</td>
-                <td data-label="E-mail">{{ row.email || '—' }}</td>
-                <td data-label="Faculté">{{ row.faculty_name || '—' }}</td>
-                <td data-label="Matricule">{{ row.matricule || '—' }}</td>
-                <td class="stack-actions">
-                    <button pButton type="button" icon="pi pi-arrow-right" rounded outlined
-                        [attr.aria-label]="'Détail ' + row.display_name" (click)="openDetail(row)"></button>
+            <tr class="clickable-row" (click)="openDetail(row)">
+                @for (column of list.shownColumns(); track column.key) {
+                <td [attr.data-label]="column.label">{{ list.cellText(column, row) || '—' }}</td>
+                }
+                <td class="row-actions-cell">
+                    <div class="row-actions">
+                        <button pButton type="button" icon="pi pi-arrow-right" [rounded]="true" [text]="true" size="small"
+                            [attr.aria-label]="'Ouvrir la fiche de ' + row.display_name" (click)="openDetail(row); $event.stopPropagation()"></button>
+                    </div>
                 </td>
             </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="5">Aucun professeur.</td>
+                <td [attr.colspan]="list.shownColumns().length + 1">Aucun professeur.</td>
             </tr>
         </ng-template>
     </p-table>

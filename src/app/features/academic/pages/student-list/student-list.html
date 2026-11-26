@@ -10,25 +10,23 @@
                 {{ visibleStudents().length }} étudiant(s)@if (visibleStudents().length !== students().length) { sur {{ students().length }} }
             </span>
         </div>
-        <app-table-toolbar title="Liste des étudiants" [subtitle]="subtitle()" [columns]="columns" [rows]="visibleStudents()"
-            [query]="query()" [refreshing]="loading()" (refresh)="reload()" />
+        <app-table-toolbar title="Liste des étudiants" storageKey="academic.students" [subtitle]="subtitle()" [columns]="columns"
+            [rows]="visibleStudents()" [query]="query()" [refreshing]="loading()" [(visibleKeys)]="visibleKeys" (refresh)="reload()" />
     </div>
 
-    <div class="scope-filters">
+    <!-- Recherche, puis les listes de l'API (faculté, programme, promotion), puis les filtres. -->
+    <app-data-filter class="block mb-3" [columns]="columns" [rows]="students()" [(query)]="query" searchPlaceholder="Nom, matricule ou promotion…">
         @if (!facultyLocked()) {
         <p-select [options]="faculties()" optionLabel="label" optionValue="value" placeholder="Toutes les facultés" [showClear]="true"
             [loading]="loadingCatalog()" [filter]="true" [ngModel]="facultyFilter()" (ngModelChange)="onFacultyChange($event)"
-            ariaLabel="Filtrer par faculté" />
+            ariaLabel="Filtrer par faculté" size="small" class="scope-select" />
         }
         <p-select [options]="programs()" optionLabel="label" optionValue="value" placeholder="Programme" [showClear]="true" [filter]="true"
-            [ngModel]="programFilter()" (ngModelChange)="onProgramChange($event)" ariaLabel="Filtrer par programme" />
-        <p-select [options]="programLevels()" optionLabel="label" optionValue="value"
-            [placeholder]="programFilter() ? 'Promotion' : 'Promotion (choisir un programme)'" [showClear]="true" [disabled]="!programFilter()"
-            [ngModel]="programLevelFilter()" (ngModelChange)="onProgramLevelChange($event)" ariaLabel="Filtrer par promotion" />
-    </div>
-
-    <app-data-filter class="block mb-3" [columns]="columns" [rows]="students()" [(query)]="query"
-        searchPlaceholder="Nom, matricule ou promotion…" />
+            [ngModel]="programFilter()" (ngModelChange)="onProgramChange($event)" ariaLabel="Filtrer par programme" size="small" class="scope-select" />
+        <p-select [options]="programLevels()" optionLabel="label" optionValue="value" placeholder="Promotion" [showClear]="true"
+            [disabled]="!programFilter()" [ngModel]="programLevelFilter()" (ngModelChange)="onProgramLevelChange($event)"
+            ariaLabel="Filtrer par promotion" size="small" class="scope-select scope-select--short" />
+    </app-data-filter>
 
     @if (truncated()) {
     <p class="m-0 mb-3 text-sm text-orange-600" role="status">
@@ -38,32 +36,26 @@
 
     <p-table styleClass="stack-table" [value]="visibleStudents()" [loading]="loading()" dataKey="id" [rowHover]="true" [paginator]="true"
         [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" [showCurrentPageReport]="true"
-        currentPageReportTemplate="{first} à {last} sur {totalRecords}" [tableStyle]="{ 'min-width': '56rem' }">
+        currentPageReportTemplate="{first} à {last} sur {totalRecords}" [tableStyle]="{ 'min-width': '48rem' }">
         <ng-template pTemplate="header">
             <tr>
-                <th>Étudiant</th>
-                <th>Matricule</th>
-                <th>Promotion</th>
-                <th>Faculté</th>
-                <th>E-mail</th>
+                @for (column of shownList(); track column.key) {
+                <th>{{ column.label }}</th>
+                }
                 <th class="row-actions-cell"><span class="sr-only">Actions</span></th>
             </tr>
         </ng-template>
         <ng-template pTemplate="body" let-student>
             <tr class="clickable-row" (click)="openDetail(student)">
-                <td data-label="Étudiant">
-                    <div class="font-medium">{{ displayName(student) }}</div>
-                    <div class="text-sm text-color-secondary">
-                        {{ genderLabel(student) }}
-                        @if (student.nationality) {
-                        · {{ student.nationality }}
-                        }
-                    </div>
+                @for (column of shownList(); track column.key) {
+                <td [attr.data-label]="column.label">
+                    @if (column.key === 'name') {
+                    <span class="font-medium">{{ displayName(student) }}</span>
+                    } @else {
+                    {{ cellText(column, student) || '—' }}
+                    }
                 </td>
-                <td data-label="Matricule">{{ student.matricule || '—' }}</td>
-                <td data-label="Promotion">{{ promotion(student) || '—' }}</td>
-                <td data-label="Faculté">{{ student.faculty_name || '—' }}</td>
-                <td data-label="E-mail">{{ student.email || '—' }}</td>
+                }
                 <td class="row-actions-cell">
                     <div class="row-actions">
                         <button pButton type="button" icon="pi pi-arrow-right" [rounded]="true" [text]="true" size="small"
@@ -74,7 +66,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="6">Aucun étudiant trouvé.</td>
+                <td [attr.colspan]="shownList().length + 1">Aucun étudiant trouvé.</td>
             </tr>
         </ng-template>
     </p-table>
